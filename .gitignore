@@ -1,0 +1,69 @@
+# ===================================================
+# Credenciais, Chaves de API e Variáveis de Ambiente
+# ===================================================
+.env
+.env.*
+!.env.example
+credentials.json
+client_secret*.json
+*.pem
+*.key
+
+# ===================================================
+# Cache do Python e Compilação
+# ===================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# ===================================================
+# Ambientes Virtuais
+# ===================================================
+venv/
+.venv/
+env/
+ENV/
+
+# ===================================================
+# IDEs e Editores
+# ===================================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# ===================================================
+# Sistema Operacional
+# ===================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===================================================
+# Dados Temporários, Logs e Arquivos Pesados (> 1MB)
+# ===================================================
+*.log
+temp_colleague_repo/
+scratch/
+*.zip
+*.tar.gz
+*.rar
+
+# Arquivos brutos de Shapefile do SICAR
+*.shp
+*.shx
+*.dbf
+*.cst
+*.prj
+
+# Base local de amostra pesada do CAR de Roraima (4.1MB)
+imoveis_rr_sample.json
