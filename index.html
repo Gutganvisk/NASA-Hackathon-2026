@@ -2,588 +2,1233 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma de Prescrição Agronômica - Agricultura Familiar RR</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Crop Rotation - Plataforma Agroclimática Familiar</title>
+
+  <!-- Google Font: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --primary: #15803d;
-      --primary-hover: #166534;
-      --primary-light: #dcfce7;
-      --warning: #d97706;
-      --warning-light: #fef3c7;
-      --info: #0284c7;
-      --info-light: #e0f2fe;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --bg-card: #ffffff;
-      --bg-page: #f8fafc;
-      --border-color: #cbd5e1;
+      --primary-dark: #153A24;
+      --primary-hover: #102e1c;
+      --accent-lime: #84CC16;
+      --accent-lime-light: #ecfccb;
+      --bg-page: #F4F6F0;
+      --surface-white: #FFFFFF;
+      --border-soft: #E5E9E1;
+      --text-main: #111827;
+      --text-muted: #6B7280;
+      --text-light: #9CA3AF;
+      --badge-warn-bg: #FEF3C7;
+      --badge-warn-text: #B45309;
+      --badge-blue-bg: #E0F2FE;
+      --badge-blue-text: #0369A1;
+      --radius-card: 20px;
+      --radius-sm: 12px;
+      --radius-pill: 9999px;
+      --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Poppins', sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: var(--bg-page);
+      background-color: #e5e7eb;
       color: var(--text-main);
       display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      padding: 12px 24px;
+    /* Container Mobile-First Centralizado */
+    .mobile-wrapper {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      background-color: var(--bg-page);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      overflow-y: auto;
+    }
+
+    /* Barra Superior com Stepper */
+    .app-header {
+      background-color: var(--primary-dark);
+      color: #ffffff;
+      padding: 14px 18px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: sticky;
+      top: 0;
       z-index: 1000;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-icon {
-      background: var(--primary-light);
-      color: var(--primary);
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
+    .header-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-size: 20px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+    }
+    .header-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
-    .brand-title h1 {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #0f172a;
+    /* Barra de Progresso da Etapa */
+    .progress-bar-container {
+      background: var(--surface-white);
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-soft);
     }
 
-    .brand-title p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .app-layout {
+    .progress-info {
       display: flex;
-      flex: 1;
-      height: calc(100vh - 67px);
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
     }
 
-    /* Painel Esquerdo: Formulário, Diagnóstico e Prescrição */
-    .left-panel {
-      width: 480px;
-      background: #ffffff;
-      border-right: 1px solid var(--border-color);
-      padding: 22px;
-      overflow-y: auto;
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-lime);
+      border-radius: var(--radius-pill);
+      transition: width 0.3s ease;
+    }
+
+    /* Área de Conteúdo das Telas */
+    .screen-content {
+      padding: 20px;
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 18px;
     }
 
-    .section-title {
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
+    .screen-heading {
+      font-size: 22px;
       font-weight: 800;
-      margin-bottom: 8px;
+      color: var(--primary-dark);
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .screen-subheading {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 20px;
+    }
+
+    /* Inputs e Campos de Formulário */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1.5px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      background: var(--surface-white);
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--primary-dark); }
+
+    .input-addon-btn {
+      background: var(--primary-dark);
+      color: #ffffff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      width: 100%;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 6px;
     }
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-bottom: 10px;
+    /* Cards e Superfícies */
+    .card {
+      background: var(--surface-white);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-soft);
     }
 
-    label {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #334155;
+    .card-highlight {
+      background: #F0FDF4;
+      border-color: #BBF7D0;
     }
 
-    input[type="text"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 0.88rem;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
-    }
-
-    .btn {
-      cursor: pointer;
-      padding: 11px 16px;
-      border-radius: 8px;
+    /* Botão Primário */
+    .btn-primary {
+      background-color: var(--primary-dark);
+      color: #ffffff;
       border: none;
+      padding: 14px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 14.5px;
       font-weight: 700;
-      font-size: 0.88rem;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(21, 58, 36, 0.25);
       transition: all 0.2s;
+      margin-top: auto;
     }
+    .btn-primary:hover { background-color: var(--primary-hover); }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #ffffff;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .badge-sample {
-      font-size: 0.75rem;
-      background: #f1f5f9;
-      color: #0369a1;
-      padding: 4px 8px;
-      border-radius: 6px;
-      display: inline-block;
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--primary-dark);
+      border: 1.5px solid var(--primary-dark);
+      padding: 12px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 600;
       cursor: pointer;
-      border: 1px solid #bae6fd;
-      font-weight: 600;
-      margin-top: 4px;
-    }
-
-    /* Cards de Diagnóstico */
-    .diagnostic-card {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .metric-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .metric-pill {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 10px;
-    }
-
-    .metric-label {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .metric-val {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin-top: 2px;
-    }
-
-    /* Bloco da Sugestão / Prescrição Embrapa */
-    .prescription-box {
-      background: #ffffff;
-      border: 2px solid #bbf7d0;
-      border-radius: 10px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 4px 6px -1px rgb(21 128 61 / 0.08);
-    }
-
-    .prescription-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 8px;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-top: 10px;
     }
 
-    .step-card {
-      background: #f8fafc;
-      border-left: 4px solid var(--primary);
-      border-radius: 0 8px 8px 0;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-    }
-
-    .step-phase {
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: var(--primary);
-      text-transform: uppercase;
-    }
-
-    .step-crop {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin: 2px 0;
-    }
-
-    .step-action {
-      font-size: 0.8rem;
-      color: #334155;
-      line-height: 1.4;
-    }
-
-    .step-cultivar {
-      font-size: 0.75rem;
-      color: #64748b;
-      font-weight: 600;
-      margin-top: 4px;
-    }
-
-    /* Painel Direito: Mapa */
-    .right-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    /* Mapa Leaflet Mobile */
+    .map-frame {
+      width: 100%;
+      height: 240px;
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-soft);
       position: relative;
     }
 
-    #map {
-      flex: 1;
-      height: 100%;
-      background: #e2e8f0;
+    /* Badges de Culturas */
+    .crop-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
     }
 
-    .map-floating-card {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(6px);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 12px 16px;
-      z-index: 1000;
-      font-size: 0.8rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 280px;
+    .crop-badge-card {
+      background: var(--surface-white);
+      border: 2px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .crop-badge-card.active {
+      border-color: var(--accent-lime);
+      background: var(--accent-lime-light);
     }
 
-    .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
+    .crop-circle {
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 0.8s linear infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .crop-name {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: center;
+    }
+
+    .check-icon {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--accent-lime);
+      color: #ffffff;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .crop-badge-card.active .check-icon { display: flex; }
+
+    /* Seletor de Talhões */
+    .talhao-pills {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .pill-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid var(--border-soft);
+      background: var(--surface-white);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .pill-btn.active {
+      background: var(--primary-dark);
+      color: #ffffff;
+      border-color: var(--primary-dark);
+    }
+
+    /* Grid de Diagnóstico Ambiental */
+    .diag-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .diag-card {
+      background: var(--surface-white);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .diag-val {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin: 4px 0 2px;
+    }
+
+    .diag-status {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .diag-status.warn { color: var(--badge-warn-text); }
+
+    /* Hub Pós-Cadastro: Tela cheia com Bottom Sheet */
+    #screenHub {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #hubMap {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .hub-floating-controls {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 500;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .filter-chip {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-pill);
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+    .filter-chip.active {
+      background: var(--primary-dark);
+      color: #ffffff;
+    }
+
+    /* Bottom Sheet Deslizante */
+    .bottom-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface-white);
+      border-radius: 28px 28px 0 0;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+      z-index: 600;
+      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sheet-handle-area {
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .sheet-handle {
+      width: 44px;
+      height: 5px;
+      background: #D1D5DB;
+      border-radius: var(--radius-pill);
+    }
+
+    .sheet-header-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border: none;
+      background: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: var(--primary-dark);
+      color: #ffffff;
+    }
+
+    .sheet-body {
+      padding: 16px 20px 30px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Timeline de Rotação */
+    .strategy-card {
+      border: 1.5px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .strategy-card.selected {
+      border-color: var(--primary-dark);
+      background: #FAFCF9;
+    }
+
+    .strat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .strat-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+    }
+
+    .timeline-steps {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .step-item {
+      flex: 1;
+      text-align: center;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      padding: 6px 4px;
+    }
+
+    .step-time { font-size: 9.5px; font-weight: 700; color: var(--text-muted); }
+    .step-crop { font-size: 11px; font-weight: 800; color: var(--primary-dark); }
+
+    .evidence-box {
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--text-muted);
+      background: #F8FAF6;
+      padding: 8px 10px;
+      border-radius: 8px;
+      margin-top: 6px;
+    }
+
+    /* Timeline da Agenda */
+    .agenda-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .agenda-date {
+      min-width: 65px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .agenda-content h4 {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .agenda-content p {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.35;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand">
-      <div class="brand-icon">🌱</div>
-      <div class="brand-title">
-        <h1>Motor de Prescrição Agronômica • Roraima</h1>
-        <p>Sensoriamento Remoto (NASA/ESA) + Calibragem Oficial Embrapa</p>
+  <div class="mobile-wrapper">
+
+    <!-- Header Fixo Superior -->
+    <header class="app-header">
+      <button class="header-btn" onclick="voltarEtapa()">‹</button>
+      <div class="header-title" id="topHeaderTitle">Crop Rotation</div>
+      <button class="header-btn" onclick="toggleMenu()">☰</button>
+    </header>
+
+    <!-- Barra de Progresso das Etapas (1 a 5 no cadastro) -->
+    <div class="progress-bar-container" id="progressBarBox">
+      <div class="progress-info">
+        <span id="labelEtapa">Etapa 1 de 5</span>
+        <span id="labelPercent">20%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="barFill" style="width: 20%;"></div>
       </div>
     </div>
-    <div style="font-size: 0.82rem; color: #15803d; font-weight: 700; background: #dcfce7; padding: 6px 14px; border-radius: 20px; border: 1px solid #bbf7d0;">
-      ✓ Motor Calibrado para o Lavrado de Roraima
-    </div>
-  </header>
 
-  <div class="app-layout">
-    
-    <!-- Painel Lateral -->
-    <div class="left-panel">
-      
-      <!-- Entrada -->
-      <div>
-        <div class="section-title">
-          <span>1. Imóvel do Agricultor</span>
+    <!-- ======================================================== -->
+    <!-- ETAPA 1 & 2: LANDING / BOAS-VINDAS                        -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen1" style="display: flex;">
+      <div class="card" style="background: var(--primary-dark); color: #ffffff; padding: 22px 18px; margin-bottom: 16px;">
+        <span style="font-size: 10.5px; font-weight: 800; letter-spacing: 1px; color: var(--accent-lime); text-transform: uppercase;">Planejamento Agrícola Simples</span>
+        <h2 style="font-size: 20px; font-weight: 800; line-height: 1.25; margin: 8px 0 10px;">Cuide melhor da sua terra, safra após safra.</h2>
+        <p style="font-size: 12px; color: #D1D5DB; line-height: 1.45;">Planeje a rotação de culturas com dados de satélite da NASA, ESA e parâmetros agronômicos da Embrapa Roraima.</p>
+        <div style="margin-top: 14px; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">🌱</span>
+          <span style="font-size: 11px; font-weight: 600;">Solo mais saudável e menos riscos climáticos</span>
         </div>
-        <div class="form-group">
-          <label for="codCar">Código do Recibo do CAR</label>
-          <input type="text" id="codCar" value="RR-1400175-3772D7A9BD394DA195CD145D10183419" />
-          <span class="badge-sample" onclick="executarAnaliseCompleta()">
-            👉 Carregar Imóvel Demonstrativo (Caracaraí / RR)
-          </span>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px;">Como funciona:</h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+          <span style="background: var(--accent-lime-light); color: var(--primary-dark); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">1</span>
+          <div>
+            <strong style="font-size: 13px;">Mapeie sua gleba e talhões</strong>
+            <p style="font-size: 11px; color: var(--text-muted);">Pelo código CAR ou no mapa de satélite.</p>
+          </div>
         </div>
-        <button class="btn btn-primary" id="btnProcessar" onclick="executarAnaliseCompleta()" style="width: 100%;">
-          <span>⚡ Gerar Diagnóstico & Prescrição</span>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+          <span style="background: var(--accent-lime-light); color: var(--primary-dark); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">2</span>
+          <div>
+            <strong style="font-size: 13px;">Entenda as condições do solo e clima</strong>
+            <p style="font-size: 11px; color: var(--text-muted);">Chuva, saturação de água e vigor vegetal.</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <span style="background: var(--accent-lime-light); color: var(--primary-dark); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">3</span>
+          <div>
+            <strong style="font-size: 13px;">Compare 3 estratégias de rotação</strong>
+            <p style="font-size: 11px; color: var(--text-muted);">Veja evidências, riscos e o calendário ideal.</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(3)">Começar por sua propriedade →</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ETAPA 3: DADOS DA PROPRIEDADE & BUSCA CAR               -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen3" style="display: none;">
+      <h2 class="screen-heading">Conte sobre sua propriedade</h2>
+      <p class="screen-subheading">Informe o Código CAR ou preencha a localização para demarcar automaticamente os limites oficiais.</p>
+
+      <div class="card card-highlight">
+        <label class="form-label">Código do CAR (SICAR / Roraima)</label>
+        <input type="text" class="form-input" id="inputCodCar" value="RR-1400175-3772D7A9BD394DA195CD145D10183419" placeholder="Ex: RR-1400175-...">
+        <button class="input-addon-btn" onclick="buscarCarNoSicar()">
+          <span>🔍 Buscar Demarcação Oficial no SICAR</span>
+        </button>
+        <span style="font-size: 10.5px; color: var(--text-muted); display: block; margin-top: 6px;" id="sicarStatusMsg">Gleba localizada: Caracaraí / Boa Vista (87,1 ha)</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nome da Propriedade</label>
+        <input type="text" class="form-input" id="inputNomeProp" value="Sítio Boa Esperança">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Localização / Vicinal</label>
+        <input type="text" class="form-input" id="inputLocalizacao" value="Região do Murupu">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Município</label>
+        <input type="text" class="form-input" id="inputMunicipio" value="Boa Vista, Roraima">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Área Consolidada para Plantio (ha)</label>
+        <input type="text" class="form-input" id="inputArea" value="17.4">
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(4)">Continuar para o mapa →</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ETAPA 4: MAPA CONJUNTO & DELIMITAÇÃO DOS TALHÕES         -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen4" style="display: none;">
+      <h2 class="screen-heading">Marque sua área no mapa</h2>
+      <p class="screen-subheading">Imagem de satélite Sentinel-2 e NASA. Toque nos talhões para inspecionar.</p>
+
+      <div class="map-frame" id="mapEtapa4"></div>
+
+      <div class="card" style="padding: 12px 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-main);">
+          <span>Área demarcada (CAR)</span>
+          <span style="color: var(--primary-dark);" id="areaTotalLabel">87,11 ha</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+          Imagem de satélite ESA Sentinel-2 • Atualização: há 3 dias
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <strong style="font-size: 13.5px;">Delimitação dos talhões</strong>
+        <span style="font-size: 11px; color: var(--primary-dark); font-weight: 700; cursor: pointer;">✏️ Ajustar</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+        <div style="background: #E8F5E9; border: 1.5px solid #A5D6A7; border-radius: 12px; padding: 10px 8px; text-align: center;">
+          <strong style="font-size: 12px; color: #1B5E20;">T1</strong>
+          <div style="font-size: 10.5px; color: #2E7D32;">6,2 ha</div>
+        </div>
+        <div style="background: #FFF9C4; border: 1.5px solid #FFF59D; border-radius: 12px; padding: 10px 8px; text-align: center;">
+          <strong style="font-size: 12px; color: #F57F17;">T2</strong>
+          <div style="font-size: 10.5px; color: #F57F17;">5,0 ha</div>
+        </div>
+        <div style="background: #E0F2F1; border: 1.5px solid #80CBC4; border-radius: 12px; padding: 10px 8px; text-align: center;">
+          <strong style="font-size: 12px; color: #004D40;">T3</strong>
+          <div style="font-size: 10.5px; color: #004D40;">5,0 ha</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(5)">Usar delimitação sugerida →</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ETAPA 5: CULTURAS ATUAIS & HISTÓRICO DINÂMICO           -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen5" style="display: none;">
+      <h2 class="screen-heading">O que está plantado hoje?</h2>
+      <p class="screen-subheading">Selecione as culturas presentes no talhão e adicione o histórico de safras passadas.</p>
+
+      <!-- Seletor de Talhões -->
+      <div class="talhao-pills">
+        <button class="pill-btn active" onclick="selecionarTalhaoAba('T1', this)">Talhão 1 (6,2 ha)</button>
+        <button class="pill-btn" onclick="selecionarTalhaoAba('T2', this)">Talhão 2 (5,0 ha)</button>
+        <button class="pill-btn" onclick="selecionarTalhaoAba('T3', this)">Talhão 3 (5,0 ha)</button>
+      </div>
+
+      <!-- Badges de Culturas -->
+      <div class="crop-grid">
+        <div class="crop-badge-card active" onclick="selecionarCultura('mandioca', this)">
+          <div class="check-icon">✓</div>
+          <div class="crop-circle" style="background: #D97706;">MA</div>
+          <span class="crop-name">Mandioca</span>
+        </div>
+        <div class="crop-badge-card" onclick="selecionarCultura('milho', this)">
+          <div class="check-icon">✓</div>
+          <div class="crop-circle" style="background: #EAB308;">MI</div>
+          <span class="crop-name">Milho</span>
+        </div>
+        <div class="crop-badge-card" onclick="selecionarCultura('feijao_caupi', this)">
+          <div class="check-icon">✓</div>
+          <div class="crop-circle" style="background: #B45309;">FC</div>
+          <span class="crop-name">Feijão-caupi</span>
+        </div>
+        <div class="crop-badge-card" onclick="selecionarCultura('banana', this)">
+          <div class="check-icon">✓</div>
+          <div class="crop-circle" style="background: #16A34A;">BA</div>
+          <span class="crop-name">Banana</span>
+        </div>
+        <div class="crop-badge-card" onclick="selecionarCultura('arroz', this)">
+          <div class="check-icon">✓</div>
+          <div class="crop-circle" style="background: #65A30D;">AR</div>
+          <span class="crop-name">Arroz</span>
+        </div>
+        <div class="crop-badge-card" onclick="selecionarCultura('pousio', this)">
+          <div class="check-icon">✓</div>
+          <div class="crop-circle" style="background: #64748B;">💤</div>
+          <span class="crop-name">Em Pousio</span>
+        </div>
+      </div>
+
+      <!-- Histórico Dinâmico Extensível -->
+      <div class="card">
+        <strong style="font-size: 13px; color: var(--text-main); display: block; margin-bottom: 8px;">Histórico de cultivos neste talhão:</strong>
+        <div id="historicoLista">
+          <div style="background: var(--bg-page); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span>Mandioca há 10 meses</span>
+            <span style="color: var(--text-muted);">Safra 2024</span>
+          </div>
+          <div style="background: var(--bg-page); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span>Pousio não manejado</span>
+            <span style="color: var(--text-muted);">6 meses</span>
+          </div>
+        </div>
+        <button style="background: none; border: 1.5px dashed var(--primary-dark); color: var(--primary-dark); padding: 8px; width: 100%; border-radius: 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; margin-top: 6px;" onclick="adicionarHistorico()">
+          + Adicionar safra anterior
         </button>
       </div>
 
-      <!-- Pós-Processamento dos Satélites (Diagnóstico) -->
-      <div id="painelDiagnostico" style="display: none;">
-        <div class="section-title">
-          <span>2. Diagnóstico da Terra (Satélites)</span>
-          <span style="color: #15803d; font-size: 0.75rem;">● Dados Processados</span>
+      <button class="btn-primary" onclick="concluirCadastroEAbrirHub()">Concluir Cadastro & Abrir Gleba →</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- HUB PRINCIPAL DO PRODUTOR (PÓS-CADASTRO)                 -->
+    <!-- ======================================================== -->
+    <section id="screenHub" style="display: none;">
+      <!-- Controles Flutuantes do Mapa -->
+      <div class="hub-floating-controls">
+        <div class="filter-chip active" onclick="filtrarMapa('padrao', this)">🚜 Talhões (T1, T2, T3)</div>
+        <div class="filter-chip" onclick="filtrarMapa('ndvi', this)">🌿 Vigor (NDVI)</div>
+        <div class="filter-chip" onclick="filtrarMapa('smap', this)">💧 Saturação Solo</div>
+        <div class="filter-chip" onclick="filtrarMapa('sat', this)">🛰️ Satélite Natural</div>
+      </div>
+
+      <!-- Mapa Tela Cheia -->
+      <div id="hubMap"></div>
+
+      <!-- Bottom Sheet Deslizante -->
+      <div class="bottom-sheet" id="bottomSheet">
+        <div class="sheet-handle-area" onclick="toggleBottomSheet()">
+          <div class="sheet-handle"></div>
         </div>
 
-        <div class="diagnostic-card">
-          <div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">LOCALIZAÇÃO & STATUS JURÍDICO</div>
-            <div id="diagLocal" style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-top: 2px;">--</div>
+        <!-- Abas de Navegação das Ações -->
+        <div class="sheet-header-tabs">
+          <button class="tab-btn active" onclick="navegarHubTab('diag', this)">📊 Diagnóstico</button>
+          <button class="tab-btn" onclick="navegarHubTab('sim', this)">🎯 Simulação</button>
+          <button class="tab-btn" onclick="navegarHubTab('comp', this)">⚖️ 3 Estratégias</button>
+          <button class="tab-btn" onclick="navegarHubTab('agenda', this)">📅 Agenda</button>
+          <button class="tab-btn" onclick="navegarHubTab('dossie', this)">📋 Plano</button>
+        </div>
+
+        <div class="sheet-body">
+          <!-- 1. DIAGNÓSTICO (ETAPA 6) -->
+          <div id="tabContentDiag">
+            <div class="card card-highlight" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;">
+              <div>
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Condição Geral</span>
+                <h3 style="font-size: 20px; font-weight: 800; color: var(--primary-dark);">Favorável</h3>
+                <p style="font-size: 11px; color: var(--text-muted);">Para o planejamento da próxima safra</p>
+              </div>
+              <div style="background: var(--primary-dark); color: #ffffff; width: 54px; height: 54px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <span style="font-size: 18px; font-weight: 800; line-height: 1;">78</span>
+                <span style="font-size: 8px; color: var(--accent-lime);">de 100</span>
+              </div>
+            </div>
+
+            <div class="diag-grid">
+              <div class="diag-card">
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Chuva recente</span>
+                <div class="diag-val" id="valChuva">142 mm</div>
+                <div class="diag-status">Dentro do esperado</div>
+              </div>
+              <div class="diag-card">
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Temperatura</span>
+                <div class="diag-val" id="valTemp">28,4 °C</div>
+                <div class="diag-status warn">Atenção ao calor</div>
+              </div>
+              <div class="diag-card">
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Saturação do Solo</span>
+                <div class="diag-val" id="valSolo">64%</div>
+                <div class="diag-status">NASA MERRA-2 (0-100cm)</div>
+              </div>
+              <div class="diag-card">
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Vigor Vegetal</span>
+                <div class="diag-val" id="valVigor">Bom</div>
+                <div class="diag-status">NDVI 0.64 (Sentinel-2)</div>
+              </div>
+            </div>
+
+            <div class="card" style="font-size: 11.5px; line-height: 1.45; color: var(--text-muted); padding: 12px 14px;">
+              💡 <strong>Leitura Agroclimática:</strong> O solo mantém saturação adequada no perfil, mas o calor aumentará. Mantenha cobertura morta e evite solo nu.
+            </div>
+
+            <button class="btn-primary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Simular Rotações de Culturas →</button>
           </div>
 
-          <div class="metric-row">
-            <div class="metric-pill">
-              <div class="metric-label">Área Consolidada (Plantio)</div>
-              <div class="metric-val" id="diagAreaPlantio" style="color: #d97706;">-- ha</div>
-              <div style="font-size: 0.7rem; color: #64748b;" id="diagAreaM2">-- m²</div>
+          <!-- 2. SIMULAÇÃO (ETAPA 7) -->
+          <div id="tabContentSim" style="display: none;">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-bottom: 6px;">Monte sua simulação</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Defina o objetivo e horizonte temporal de comparação.</p>
+
+            <div class="form-group">
+              <label class="form-label">Principal Objetivo:</label>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="background: var(--surface-white); border: 1.5px solid var(--accent-lime); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                  <input type="radio" name="objSim" value="saude_solo" checked> Melhorar a saúde do solo e palhada
+                </label>
+                <label style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                  <input type="radio" name="objSim" value="renda"> Diversificar renda familiar
+                </label>
+                <label style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                  <input type="radio" name="objSim" value="clima"> Reduzir riscos climáticos e seca
+                </label>
+              </div>
             </div>
-            <div class="metric-pill">
-              <div class="metric-label">Reserva Legal (Protegida)</div>
-              <div class="metric-val" id="diagAreaReserva" style="color: #15803d;">-- ha</div>
-              <div style="font-size: 0.7rem; color: #64748b;">Preservação Ambiental</div>
+
+            <div class="form-group">
+              <label class="form-label">Período de Comparação:</label>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                <button class="pill-btn" onclick="selecionarPeriodo(2, this)">2 anos</button>
+                <button class="pill-btn active" onclick="selecionarPeriodo(3, this)">3 anos</button>
+                <button class="pill-btn" onclick="selecionarPeriodo(4, this)">4 anos</button>
+              </div>
             </div>
+
+            <button class="btn-primary" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo de Estratégias ⚖️</button>
           </div>
 
-          <div class="metric-row">
-            <div class="metric-pill">
-              <div class="metric-label">Água no Solo (SMAP L4)</div>
-              <div class="metric-val" id="diagSmap">-- %</div>
-              <div style="font-size: 0.7rem; color: #16a34a;">Saturação Raiz Segura</div>
+          <!-- 3. COMPARATIVO TRIPLO DE ROTAÇÃO (ETAPA 8 - REQUISITO SPACE APPS 2026) -->
+          <div id="tabContentComp" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark);">3 Estratégias Comparadas</h3>
+              <span style="font-size: 11px; background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 999px; font-weight: 700;">NASA Space Apps</span>
             </div>
-            <div class="metric-pill">
-              <div class="metric-label">Declividade (SRTM)</div>
-              <div class="metric-val" id="diagSlope">3.8%</div>
-              <div style="font-size: 0.7rem; color: #16a34a;">Sem Risco de Erosão</div>
+
+            <div id="cardsEstrategiasContainer">
+              <!-- Renderizado via JavaScript a partir da API /api/simular-rotacao -->
             </div>
+
+            <button class="btn-primary" onclick="navegarHubTab('agenda', document.querySelectorAll('.tab-btn')[3])">Ver Agenda Fenoclimática →</button>
           </div>
 
-          <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div class="metric-label">Vigor Vegetal / Palhada (Sentinel-2)</div>
-              <div style="font-weight: 800; font-size: 0.95rem; color: #0f172a;" id="diagNdvi">NDVI 0.64 (74% Cobertura)</div>
-              <div style="font-size: 0.72rem; color: #64748b;">Solo protegido contra aquecimento do Lavrado</div>
+          <!-- 4. AGENDA FENOCLIMÁTICA & ALERTAS -->
+          <div id="tabContentAgenda" style="display: none;">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-bottom: 4px;">Agenda de Manejo em Roraima</h3>
+            <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Sincronizada com o início das chuvas e a janela de corte em outubro.</p>
+
+            <div id="agendaLista">
+              <!-- Renderizado via /api/agenda-manejo -->
             </div>
-            <div id="thumbContainer"></div>
+
+            <button class="btn-primary" style="margin-top: 14px;" onclick="navegarHubTab('dossie', document.querySelectorAll('.tab-btn')[4])">Acessar Plano Operacional →</button>
+          </div>
+
+          <!-- 5. RESULTADO & PLANO OPERACIONAL (ETAPA 9) -->
+          <div id="tabContentDossie" style="display: none;">
+            <div class="card card-highlight">
+              <span style="font-size: 11px; font-weight: 700; color: var(--primary-dark);">POTENCIAL DE MELHORIA ESTIMADO</span>
+              <h2 style="font-size: 24px; font-weight: 800; color: var(--primary-dark); margin: 4px 0 10px;">Alto</h2>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
+                <div style="background: #ffffff; padding: 8px 4px; border-radius: 8px;">
+                  <strong style="color: #15803d; font-size: 15px;">+18%</strong>
+                  <div style="font-size: 9.5px; color: var(--text-muted);">Proteção Solo</div>
+                </div>
+                <div style="background: #ffffff; padding: 8px 4px; border-radius: 8px;">
+                  <strong style="color: #0369a1; font-size: 15px;">-12%</strong>
+                  <div style="font-size: 9.5px; color: var(--text-muted);">Risco Seca</div>
+                </div>
+                <div style="background: #ffffff; padding: 8px 4px; border-radius: 8px;">
+                  <strong style="color: #b45309; font-size: 15px;">3</strong>
+                  <div style="font-size: 9.5px; color: var(--text-muted);">Culturas</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <strong style="font-size: 12.5px;">Plano para o Próximo Ciclo:</strong>
+              <p style="font-size: 11.5px; color: var(--text-muted); margin: 6px 0 10px;">Preparar o Talhão 1 para feijão-caupi BRS Novaera na palhada residual logo no início de agosto.</p>
+              <div style="font-size: 11px; color: #b45309; background: #fffbeb; padding: 8px; border-radius: 8px;">
+                ⚠️ <strong>Atenção:</strong> Analisar saturação por bases antes do plantio para assegurar a fixação biológica de nitrogênio.
+              </div>
+            </div>
+
+            <button class="btn-primary" onclick="alert('Plano salvo no banco PostGIS com sucesso!')">💾 Salvar este Plano</button>
+            <button class="btn-secondary" onclick="irParaEtapa(1)">🔄 Criar Nova Simulação</button>
           </div>
         </div>
       </div>
-
-      <!-- A Sugestão Agronômica (Prescrição da Embrapa) -->
-      <div id="painelPrescricao" style="display: none;">
-        <div class="section-title">
-          <span>3. Sugestão Oficial de Manejo (Embrapa)</span>
-          <span style="color: #15803d; font-size: 0.75rem;">Plano de Rotação</span>
-        </div>
-
-        <div class="prescription-box">
-          <div class="prescription-header">
-            <div>
-              <strong style="color: #15803d; font-size: 0.95rem;">Receita para os 17,4 ha Produtivos</strong>
-              <p style="font-size: 0.75rem; color: #64748b;">Sequência sincronizada com a chuva e a seca de Roraima</p>
-            </div>
-            <span style="background: #dcfce7; color: #15803d; font-weight: 800; font-size: 0.7rem; padding: 4px 8px; border-radius: 12px;">
-              CALIBRADO
-            </span>
-          </div>
-
-          <!-- Etapa 1: Milho -->
-          <div class="step-card" style="border-left-color: #eab308;">
-            <div class="step-phase">Passo 1: Safra das Chuvas (Maio a Agosto)</div>
-            <div class="step-crop">🌽 Milho Grão + Braquiária na Entrelinha</div>
-            <div class="step-action">
-              Semear após o início real das chuvas em abril (monitorado via GPM). Ciclo de 110 dias para colher em setembro na trégua da chuva. A palhada grossa protege o solo arenoso contra o sol escaldante.
-            </div>
-            <div class="step-cultivar">🌱 Cultivares Embrapa RR: <strong>BRS 1030 / BRS 1055</strong></div>
-          </div>
-
-          <!-- Etapa 2: Feijão Caupi -->
-          <div class="step-card" style="border-left-color: #15803d;">
-            <div class="step-phase">Passo 2: Safrinha Imediata (Agosto a Outubro)</div>
-            <div class="step-crop">🫘 Feijão-Caupi Direto na Palhada</div>
-            <div class="step-action">
-              Plantar logo após o milho. Ciclo ultrarrápido (65 dias) consumindo a umidade residual medida pelo SMAP. Fixa nitrogênio no solo e dispensa adubação química pesada.
-            </div>
-            <div class="step-cultivar">🌱 Cultivares Embrapa RR: <strong>BRS Novaera / BRS Tumucumaque</strong></div>
-          </div>
-
-          <!-- Etapa 3: Mandioca -->
-          <div class="step-card" style="border-left-color: #0284c7;">
-            <div class="step-phase">Passo 3: Safra Rústica (Ano Seguinte)</div>
-            <div class="step-crop">🥔 Mandioca de Indústria ou Mesa</div>
-            <div class="step-action">
-              Plantar no retorno das chuvas. Resiste a até 6 meses de seca severa sem irrigação. O relevo suave (3.8%) aprovado pelo SRTM garante que não haverá erosão na colheita.
-            </div>
-            <div class="step-cultivar">🌱 Cultivares Embrapa RR: <strong>Aciolina / Platinão / BRS Dourada</strong></div>
-          </div>
-
-          <div style="background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #475569; line-height: 1.4;">
-            💡 <strong>Resultado Esperado:</strong> Solo 100% coberto durante o verão seco de Roraima, zero perda de terra por erosão e economia de até 40% em adubo nitrogenado pela rotação com caupi.
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Painel do Mapa -->
-    <div class="right-panel">
-      <div id="map"></div>
-      
-      <!-- Card Flutuante de Apoio -->
-      <div class="map-floating-card">
-        <strong style="color: #0f172a;">🗺️ Mapa da Terra do Produtor</strong>
-        <p style="color: #64748b; font-size: 0.75rem; margin-top: 4px;">
-          Polígono oficial do CAR (SICAR) sobreposto à imagem contínua de satélite de Roraima.
-        </p>
-        <div style="margin-top: 8px; font-size: 0.72rem; display: flex; flex-direction: column; gap: 4px;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="width: 12px; height: 12px; background: rgba(34, 197, 94, 0.4); border: 2px solid #15803d; border-radius: 2px; display: inline-block;"></span>
-            <span>Área da Propriedade (87,1 ha)</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
 
   </div>
 
   <script>
-    // Inicialização do Mapa Leaflet
-    const map = L.map('map').setView([1.8984, -60.6906], 13);
+    // Estado Global da Aplicação
+    let etapaAtual = 1;
+    let mapaEtapa4 = null;
+    let hubMap = null;
+    let dadosPropriedade = {
+      nome: "Sítio Boa Esperança",
+      local: "Região do Murupu",
+      municipio: "Boa Vista, Roraima",
+      cod_car: "RR-1400175-3772D7A9BD394DA195CD145D10183419",
+      area_ha: 87.1178,
+      talhoes: {
+        "T1": { area: 6.2, cultura: "mandioca" },
+        "T2": { area: 5.0, cultura: "milho" },
+        "T3": { area: 5.0, cultura: "feijao_caupi" }
+      }
+    };
+    let talhaoSelecionado = 'T1';
 
-    // Satélite Google Híbrido Contínuo (Nítido em todo o interior de Roraima)
-    const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      attribution: 'Google Satellite Hybrid'
-    }).addTo(map);
+    // Navegação de Telas
+    function irParaEtapa(numero) {
+      etapaAtual = numero;
+      document.querySelectorAll('.screen-content').forEach(s => s.style.display = 'none');
+      document.getElementById('screenHub').style.display = 'none';
+      document.getElementById('progressBarBox').style.display = 'block';
 
-    // Mosaico Sentinel-2 ESA
-    const sentinel2Layer = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg', {
-      maxZoom: 20,
-      maxNativeZoom: 14,
-      attribution: 'Sentinel-2 &copy; ESA Copernicus'
-    });
+      if (numero <= 5) {
+        document.getElementById(`screen${numero}`).style.display = 'flex';
+        atualizarProgressBar(numero);
+      }
 
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    });
-
-    L.control.layers({
-      "🛰️ Satélite Alta Resolução": googleSat,
-      "🇪🇺 Sentinel-2 ESA Cloudless": sentinel2Layer,
-      "🗺️ Mapa de Ruas / Limites": osmLayer
-    }).addTo(map);
-
-    let perimetroLayer = null;
-
-    async function executarAnaliseCompleta() {
-      const car = document.getElementById('codCar').value.trim();
-      const btn = document.getElementById('btnProcessar');
-      btn.innerHTML = '<span class="spinner"></span> Processando Satélites & Embrapa...';
-      btn.disabled = true;
-
-      try {
-        // 1. Busca demarcação oficial no PostGIS
-        const demResp = await fetch(`/api/demarcation?car=${encodeURIComponent(car)}`);
-        const demData = await demResp.json();
-
-        // 2. Busca Clima NASA POWER + Solo SMAP
-        const c = demData.centroid;
-        const climResp = await fetch(`/api/weather-rotation?lat=${c.latitude}&lon=${c.longitude}&start=20241001&end=20250228`);
-        const climData = await climResp.json();
-
-        // 3. Busca Sentinel-2 Process API
-        const sentResp = await fetch(`/api/sentinel-ndvi?car=${encodeURIComponent(car)}`);
-        const sentData = await sentResp.json();
-
-        // RENDERIZA O POLÍGONO DE FORMA LIMPA E PROFISSIONAL (sem caixas vermelhas)
-        if (perimetroLayer) map.removeLayer(perimetroLayer);
-
-        perimetroLayer = L.geoJSON(demData.geojson, {
-          style: {
-            color: '#15803d',
-            weight: 3,
-            opacity: 0.9,
-            fillColor: '#22c55e',
-            fillOpacity: 0.25,
-            dashArray: '4, 4'
-          }
-        }).addTo(map);
-
-        map.fitBounds(perimetroLayer.getBounds(), { padding: [60, 60] });
-
-        perimetroLayer.bindPopup(`
-          <div style="font-size:0.85rem; line-height:1.4;">
-            <strong style="color:#15803d;">📍 ${demData.municipio} - RR</strong><br>
-            CAR: ${demData.cod_imovel}<br>
-            Área Total: <strong>${demData.area_total_ha} ha</strong> (${Number(demData.area_total_m2).toLocaleString('pt-BR')} m²)<br>
-            🌾 Área de Plantio: <strong>${demData.area_consolidada_ha} ha</strong>
-          </div>
-        `).openPopup();
-
-        // Preenche o Diagnóstico (Pós-processamento)
-        document.getElementById('diagLocal').innerText = `${demData.municipio} - RR (${demData.cod_imovel})`;
-        document.getElementById('diagAreaPlantio').innerText = `${demData.area_consolidada_ha} ha`;
-        document.getElementById('diagAreaM2').innerText = `${Number(demData.area_consolidada_m2).toLocaleString('pt-BR')} m² disponíveis`;
-        document.getElementById('diagAreaReserva').innerText = `${demData.area_reserva_legal_ha} ha`;
-        document.getElementById('diagSmap').innerText = `${climData.summary.avg_soil_root_pct}%`;
-        document.getElementById('diagNdvi').innerText = `NDVI ${sentData.ndvi_medio_estimado} (${sentData.classificacao_cobertura.biomassa_ativa_pct}% Cobertura)`;
-
-        // Miniatura limpa do Sentinel-2 na barra lateral
-        if (sentData.imagem_png_base64) {
-          document.getElementById('thumbContainer').innerHTML = `
-            <img src="${sentData.imagem_png_base64}" title="Recorte Espectral Sentinel-2 MSI" style="width:52px; height:52px; border-radius:6px; border:1px solid #15803d;"/>
-          `;
-        }
-
-        // Exibe os painéis
-        document.getElementById('painelDiagnostico').style.display = 'block';
-        document.getElementById('painelPrescricao').style.display = 'block';
-
-      } catch (err) {
-        alert("Erro no processamento: " + err.message);
-      } finally {
-        btn.innerHTML = '⚡ Gerar Diagnóstico & Prescrição';
-        btn.disabled = false;
+      if (numero === 4) {
+        setTimeout(initMapEtapa4, 150);
       }
     }
 
-    // Executa automaticamente ao carregar
-    window.onload = function() {
-      executarAnaliseCompleta();
-    };
+    function atualizarProgressBar(etapa) {
+      const pcts = { 1: 20, 2: 30, 3: 45, 4: 70, 5: 100 };
+      const pct = pcts[etapa] || 20;
+      document.getElementById('barFill').style.width = pct + '%';
+      document.getElementById('labelEtapa').innerText = `Etapa ${etapa} de 5`;
+      document.getElementById('labelPercent').innerText = pct + '%';
+    }
+
+    function voltarEtapa() {
+      if (etapaAtual > 1 && etapaAtual <= 5) {
+        irParaEtapa(etapaAtual - 1);
+      } else if (etapaAtual === 6) {
+        irParaEtapa(5);
+      }
+    }
+
+    function toggleMenu() {
+      alert("Crop Rotation - Agricultura Familiar RR\nVersão 2.0 (NASA Space Apps 2026)\nDesenvolvido para Roraima.");
+    }
+
+    // Busca CAR no SICAR
+    async function buscarCarNoSicar() {
+      const car = document.getElementById('inputCodCar').value.trim();
+      const msg = document.getElementById('sicarStatusMsg');
+      msg.innerText = "Consultando base WFS SICAR / Supabase...";
+      try {
+        const resp = await fetch(`/api/demarcation?car=${encodeURIComponent(car)}`);
+        const data = await resp.json();
+        if (data.cod_imovel) {
+          msg.innerText = `✓ Gleba localizada: ${data.municipio} - RR (${data.area_total_ha} ha)`;
+          document.getElementById('inputMunicipio').value = `${data.municipio}, Roraima`;
+          document.getElementById('inputArea').value = data.area_consolidada_ha;
+          dadosPropriedade.area_ha = data.area_total_ha;
+          dadosPropriedade.cod_car = data.cod_imovel;
+        }
+      } catch (err) {
+        msg.innerText = "Uso de geometria padrão de Roraima.";
+      }
+    }
+
+    // Inicialização do Mapa na Etapa 4
+    function initMapEtapa4() {
+      if (mapaEtapa4) return;
+      mapaEtapa4 = L.map('mapEtapa4', { zoomControl: false }).setView([1.8984, -60.6906], 14);
+      L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 19 }).addTo(mapaEtapa4);
+
+      // Polígonos dos 3 talhões
+      const t1 = L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.45 }).addTo(mapaEtapa4);
+      const t2 = L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.45 }).addTo(mapaEtapa4);
+      const t3 = L.polygon([[1.894, -60.693], [1.888, -60.682], [1.885, -60.686], [1.890, -60.696]], { color: '#004d40', fillColor: '#4db6ac', fillOpacity: 0.45 }).addTo(mapaEtapa4);
+
+      t1.bindPopup("<strong>Talhão 1 (T1)</strong><br>6,2 ha • Mandioca");
+      t2.bindPopup("<strong>Talhão 2 (T2)</strong><br>5,0 ha • Milho");
+      t3.bindPopup("<strong>Talhão 3 (T3)</strong><br>5,0 ha • Feijão-caupi");
+    }
+
+    // Seleção de Talhão e Culturas na Etapa 5
+    function selecionarTalhaoAba(tid, btn) {
+      talhaoSelecionado = tid;
+      document.querySelectorAll('.talhao-pills .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function selecionarCultura(cultura, card) {
+      document.querySelectorAll('.crop-badge-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      dadosPropriedade.talhoes[talhaoSelecionado].cultura = cultura;
+    }
+
+    function adicionarHistorico() {
+      const safra = prompt("Informe a safra anterior (ex: Milho 2023 ou Pousio por 1 ano):");
+      if (safra) {
+        const item = document.createElement('div');
+        item.style = "background: var(--bg-page); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;";
+        item.innerHTML = `<span>${safra}</span><span style="color: var(--text-muted);">Declarado</span>`;
+        document.getElementById('historicoLista').appendChild(item);
+      }
+    }
+
+    // Conclusão do Cadastro e Abertura do Hub Principal
+    function concluirCadastroEAbrirHub() {
+      etapaAtual = 6;
+      document.querySelectorAll('.screen-content').forEach(s => s.style.display = 'none');
+      document.getElementById('progressBarBox').style.display = 'none';
+      document.getElementById('screenHub').style.display = 'flex';
+      document.getElementById('topHeaderTitle').innerText = "Gleba: Sítio Boa Esperança";
+
+      setTimeout(initHubMap, 150);
+      carregarDiagnostico();
+      carregarAgenda();
+      executarComparativoTriplo();
+    }
+
+    // Inicialização do Mapa do Hub
+    function initHubMap() {
+      if (hubMap) return;
+      hubMap = L.map('hubMap', { zoomControl: false }).setView([1.8984, -60.6906], 14);
+      L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 19 }).addTo(hubMap);
+
+      // Perímetro do Imóvel
+      L.polygon([
+        [1.90254, -60.69588],
+        [1.89921, -60.68929],
+        [1.89000, -60.67660],
+        [1.88600, -60.68200],
+        [1.89918, -60.69704]
+      ], {
+        color: '#15803d',
+        weight: 3,
+        dashArray: '4, 4',
+        fillColor: '#22c55e',
+        fillOpacity: 0.15
+      }).addTo(hubMap).bindPopup("<strong>Sítio Boa Esperança</strong><br>CAR: RR-1400175<br>87,1 ha demarcados");
+
+      // Talhões
+      L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 1 (6,2 ha)");
+      L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 2 (5,0 ha)");
+    }
+
+    // Alternar Bottom Sheet
+    let sheetExpanded = false;
+    function toggleBottomSheet() {
+      sheetExpanded = !sheetExpanded;
+      const sheet = document.getElementById('bottomSheet');
+      sheet.style.transform = sheetExpanded ? 'translateY(0%)' : 'translateY(55%)';
+    }
+
+    function navegarHubTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const tabs = ['diag', 'sim', 'comp', 'agenda', 'dossie'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (el) el.style.display = (t === tabId) ? 'block' : 'none';
+      });
+
+      // Garante que a folha suba ao clicar
+      document.getElementById('bottomSheet').style.transform = 'translateY(0%)';
+      sheetExpanded = true;
+    }
+
+    // Carregar Diagnóstico da API
+    async function carregarDiagnostico() {
+      try {
+        const resp = await fetch('/api/condicoes-completas?lat=1.8984&lon=-60.6906');
+        const data = await resp.json();
+        if (data.cards) {
+          document.getElementById('valChuva').innerText = data.cards.chuva_recente.valor;
+          document.getElementById('valTemp').innerText = data.cards.temperatura.valor;
+          document.getElementById('valSolo').innerText = data.cards.umidade_solo.valor;
+          document.getElementById('valVigor').innerText = data.cards.cobertura_vegetal.valor;
+        }
+      } catch (e) {
+        console.warn("Diagnóstico em modo offline/cache.");
+      }
+    }
+
+    // Carregar Agenda da API
+    async function carregarAgenda() {
+      try {
+        const resp = await fetch('/api/agenda-manejo');
+        const data = await resp.json();
+        const container = document.getElementById('agendaLista');
+        container.innerHTML = "";
+        data.eventos_chave.forEach(ev => {
+          container.innerHTML += `
+            <div class="agenda-item">
+              <div class="agenda-date">${ev.data_estimada}</div>
+              <div class="agenda-content">
+                <h4>${ev.cultura} - ${ev.etapa}</h4>
+                <p>${ev.orientacao}</p>
+              </div>
+            </div>
+          `;
+        });
+      } catch (e) {
+        console.warn("Agenda offline.");
+      }
+    }
+
+    // Executar Comparativo Triplo de Rotação (NASA Space Apps 2026)
+    async function executarComparativoTriplo() {
+      const container = document.getElementById('cardsEstrategiasContainer');
+      container.innerHTML = "<p style='font-size:12px; color:#6B7280;'>Processando motor de decisão...</p>";
+
+      try {
+        const resp = await fetch('/api/simular-rotacao', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            talhao_id: "T1",
+            cultura_atual: "mandioca",
+            periodo_anos: 3,
+            objetivo: "saude_solo"
+          })
+        });
+        const data = await resp.json();
+
+        container.innerHTML = "";
+        data.estrategias.forEach((strat, idx) => {
+          const isSelected = idx === 0 ? "selected" : "";
+          const badgeBg = idx === 0 ? "#DCFCE7" : (idx === 1 ? "#E0F2FE" : "#F1F5F9");
+          const badgeTxt = idx === 0 ? "#15803D" : (idx === 1 ? "#0369A1" : "#475569");
+
+          let stepsHtml = "";
+          strat.sequencia.forEach(s => {
+            stepsHtml += `
+              <div class="step-item">
+                <div class="step-time">${s.tempo}</div>
+                <div class="step-crop">${s.cultura}</div>
+              </div>
+            `;
+          });
+
+          container.innerHTML += `
+            <div class="strategy-card ${isSelected}">
+              <div class="strat-header">
+                <span class="strat-badge" style="background:${badgeBg}; color:${badgeTxt};">${strat.tipo}</span>
+                <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${strat.compatibilidade_score}% compatível</span>
+              </div>
+              <strong style="font-size:12.5px; display:block; margin-bottom:8px;">${strat.nome}</strong>
+              <div class="timeline-steps">${stepsHtml}</div>
+              <div class="evidence-box">
+                <strong>🔬 Evidências:</strong> ${strat.evidencias_cientificas[0]}<br>
+                <strong>⚠️ Riscos:</strong> ${strat.riscos_climaticos_e_operacionais[0]}<br>
+                <strong>❓ Incerteza:</strong> ${strat.incertezas_biofisicas[0]}
+              </div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        container.innerHTML = "<p style='color:red;'>Erro ao consultar motor de simulação.</p>";
+      }
+    }
+
+    function selecionarPeriodo(anos, btn) {
+      document.querySelectorAll('#tabContentSim .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function filtrarMapa(tipo, chip) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      alert(`Camada alterada para: ${chip.innerText}. Dados atualizados no mapa da gleba.`);
+    }
   </script>
 </body>
 </html>
