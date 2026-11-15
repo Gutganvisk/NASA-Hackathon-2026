@@ -7,7 +7,7 @@ import json
 import os
 import sys
 import urllib.parse
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict
 
 if sys.stdout.encoding != "utf-8":
@@ -355,9 +355,12 @@ class AgroHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({"error": "Rota POST nao encontrada"}).encode("utf-8"))
 
 
+class ReusableThreadingHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+
 def run_server(port=PORT):
     server_address = ("", port)
-    httpd = HTTPServer(server_address, AgroHandler)
+    httpd = ReusableThreadingHTTPServer(server_address, AgroHandler)
     print("=" * 70)
     print(f"[ONLINE] Servidor AgroFamiliar Mobile-First iniciado em: http://localhost:{port}")
     print(f"[MAPA] Interface interativa Poppins com suporte a 3 Estratégias e Agenda!")

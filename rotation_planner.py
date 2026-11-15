@@ -76,7 +76,7 @@ def summarize_weather(daily_records: Dict[str, Dict[str, float]]) -> Dict[str, f
 
 
 def compare_three_rotation_strategies(
-    current_crop: str = "mandioca",
+    current_crop: str = "milho",
     is_fallow: bool = False,
     objective: str = "saude_solo",
     horizon_years: int = 3,
@@ -84,88 +84,242 @@ def compare_three_rotation_strategies(
 ) -> Dict[str, Any]:
     """
     Motor comparativo de 3 estratégias de rotação conforme o desafio NASA Space Apps 2026.
-    Retorna a Linha de Base (Manejo Atual) e duas estratégias alternativas balanceadas.
+    Retorna a Linha de Base (Manejo Atual) e duas estratégias alternativas balanceadas,
+    adaptando-se dinamicamente à cultura primária (current_crop) selecionada pelo produtor.
     """
     precip = weather_summary.get("total_precip_mm", 280.0) if weather_summary else 280.0
     soil_root = weather_summary.get("avg_soil_root_pct", 60.0) if weather_summary else 60.0
     slope = weather_summary.get("estimated_slope_pct", 3.8) if weather_summary else 3.8
 
-    # 1. Estratégia 0: Linha de Base (Manejo Atual / Status Quo)
-    estrategia_baseline = {
-        "id": "estrategia_0_baseline",
-        "tipo": "Linha de Base (Manejo Atual)",
-        "nome": "Monocultivo / Sucessão Tradicional com Pousio Não Manejado",
-        "badge_cor": "#64748b",
-        "compatibilidade_score": 52,
-        "sequencia": [
-            { "fase": 1, "tempo": "Ano 1", "cultura": "Mandioca", "sigla": "MA", "cor": "#d97706", "papel": "Cultivo Atual" },
-            { "fase": 2, "tempo": "Ano 2", "cultura": "Pousio / Repouso Desprotegido", "sigla": "PO", "cor": "#94a3b8", "papel": "Sem Cobertura Manejada" },
-            { "fase": 3, "tempo": "Ano 3", "cultura": "Mandioca", "sigla": "MA", "cor": "#d97706", "papel": "Reimplantação com Revolver do Solo" }
-        ],
-        "evidencias_cientificas": [
-            "O arranquio das raízes da mandioca na colheita desestrutura a fração argilo-arenosa do solo do Lavrado.",
-            "Solos mantidos descobertos em pousio espontâneo ultrapassam 42°C de temperatura superficial (LST), degradando matéria orgânica rapidamente."
-        ],
-        "riscos_climaticos_e_operacionais": [
-            "Risco severo de erosão hídrica laminar sob chuvas torrenciais concentradas (maio a julho em Roraima).",
-            "Lixiviação profunda de potássio e bases em camadas arenosas sem raízes ativas para reciclagem."
-        ],
-        "incertezas_biofisicas": [
-            "Taxa empírica de regeneração da flora espontânea na entressafra sem aporte de nutrientes.",
-            "Velocidade exata de queda da fertilidade natural sem dados laboratoriais de análise química do lote."
-        ]
-    }
+    crop_clean = current_crop.lower().strip() if current_crop else "milho"
 
-    # 2. Estratégia 1: Intensificação Produtiva com Palhada e FBN
-    estrategia_intensificacao = {
-        "id": "estrategia_1_intensificacao",
-        "tipo": "Alternativa de Intensificação",
-        "nome": "Sucessão Milho Consorciado ➔ Feijão-Caupi (FBN e Cobertura C/N Alta)",
-        "badge_cor": "#15803d",
-        "compatibilidade_score": 86,
-        "sequencia": [
-            { "fase": 1, "tempo": "Agora", "cultura": "Mandioca", "sigla": "MA", "cor": "#d97706", "papel": "Conclusão do Ciclo Atual" },
-            { "fase": 2, "tempo": "Próxima", "cultura": "Feijão-Caupi (BRS Novaera)", "sigla": "FC", "cor": "#b45309", "papel": "Fixação Biológica de Nitrogênio" },
-            { "fase": 3, "tempo": "Depois", "cultura": "Milho (BRS 1030) + Braquiária", "sigla": "MI", "cor": "#eab308", "papel": "Formação de Palhada Duradoura (C/N > 60)" }
-        ],
-        "evidencias_cientificas": [
-            "O feijão-caupi inoculado com estirpes de Bradyrhizobium fixa 40 a 60 kg N/ha, repondo nutrientes após a mandioca.",
-            "O consórcio de milho com Brachiaria ruziziensis na semeadura garante cobertura morta persistente para o plantio direto na seca."
-        ],
-        "riscos_climaticos_e_operacionais": [
-            "O corte das chuvas entre setembro e outubro exige semeadura rigorosa do caupi até início de agosto.",
-            "Necessidade de adquirir sementes certificadas da Embrapa e inoculante em lojas de insumo em Boa Vista."
-        ],
-        "incertezas_biofisicas": [
-            "Eficácia real da FBN caso a saturação por bases (V%) esteja abaixo de 40% e com acidez de alumínio ativa.",
-            "Sobrevivência da forrageira sob seca severa caso a palhada seja consumida por pastejo animal."
-        ]
-    }
+    if "milho" in crop_clean:
+        # 1. Baseline para Milho
+        estrategia_baseline = {
+            "id": "estrategia_0_baseline",
+            "tipo": "Linha de Base (Manejo Atual)",
+            "nome": "Monocultivo de Milho com Pousio Não Manejado",
+            "badge_cor": "#64748b",
+            "compatibilidade_score": 50,
+            "sequencia": [
+                { "fase": 1, "tempo": "Ano 1", "cultura": "Milho Grão", "sigla": "MI", "cor": "#eab308", "papel": "Cultivo Atual" },
+                { "fase": 2, "tempo": "Ano 2", "cultura": "Pousio / Repouso Desprotegido", "sigla": "PO", "cor": "#94a3b8", "papel": "Sem Cobertura Manejada" },
+                { "fase": 3, "tempo": "Ano 3", "cultura": "Milho Novamente", "sigla": "MI", "cor": "#eab308", "papel": "Repetição com Exaustão de Nitrogênio" }
+            ],
+            "evidencias_cientificas": [
+                "O milho em monocultura exaure intensamente o nitrogênio e o fósforo das camadas superficiais do solo do Lavrado.",
+                "Solos mantidos descobertos após a colheita em agosto ultrapassam 42°C de temperatura superficial (LST) na seca de Roraima, degradando a matéria orgânica."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Risco severo de perda da safrinha caso o corte de chuvas ocorra antes do previsto (outubro).",
+                "Erosão eólica e lixiviação das cinzas e nutrientes residuais pelo calor extremo."
+            ],
+            "incertezas_biofisicas": [
+                "Taxa empírica de decomposição da palhada do milho sob radiação solar direta.",
+                "Gasto crescente com adubos químicos solúveis para compensar o déficit nutricional contínuo."
+            ]
+        }
 
-    # 3. Estratégia 2: Resiliência Agroecológica e Conservação Hídrica
-    estrategia_resiliencia = {
-        "id": "estrategia_2_resiliencia",
-        "tipo": "Alternativa de Resiliência",
-        "nome": "Rotação Agroecológica com Adubação Verde (Guandu/Crotalária)",
-        "badge_cor": "#0369a1",
-        "compatibilidade_score": 79,
-        "sequencia": [
-            { "fase": 1, "tempo": "Agora", "cultura": "Mandioca (Aciolina / Platinão)", "sigla": "MA", "cor": "#d97706", "papel": "Cultivo em Nível / Curvas de Nível" },
-            { "fase": 2, "tempo": "Próxima", "cultura": "Feijão-Guandu / Crotalária", "sigla": "GD", "cor": "#059669", "papel": "Descompactação Profunda e Matéria Orgânica" },
-            { "fase": 3, "tempo": "Depois", "cultura": "Milho Rústico na Palhada", "sigla": "MI", "cor": "#eab308", "papel": "Colheita Segura na Palhada Acumulada" }
-        ],
-        "evidencias_cientificas": [
-            "O guandu tolera estiagens prolongadas e suas raízes pivotantes quebram o adensamento natural do solo do Lavrado.",
-            "A mandioca suporta 5 a 6 meses de estiagem em Roraima mantendo reserva amilácea sem necessidade de irrigação."
-        ],
-        "riscos_climaticos_e_operacionais": [
-            "Menor retorno financeiro no ciclo de adubação verde exclusiva, embora reduza custos de fertilizantes químicos futuros.",
-            "Demanda de manejo de dessecação mecânica ou rolamento da palhada de guandu antes do milho."
-        ],
-        "incertezas_biofisicas": [
-            "Taxa de mineralização da fitomassa leguminosa sob altas temperaturas superficiais antes da próxima semeadura."
-        ]
-    }
+        # 2. Intensificação para Milho
+        estrategia_intensificacao = {
+            "id": "estrategia_1_intensificacao",
+            "tipo": "Alternativa de Intensificação",
+            "nome": "Milho ➔ Feijão-Caupi (FBN na Palhada) ➔ Milho + Braquiária",
+            "badge_cor": "#15803d",
+            "compatibilidade_score": 92,
+            "sequencia": [
+                { "fase": 1, "tempo": "Agora", "cultura": "Milho (BRS 1030 / 1055)", "sigla": "MI", "cor": "#eab308", "papel": "Safra Principal Chuvosa" },
+                { "fase": 2, "tempo": "Próxima", "cultura": "Feijão-Caupi (BRS Tumucumaque)", "sigla": "FC", "cor": "#b45309", "papel": "Fixação Biológica de Nitrogênio (65d)" },
+                { "fase": 3, "tempo": "Depois", "cultura": "Milho + Braquiária Ruziziensis", "sigla": "MB", "cor": "#16a34a", "papel": "Consórcio com Cobertura Morta Duradoura" }
+            ],
+            "evidencias_cientificas": [
+                "O feijão-caupi plantado direto na palhada do milho fecha o ciclo em 65 dias com a umidade residual da raiz (SMAP GWETROOT).",
+                "A inoculação com Bradyrhizobium no caupi devolve de 40 a 50 kg de N/ha, reduzindo a compra de ureia no próximo milho."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "A semeadura do feijão-caupi deve ocorrer até o final de agosto para fugir do estresse hídrico terminal em outubro.",
+                "Demanda regulagem adequada de plantadeira manual/matraca para cortar a palhada densa do milho."
+            ],
+            "incertezas_biofisicas": [
+                "Nível de compactação residual que possa interferir na nodulação do feijão-caupi.",
+                "Disponibilidade local de sementes fiscalizadas de cultivares da Embrapa Roraima."
+            ]
+        }
+
+        # 3. Resiliência para Milho
+        estrategia_resiliencia = {
+            "id": "estrategia_2_resiliencia",
+            "tipo": "Alternativa de Resiliência",
+            "nome": "Milho ➔ Crotalária / Milheto ➔ Mandioca em Nível",
+            "badge_cor": "#0369a1",
+            "compatibilidade_score": 84,
+            "sequencia": [
+                { "fase": 1, "tempo": "Agora", "cultura": "Milho (BRS 1030)", "sigla": "MI", "cor": "#eab308", "papel": "Cultivo Atual" },
+                { "fase": 2, "tempo": "Próxima", "cultura": "Crotalária Spectabilis / Milheto", "sigla": "CR", "cor": "#059669", "papel": "Quebra de Nematoides e Palhada" },
+                { "fase": 3, "tempo": "Depois", "cultura": "Mandioca (Aciolina / Platinão)", "sigla": "MA", "cor": "#d97706", "papel": "Safra Rústica Resistente à Estiagem" }
+            ],
+            "evidencias_cientificas": [
+                "A Crotalária reduz a população de fitonematoides que atacam as raízes do milho e recicla nutrientes profundos.",
+                "A mandioca implantada no ano 2 tolera até 6 meses de seca severa sem necessidade de irrigação suplementar."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Retorno financeiro mais lento na fase de adubação verde antes da colheita da mandioca (ciclo de 10-12 meses).",
+                "Exige terreno com declividade inferior a 8% (SRTM) para evitar erosão no arranquio das raízes."
+            ],
+            "incertezas_biofisicas": [
+                "Taxa de fixação de fósforo nos óxidos de ferro do solo do Lavrado que afetam o crescimento inicial da crotalária."
+            ]
+        }
+
+    elif "caupi" in crop_clean or "feijao" in crop_clean:
+        # Feijão-Caupi como Primária
+        estrategia_baseline = {
+            "id": "estrategia_0_baseline",
+            "tipo": "Linha de Base (Manejo Atual)",
+            "nome": "Monocultivo de Feijão com Pousio Não Manejado",
+            "badge_cor": "#64748b",
+            "compatibilidade_score": 48,
+            "sequencia": [
+                { "fase": 1, "tempo": "Ano 1", "cultura": "Feijão-Caupi", "sigla": "FC", "cor": "#b45309", "papel": "Cultivo Atual" },
+                { "fase": 2, "tempo": "Ano 2", "cultura": "Pousio sem Cobertura", "sigla": "PO", "cor": "#94a3b8", "papel": "Solo Desprotegido" },
+                { "fase": 3, "tempo": "Ano 3", "cultura": "Feijão-Caupi", "sigla": "FC", "cor": "#b45309", "papel": "Pressão de Fungos de Solo" }
+            ],
+            "evidencias_cientificas": [
+                "O monocultivo de leguminosas favorece o acúmulo de Rhizoctonia e Fusarium no perfil arenoso do solo.",
+                "A palhada do feijão-caupi tem relação C/N baixa (< 20) e se decompõe muito rápido, deixando o solo vulnerável à insolação."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Perda rápida da matéria orgânica acumulada sob temperaturas elevadas.",
+                "Queda de produtividade pelo ataque recorrente de pragas da mesma família."
+            ],
+            "incertezas_biofisicas": [
+                "Evolução da população de fungos patogênicos no solo sem quebra de ciclo."
+            ]
+        }
+
+        estrategia_intensificacao = {
+            "id": "estrategia_1_intensificacao",
+            "tipo": "Alternativa de Intensificação",
+            "nome": "Feijão-Caupi ➔ Milho Grão BRS 1030 (Aproveita N) ➔ Braquiária",
+            "badge_cor": "#15803d",
+            "compatibilidade_score": 90,
+            "sequencia": [
+                { "fase": 1, "tempo": "Agora", "cultura": "Feijão-Caupi (FBN)", "sigla": "FC", "cor": "#b45309", "papel": "Solo Enriquecido com N" },
+                { "fase": 2, "tempo": "Próxima", "cultura": "Milho (BRS 1030 / 1055)", "sigla": "MI", "cor": "#eab308", "papel": "Alta Resposta ao N Deixado pelo Caupi" },
+                { "fase": 3, "tempo": "Depois", "cultura": "Braquiária Ruziziensis", "sigla": "BR", "cor": "#16a34a", "papel": "Descompactação e Palhada Grossa" }
+            ],
+            "evidencias_cientificas": [
+                "O milho cultivado em sucessão ao caupi expressa alto teto produtivo consumindo o nitrogênio mineralizado.",
+                "A alternância entre Fabaceae e Poaceae interrompe o ciclo biológico de pragas e doenças específicas."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Sincronização com o calendário de chuvas de Roraima para que o milho receba ao menos 500 mm no ciclo.",
+                "Manejo correto de adubação fosfatada no milho, já que o caupi não repõe fósforo."
+            ],
+            "incertezas_biofisicas": [
+                "Percentual de N residual que permanece nas primeiras camadas antes da lixiviação pelas chuvas de pico."
+            ]
+        }
+
+        estrategia_resiliencia = {
+            "id": "estrategia_2_resiliencia",
+            "tipo": "Alternativa de Resiliência",
+            "nome": "Feijão-Caupi ➔ Mandioca Rústica ➔ Crotalária",
+            "badge_cor": "#0369a1",
+            "compatibilidade_score": 82,
+            "sequencia": [
+                { "fase": 1, "tempo": "Agora", "cultura": "Feijão-Caupi", "sigla": "FC", "cor": "#b45309", "papel": "Fixador Biológico" },
+                { "fase": 2, "tempo": "Próxima", "cultura": "Mandioca (Aciolina)", "sigla": "MA", "cor": "#d97706", "papel": "Renda e Segurança Alimentar" },
+                { "fase": 3, "tempo": "Depois", "cultura": "Crotalária Spectabilis", "sigla": "CR", "cor": "#059669", "papel": "Regeneração Pós-Arranquio" }
+            ],
+            "evidencias_cientificas": [
+                "A mandioca se beneficia do solo descompactado e do nitrogênio residual do caupi.",
+                "Crotalária subsequente reestrutura a microfauna do solo alterada pelo revolvimento da mandioca."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Manejo de plantas daninhas nos primeiros 60 dias de implantação da mandioca.",
+                "Cuidado com a declividade do lote para evitar voçorocas."
+            ],
+            "incertezas_biofisicas": [
+                "Capacidade de suporte de potássio do solo para atender às altas demandas da mandioca."
+            ]
+        }
+
+    else:
+        # Padrão: Mandioca como Primária
+        estrategia_baseline = {
+            "id": "estrategia_0_baseline",
+            "tipo": "Linha de Base (Manejo Atual)",
+            "nome": "Monocultivo / Sucessão Tradicional com Pousio Não Manejado",
+            "badge_cor": "#64748b",
+            "compatibilidade_score": 52,
+            "sequencia": [
+                { "fase": 1, "tempo": "Ano 1", "cultura": "Mandioca", "sigla": "MA", "cor": "#d97706", "papel": "Cultivo Atual" },
+                { "fase": 2, "tempo": "Ano 2", "cultura": "Pousio / Repouso Desprotegido", "sigla": "PO", "cor": "#94a3b8", "papel": "Sem Cobertura Manejada" },
+                { "fase": 3, "tempo": "Ano 3", "cultura": "Mandioca", "sigla": "MA", "cor": "#d97706", "papel": "Reimplantação com Revolver do Solo" }
+            ],
+            "evidencias_cientificas": [
+                "O arranquio das raízes da mandioca na colheita desestrutura a fração argilo-arenosa do solo do Lavrado.",
+                "Solos mantidos descobertos em pousio espontâneo ultrapassam 42°C de temperatura superficial (LST), degradando matéria orgânica rapidamente."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Risco severo de erosão hídrica laminar sob chuvas torrenciais concentradas (maio a julho em Roraima).",
+                "Lixiviação profunda de potássio e bases em camadas arenosas sem raízes ativas para reciclagem."
+            ],
+            "incertezas_biofisicas": [
+                "Taxa empírica de regeneração da flora espontânea na entressafra sem aporte de nutrientes.",
+                "Velocidade exata de queda da fertilidade natural sem dados laboratoriais de análise química do lote."
+            ]
+        }
+
+        estrategia_intensificacao = {
+            "id": "estrategia_1_intensificacao",
+            "tipo": "Alternativa de Intensificação",
+            "nome": "Sucessão Mandioca ➔ Feijão-Caupi ➔ Milho Consorciado",
+            "badge_cor": "#15803d",
+            "compatibilidade_score": 86,
+            "sequencia": [
+                { "fase": 1, "tempo": "Agora", "cultura": "Mandioca", "sigla": "MA", "cor": "#d97706", "papel": "Conclusão do Ciclo Atual" },
+                { "fase": 2, "tempo": "Próxima", "cultura": "Feijão-Caupi (BRS Novaera)", "sigla": "FC", "cor": "#b45309", "papel": "Fixação Biológica de Nitrogênio" },
+                { "fase": 3, "tempo": "Depois", "cultura": "Milho (BRS 1030) + Braquiária", "sigla": "MI", "cor": "#eab308", "papel": "Formação de Palhada Duradoura (C/N > 60)" }
+            ],
+            "evidencias_cientificas": [
+                "O feijão-caupi inoculado com estirpes de Bradyrhizobium fixa 40 a 60 kg N/ha, repondo nutrientes após a mandioca.",
+                "O consórcio de milho com Brachiaria ruziziensis na semeadura garante cobertura morta persistente para o plantio direto na seca."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "O corte das chuvas entre setembro e outubro exige semeadura rigorosa do caupi até início de agosto.",
+                "Necessidade de adquirir sementes certificadas da Embrapa e inoculante em lojas de insumo em Boa Vista."
+            ],
+            "incertezas_biofisicas": [
+                "Eficácia real da FBN caso a saturação por bases (V%) esteja abaixo de 40% e com acidez de alumínio ativa.",
+                "Sobrevivência da forrageira sob seca severa caso a palhada seja consumida por pastejo animal."
+            ]
+        }
+
+        estrategia_resiliencia = {
+            "id": "estrategia_2_resiliencia",
+            "tipo": "Alternativa de Resiliência",
+            "nome": "Mandioca em Nível ➔ Adubação Verde (Guandu/Crotalária) ➔ Milho",
+            "badge_cor": "#0369a1",
+            "compatibilidade_score": 79,
+            "sequencia": [
+                { "fase": 1, "tempo": "Agora", "cultura": "Mandioca (Aciolina / Platinão)", "sigla": "MA", "cor": "#d97706", "papel": "Cultivo em Nível / Curvas de Nível" },
+                { "fase": 2, "tempo": "Próxima", "cultura": "Feijão-Guandu / Crotalária", "sigla": "GD", "cor": "#059669", "papel": "Descompactação Profunda e Matéria Orgânica" },
+                { "fase": 3, "tempo": "Depois", "cultura": "Milho Rústico na Palhada", "sigla": "MI", "cor": "#eab308", "papel": "Colheita Segura na Palhada Acumulada" }
+            ],
+            "evidencias_cientificas": [
+                "O guandu tolera estiagens prolongadas e suas raízes pivotantes quebram o adensamento natural do solo do Lavrado.",
+                "A mandioca suporta 5 a 6 meses de estiagem em Roraima mantendo reserva amilácea sem necessidade de irrigação."
+            ],
+            "riscos_climaticos_e_operacionais": [
+                "Menor retorno financeiro no ciclo de adubação verde exclusiva, embora reduza custos de fertilizantes químicos futuros.",
+                "Demanda de manejo de dessecação mecânica ou rolamento da palhada de guandu antes do milho."
+            ],
+            "incertezas_biofisicas": [
+                "Taxa de mineralização da fitomassa leguminosa sob altas temperaturas superficiais antes da próxima semeadura."
+            ]
+        }
 
     return {
         "talhao_id": "T1",
