@@ -1158,9 +1158,29 @@
     <!-- ======================================================== -->
     <!-- ETAPA 7: SIMULAÇÃO (IMAGE 4)                             -->
     <!-- ======================================================== -->
-    <section class="screen-content" id="screen7" style="display: none;">
+        <section class="screen-content" id="screen7" style="display: none;">
       <h2 class="screen-heading">Monte sua simulação</h2>
-      <p class="screen-subheading">Escolha o que é mais importante para você agora.</p>
+      <p class="screen-subheading">Escolha o talhão, objetivo e culturas para sua terra.</p>
+
+      <!-- Seleção do Talhão -->
+      <div class="form-group">
+        <label class="form-label">Talhão a simular:</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="simTalhaoSelector">
+          <div class="pill-tab active" id="pillSimT1" onclick="selecionarTalhaoSimulacao('T1')">Talhão 1</div>
+          <div class="pill-tab" id="pillSimT2" onclick="selecionarTalhaoSimulacao('T2')">Talhão 2</div>
+          <div class="pill-tab" id="pillSimT3" onclick="selecionarTalhaoSimulacao('T3')">Talhão 3</div>
+        </div>
+      </div>
+
+      <!-- Cultura de Partida -->
+      <div class="form-group">
+        <label class="form-label">Cultura de partida (safra atual deste talhão):</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="simCulturaPartidaGrid">
+          <button type="button" class="pill-btn active" id="btnSimCropMandioca" onclick="selecionarCulturaPartidaSim('mandioca')">🥔 Mandioca</button>
+          <button type="button" class="pill-btn" id="btnSimCropMilho" onclick="selecionarCulturaPartidaSim('milho')">🌽 Milho</button>
+          <button type="button" class="pill-btn" id="btnSimCropCaupi" onclick="selecionarCulturaPartidaSim('feijao_caupi')">🫘 Caupi</button>
+        </div>
+      </div>
 
       <div class="form-group">
         <label class="form-label">Qual é seu principal objetivo?</label>
@@ -1173,7 +1193,7 @@
             </div>
             <div>
               <strong style="font-size: 13px; color: var(--text-main); display: block;">Melhorar a saúde do solo</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">Aumentar matéria orgânica e reduzir desgaste</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Aumentar matéria orgânica, palhada e reduzir desgaste</span>
             </div>
           </div>
           <div style="width: 20px; height: 20px; border-radius: 50%; background: #65A30D; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;">✓</div>
@@ -1187,7 +1207,7 @@
             </div>
             <div>
               <strong style="font-size: 13px; color: var(--text-main); display: block;">Diversificar a renda</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">Alternar culturas com boas oportunidades</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Alternar grãos e raízes com boas janelas de mercado</span>
             </div>
           </div>
           <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></div>
@@ -1201,7 +1221,7 @@
             </div>
             <div>
               <strong style="font-size: 13px; color: var(--text-main); display: block;">Reduzir riscos climáticos</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">Priorizar culturas mais resistentes</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Tolerância à seca e corte precoce de chuvas</span>
             </div>
           </div>
           <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></div>
@@ -1211,43 +1231,23 @@
       <div class="form-group">
         <label class="form-label">Período da simulação</label>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-          <div class="pill-tab" onclick="selecionarPeriodoPill(2, this)" style="border-radius: 14px; padding: 12px 6px;">2 anos</div>
-          <div class="pill-tab active" onclick="selecionarPeriodoPill(3, this)" style="border-radius: 14px; padding: 12px 6px; border-color: var(--accent-lime); background: #ECFCCB; color: #365314;">3 anos</div>
-          <div class="pill-tab" onclick="selecionarPeriodoPill(4, this)" style="border-radius: 14px; padding: 12px 6px;">4 anos</div>
+          <div class="pill-tab" id="pillPeriodo2" onclick="selecionarPeriodoPill(2, this)" style="border-radius: 14px; padding: 12px 6px;">2 anos</div>
+          <div class="pill-tab active" id="pillPeriodo3" onclick="selecionarPeriodoPill(3, this)" style="border-radius: 14px; padding: 12px 6px; border-color: var(--accent-lime); background: #ECFCCB; color: #365314;">3 anos</div>
+          <div class="pill-tab" id="pillPeriodo4" onclick="selecionarPeriodoPill(4, this)" style="border-radius: 14px; padding: 12px 6px;">4 anos</div>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Culturas para comparar</label>
-        <div style="background: var(--surface-white); border: 1px solid var(--border-soft); border-radius: 16px; padding: 6px 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="background: #65A30D; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">1</span>
-              <span style="font-size: 13px; font-weight: 600;">Mandioca</span>
-            </div>
-            <span style="color: #65A30D; font-weight: 700;">✓</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="background: #65A30D; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">2</span>
-              <span style="font-size: 13px; font-weight: 600;">Milho</span>
-            </div>
-            <span style="color: #65A30D; font-weight: 700;">✓</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="background: #65A30D; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">3</span>
-              <span style="font-size: 13px; font-weight: 600;">Feijão-caupi</span>
-            </div>
-            <span style="color: #65A30D; font-weight: 700;">✓</span>
-          </div>
+        <label class="form-label">Culturas para alternar na rotação:</label>
+        <div id="simCulturasCompararContainer" style="background: var(--surface-white); border: 1px solid var(--border-soft); border-radius: 16px; padding: 6px 14px;">
+          <!-- Preenchido dinamicamente sem hardcoded -->
         </div>
       </div>
 
       <div class="callout-card" style="padding: 12px 14px; margin-bottom: 12px;">
         <div>
           <strong style="font-size: 12px; color: var(--text-main); display: block;">3 possibilidades comparadas</strong>
-          <p style="font-size: 11px; color: var(--text-muted);">O sistema avalia solo, clima, sequência e diversidade antes de recomendar.</p>
+          <p style="font-size: 11px; color: var(--text-muted);">O motor agroclimático avalia solo NASA MERRA-2, chuvas POWER e zoneamento Embrapa.</p>
         </div>
       </div>
 
@@ -1255,7 +1255,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
         <div style="font-size: 11.5px; color: #166534;">
           <strong>Sua simulação</strong><br>
-          <span style="color: #4B5563;">3 anos · 3 talhões · foco em saúde do solo</span>
+          <span id="labelResumoSimulacao" style="color: #4B5563;">3 anos · Talhão 1 (6.2 ha) · Foco em saúde do solo</span>
         </div>
       </div>
 
@@ -1263,83 +1263,39 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- ETAPA 8: RECOMENDAÇÃO (IMAGE 5)                          -->
-    <!-- ======================================================== -->
     <section class="screen-content" id="screen8" style="display: none;">
       <h2 class="screen-heading">Rotação recomendada</h2>
-      <p class="screen-subheading">Uma sugestão equilibrada para seu primeiro talhão.</p>
+      <p class="screen-subheading" id="screen8Subheading">Uma sugestão equilibrada para seu talhão.</p>
 
       <!-- Banner de Compatibilidade -->
       <div style="background: #ECFCCB; border: 1.5px solid #BEF264; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
         <div style="background: #15803D; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">✓</div>
         <div>
-          <strong style="font-size: 13px; color: #15803D; display: block;">Boa compatibilidade</strong>
-          <span style="font-size: 11px; color: #166534;">86% adequada às condições da área</span>
+          <strong style="font-size: 13px; color: #15803D; display: block;" id="screen8ScoreTitulo">Alta compatibilidade</strong>
+          <span style="font-size: 11px; color: #166534;" id="screen8ScoreSub">Adequada às condições da área e horizonte planejado</span>
         </div>
       </div>
 
       <!-- Card Timeline de Rotação Vertical -->
       <div class="card" style="padding: 16px 18px; margin-bottom: 14px;">
-        <div class="rotation-timeline">
-          <!-- Item 1: Mandioca -->
-          <div class="timeline-node">
-            <div class="node-badge-col">
-              <div class="node-num">1</div>
-              <div class="node-circle" style="background: #D97706;">MA</div>
-              <div class="node-line"></div>
-            </div>
-            <div class="node-info-col">
-              <span class="node-tag">Agora</span>
-              <h4 class="node-title">Mandioca</h4>
-              <p class="node-desc">Em cultivo</p>
-            </div>
-          </div>
-
-          <!-- Item 2: Feijão-caupi -->
-          <div class="timeline-node">
-            <div class="node-badge-col">
-              <div class="node-num">2</div>
-              <div class="node-circle" style="background: #B45309;">FE</div>
-              <div class="node-line"></div>
-            </div>
-            <div class="node-info-col">
-              <span class="node-tag">Próxima</span>
-              <h4 class="node-title">Feijão-caupi</h4>
-              <p class="node-desc">Recupera nutrientes</p>
-            </div>
-          </div>
-
-          <!-- Item 3: Milho + cobertura -->
-          <div class="timeline-node">
-            <div class="node-badge-col">
-              <div class="node-num">3</div>
-              <div class="node-circle" style="background: #EAB308;">MI</div>
-            </div>
-            <div class="node-info-col">
-              <span class="node-tag">Depois</span>
-              <h4 class="node-title">Milho + cobertura</h4>
-              <p class="node-desc">Gera palhada</p>
-            </div>
-          </div>
+        <div class="rotation-timeline" id="screen8Timeline">
+          <!-- Renderizado dinamicamente com base na cultura selecionada -->
         </div>
       </div>
 
       <!-- Card Por que esta sequência? -->
       <div class="callout-card" style="display: block; padding: 14px 16px; margin-bottom: 12px;">
         <strong style="font-size: 13px; color: var(--primary-dark); display: block; margin-bottom: 8px;">Por que esta sequência?</strong>
-        <div style="font-size: 11.5px; color: #374151; line-height: 1.5;">
-          <div style="margin-bottom: 4px;">✓ O feijão-caupi ajuda a repor nitrogênio no solo</div>
-          <div style="margin-bottom: 4px;">✓ O milho aproveita os nutrientes da etapa anterior</div>
-          <div>✓ A cobertura reduz a perda de umidade no calor</div>
+        <div id="screen8Justificativa" style="font-size: 11.5px; color: #374151; line-height: 1.5;">
+          <!-- Preenchido dinamicamente via /api/simular-rotacao -->
         </div>
       </div>
 
       <!-- Card Possíveis Riscos -->
       <div class="warm-card" style="margin-bottom: 12px;">
         <strong style="font-size: 13px; color: #92400E; display: block; margin-bottom: 8px;">Possíveis riscos</strong>
-        <div style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
-          <div style="margin-bottom: 6px;">☀️ <strong>Calor intenso</strong> pode reduzir a umidade no início do ciclo.</div>
-          <div>🌧️ <strong>Atraso das chuvas</strong> pode exigir ajuste na data do plantio.</div>
+        <div id="screen8Riscos" style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
+          <!-- Preenchido dinamicamente via /api/simular-rotacao -->
         </div>
       </div>
 
@@ -1356,8 +1312,6 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- ETAPA 9: RESULTADO DA ANÁLISE (IMAGE 6)                  -->
-    <!-- ======================================================== -->
     <section class="screen-content" id="screen9" style="display: none;">
       <h2 class="screen-heading">Resultado da análise</h2>
       <p class="screen-subheading">Seu plano está pronto para apoiar a próxima decisão.</p>
@@ -1370,26 +1324,26 @@
           </div>
           <span style="font-size: 11px; color: #86EFAC; text-transform: uppercase; font-weight: 700;">Potencial de melhoria</span>
         </div>
-        <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 4px;">Alto</h3>
-        <p style="font-size: 12px; color: #BBF7D0; line-height: 1.45;">A rotação sugerida pode proteger o solo e distribuir melhor os riscos ao longo das safras.</p>
+        <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 4px;" id="screen9ScorePotencial">Alto</h3>
+        <p style="font-size: 12px; color: #BBF7D0; line-height: 1.45;">A rotação sugerida protege o solo contra calor equatorial e distribui melhor os riscos ao longo das safras.</p>
       </div>
 
       <!-- Triad de Métricas -->
       <div class="metric-triad">
         <div class="metric-triad-card">
-          <div class="metric-triad-val" style="color: #15803D;">+18%</div>
+          <div class="metric-triad-val" style="color: #15803D;" id="screen9GanhoSolo">+22%</div>
           <div class="metric-triad-label">Proteção do solo</div>
-          <div class="metric-triad-sub">Estimativa após 3 ciclos</div>
+          <div class="metric-triad-sub">Estimativa pós-rotação</div>
         </div>
         <div class="metric-triad-card">
-          <div class="metric-triad-val" style="color: #0369A1;">-12%</div>
+          <div class="metric-triad-val" style="color: #0369A1;" id="screen9RiscoClima">-15%</div>
           <div class="metric-triad-label">Risco climático</div>
           <div class="metric-triad-sub">Com maior diversidade</div>
         </div>
         <div class="metric-triad-card">
-          <div class="metric-triad-val" style="color: #B45309;">3</div>
+          <div class="metric-triad-val" style="color: #B45309;" id="screen9TotalCulturas">3</div>
           <div class="metric-triad-label">Culturas no plano</div>
-          <div class="metric-triad-sub">Mandioca, caupi e milho</div>
+          <div class="metric-triad-sub" id="screen9ListaCulturas">Mandioca, caupi e milho</div>
         </div>
       </div>
 
@@ -1398,7 +1352,7 @@
         <strong style="font-size: 13px; color: #92400E; display: block; margin-bottom: 6px;">Pontos de atenção</strong>
         <div style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
           <div style="margin-bottom: 6px;">☀️ <strong>Calor entre março e maio:</strong> Evite deixar o solo descoberto nesse período.</div>
-          <div>🌧️ <strong>Chuva irregular:</strong> Acompanhe a previsão antes do plantio.</div>
+          <div>🌧️ <strong>Chuva irregular:</strong> Acompanhe a previsão NASA POWER antes do plantio.</div>
         </div>
       </div>
 
@@ -1409,14 +1363,14 @@
         </div>
         <div>
           <span style="font-size: 10px; font-weight: 700; color: #15803D; text-transform: uppercase;">Plano para o próximo ciclo</span>
-          <strong style="font-size: 12.5px; color: var(--text-main); display: block;">Preparar o Talhão 1 para feijão-caupi</strong>
+          <strong style="font-size: 12.5px; color: var(--text-main); display: block;" id="screen9ProximoCiclo">Preparar o talhão para o próximo cultivo</strong>
           <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">Manter cobertura entre as linhas e confirmar o início das chuvas antes do plantio.</p>
         </div>
       </div>
 
       <!-- Disclaimer Científico -->
       <p style="font-size: 10.5px; color: var(--text-light); line-height: 1.4; margin-bottom: 16px;">
-        Esta análise usa dados da NASA, ESA e orientações agronômicas da Embrapa. Ela apoia, mas não substitui, sua experiência e a orientação técnica.
+        Esta análise usa dados da NASA (POWER, MERRA-2), ESA (Sentinel-2) e orientações da Embrapa Roraima. Apoia, mas não substitui, a experiência do produtor e a assistência técnica local.
       </p>
 
       <button class="btn-primary" onclick="abrirModalSalvarPlano()">+ Salvar este plano</button>
@@ -1435,8 +1389,6 @@
       </button>
     </section>
 
-    <!-- ======================================================== -->
-    <!-- HUB PRINCIPAL DO PRODUTOR (MAPA + BOTTOM SHEET)          -->
     <!-- ======================================================== -->
     <section id="screenHub" style="display: none;">
       <!-- Controles Flutuantes do Mapa -->
@@ -2029,8 +1981,11 @@
       if (numero === 6) {
         carregarDiagnostico();
       }
+      if (numero === 7) {
+        sincronizarTelaSimulacao();
+      }
       if (numero === 8) {
-        executarComparativoTriplo();
+        executarSimulacaoEtapa8();
       }
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2200,39 +2155,205 @@
     }
 
     // Seleção de Objetivos e Período na Etapa 7
+        // Configuração Reativa de Simulação de Rotação
+    let simulacaoConfig = {
+      talhaoId: "T1",
+      culturaPartida: "mandioca",
+      objetivo: "saude_solo",
+      periodo: 3,
+      culturasComparar: ["feijao_caupi", "milho", "mandioca"]
+    };
+
+    function sincronizarTelaSimulacao() {
+      const tid = talhaoSelecionado || 'T1';
+      simulacaoConfig.talhaoId = tid;
+
+      // 1. Atualiza abas dos talhões na tela 7 com nomes e áreas reais da propriedade
+      ['T1', 'T2', 'T3'].forEach(id => {
+        const pill = document.getElementById(`pillSim${id}`);
+        const t = dadosPropriedade.talhoes[id];
+        if (pill) {
+          pill.innerText = `${t ? t.nome : 'Talhão ' + id.replace('T','')} (${t ? t.area : 5} ha)`;
+          if (id === tid) {
+            pill.classList.add('active');
+            pill.style.borderColor = 'var(--accent-lime)';
+            pill.style.background = '#ECFCCB';
+            pill.style.color = '#365314';
+          } else {
+            pill.classList.remove('active');
+            pill.style.borderColor = 'var(--border-soft)';
+            pill.style.background = 'var(--surface-white)';
+            pill.style.color = 'var(--text-muted)';
+          }
+        }
+      });
+
+      // 2. Cultura de Partida derivada diretamente do que o produtor definiu no talhão
+      const t = dadosPropriedade.talhoes[tid];
+      let culturaAtual = "mandioca";
+      if (t && t.culturas && t.culturas.length > 0) {
+        culturaAtual = t.culturas[0];
+      }
+      simulacaoConfig.culturaPartida = culturaAtual;
+      sincronizarBotoesCulturaPartida(culturaAtual);
+
+      // 3. Renderiza culturas do pool de rotação sem valores estáticos hardcoded
+      renderizarCulturasComparacao();
+
+      // 4. Atualiza resumo dinâmico
+      atualizarResumoSimulacao();
+    }
+
+    function sincronizarBotoesCulturaPartida(crop) {
+      const mapa = {
+        'mandioca': 'btnSimCropMandioca',
+        'milho': 'btnSimCropMilho',
+        'feijao_caupi': 'btnSimCropCaupi'
+      };
+      Object.keys(mapa).forEach(k => {
+        const btn = document.getElementById(mapa[k]);
+        if (btn) {
+          if (k === crop) {
+            btn.classList.add('active');
+            btn.style.background = 'var(--primary-dark)';
+            btn.style.color = '#fff';
+            btn.style.borderColor = 'var(--primary-dark)';
+          } else {
+            btn.classList.remove('active');
+            btn.style.background = 'var(--surface-white)';
+            btn.style.color = 'var(--text-main)';
+            btn.style.borderColor = 'var(--border-soft)';
+          }
+        }
+      });
+
+      culturaPrimariaSelecionada = crop;
+      const hubBtns = document.querySelectorAll('#gridCulturaX .pill-btn');
+      hubBtns.forEach(b => {
+        const txt = b.innerText.toLowerCase();
+        if ((crop === 'milho' && txt.includes('milho')) ||
+            (crop === 'mandioca' && txt.includes('mandioca')) ||
+            (crop === 'feijao_caupi' && (txt.includes('caupi') || txt.includes('feijao')))) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+    }
+
+    function selecionarTalhaoSimulacao(tid) {
+      talhaoSelecionado = tid;
+      simulacaoConfig.talhaoId = tid;
+      sincronizarTelaSimulacao();
+    }
+
+    function selecionarCulturaPartidaSim(crop) {
+      simulacaoConfig.culturaPartida = crop;
+      sincronizarBotoesCulturaPartida(crop);
+      renderizarCulturasComparacao();
+      atualizarResumoSimulacao();
+    }
+
+    function renderizarCulturasComparacao() {
+      const container = document.getElementById('simCulturasCompararContainer');
+      if (!container) return;
+
+      const catalogo = [
+        { id: "feijao_caupi", nome: "Feijão-caupi", funcao: "Fixação biológica de Nitrogênio (FBN)", sigla: "FE", cor: "#15803D" },
+        { id: "milho", nome: "Milho consorciado", funcao: "Produção de palhada densa e grão", sigla: "MI", cor: "#EAB308" },
+        { id: "mandioca", nome: "Mandioca", funcao: "Raiz tolerante ao estresse hídrico", sigla: "MA", cor: "#D97706" },
+        { id: "braquiaria", nome: "Brachiaria ruziziensis", funcao: "Descompactação e cobertura morta", sigla: "BR", cor: "#059669" },
+        { id: "guandu", nome: "Guandu / Crotalária", funcao: "Adubação verde e biomassa", sigla: "GD", cor: "#166534" }
+      ];
+
+      let html = "";
+      catalogo.forEach((c, idx) => {
+        const isPartida = c.id === simulacaoConfig.culturaPartida;
+        const isChecked = isPartida || idx < 3;
+        const border = idx < catalogo.length - 1 ? 'border-bottom: 1px solid var(--border-soft);' : '';
+        html += `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 9px 0; ${border}">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="background: ${c.cor}; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">${c.sigla}</span>
+              <div>
+                <strong style="font-size: 12.5px; font-weight: 600; display:block;">${c.nome} ${isPartida ? '<span style="font-size:10px; color:#15803D; font-weight:700;">(Cultura Atual)</span>' : ''}</strong>
+                <span style="font-size: 10.5px; color: var(--text-muted);">${c.funcao}</span>
+              </div>
+            </div>
+            <span style="color: ${isChecked ? '#15803D' : '#94A3B8'}; font-weight: 700; font-size: 14px;">${isChecked ? '✓' : '○'}</span>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function atualizarResumoSimulacao() {
+      const t = dadosPropriedade.talhoes[simulacaoConfig.talhaoId] || { nome: "Talhão 1", area: 6.2 };
+      const objNomes = {
+        "saude_solo": "saúde do solo e palhada",
+        "renda": "diversificação de renda",
+        "clima": "redução de riscos climáticos"
+      };
+      const label = document.getElementById('labelResumoSimulacao');
+      if (label) {
+        label.innerText = `${simulacaoConfig.periodo} anos · ${t.nome} (${t.area} ha) · foco em ${objNomes[simulacaoConfig.objetivo] || "saúde do solo"}`;
+      }
+    }
+
+    // Seleção de Objetivos e Período na Etapa 7
     function selecionarObjetivo(obj) {
+      simulacaoConfig.objetivo = obj;
       const cards = ['cardObjSolo', 'cardObjRenda', 'cardObjClima'];
       cards.forEach(id => {
         const el = document.getElementById(id);
-        el.style.border = '1px solid var(--border-soft)';
-        el.style.background = 'var(--surface-white)';
-        el.querySelector('div:last-child').innerHTML = '';
-        el.querySelector('div:last-child').style.border = '1.5px solid #CBD5E1';
-        el.querySelector('div:last-child').style.background = 'transparent';
+        if (el) {
+          el.style.border = '1px solid var(--border-soft)';
+          el.style.background = 'var(--surface-white)';
+          const last = el.querySelector('div:last-child');
+          if (last) {
+            last.innerHTML = '';
+            last.style.border = '1.5px solid #CBD5E1';
+            last.style.background = 'transparent';
+          }
+        }
       });
 
       const selectedId = obj === 'saude_solo' ? 'cardObjSolo' : (obj === 'renda' ? 'cardObjRenda' : 'cardObjClima');
       const sel = document.getElementById(selectedId);
-      sel.style.border = '2px solid var(--accent-lime)';
-      sel.style.background = '#F7FEE7';
-      const indicator = sel.querySelector('div:last-child');
-      indicator.innerHTML = '✓';
-      indicator.style.border = 'none';
-      indicator.style.background = '#65A30D';
-      indicator.style.color = '#fff';
+      if (sel) {
+        sel.style.border = '2px solid var(--accent-lime)';
+        sel.style.background = '#F7FEE7';
+        const indicator = sel.querySelector('div:last-child');
+        if (indicator) {
+          indicator.innerHTML = '✓';
+          indicator.style.border = 'none';
+          indicator.style.background = '#65A30D';
+          indicator.style.color = '#fff';
+        }
+      }
+
+      const radio = document.querySelector(`input[name="objSim"][value="${obj}"]`);
+      if (radio) radio.checked = true;
+
+      atualizarResumoSimulacao();
     }
 
     function selecionarPeriodoPill(anos, btn) {
-      btn.parentElement.querySelectorAll('.pill-tab').forEach(b => {
-        b.classList.remove('active');
-        b.style.borderColor = 'var(--border-soft)';
-        b.style.background = 'var(--surface-white)';
-        b.style.color = 'var(--text-muted)';
-      });
-      btn.classList.add('active');
-      btn.style.borderColor = 'var(--accent-lime)';
-      btn.style.background = '#ECFCCB';
-      btn.style.color = '#365314';
+      simulacaoConfig.periodo = anos;
+      periodoComparacaoAnos = anos;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.pill-tab').forEach(b => {
+          b.classList.remove('active');
+          b.style.borderColor = 'var(--border-soft)';
+          b.style.background = 'var(--surface-white)';
+          b.style.color = 'var(--text-muted)';
+        });
+        btn.classList.add('active');
+        btn.style.borderColor = 'var(--accent-lime)';
+        btn.style.background = '#ECFCCB';
+        btn.style.color = '#365314';
+      }
+      atualizarResumoSimulacao();
     }
 
     // Abertura do Hub Principal (Mapa Completo com Bottom Sheet)
@@ -2244,7 +2365,7 @@
       }
       document.getElementById('progressBarBox').style.display = 'none';
       document.getElementById('screenHub').style.display = 'flex';
-      document.getElementById('topHeaderTitle').innerText = "Gleba: Sítio Boa Esperança";
+      document.getElementById('topHeaderTitle').innerText = "Gleba: " + (dadosPropriedade.nome || "Sítio Boa Esperança");
 
       setTimeout(initHubMap, 150);
       carregarDiagnostico();
@@ -2272,10 +2393,10 @@
         dashArray: '4, 4',
         fillColor: '#22c55e',
         fillOpacity: 0.15
-      }).addTo(hubMap).bindPopup("<strong>Sítio Boa Esperança</strong><br>CAR: RR-1400175<br>87,1 ha demarcados");
+      }).addTo(hubMap).bindPopup("<strong>" + (dadosPropriedade.nome || "Sítio Boa Esperança") + "</strong><br>CAR: " + (dadosPropriedade.cod_car || "RR-1400175") + "<br>" + (dadosPropriedade.area_ha || 87.1) + " ha demarcados");
 
-      L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 1 (6,2 ha)");
-      L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 2 (5,0 ha)");
+      L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 1 (" + (dadosPropriedade.talhoes.T1 ? dadosPropriedade.talhoes.T1.area : 6.2) + " ha)");
+      L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 2 (" + (dadosPropriedade.talhoes.T2 ? dadosPropriedade.talhoes.T2.area : 5.0) + " ha)");
     }
 
     let sheetExpanded = false;
@@ -2294,6 +2415,10 @@
         const el = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
         if (el) el.style.display = (t === tabId) ? 'block' : 'none';
       });
+
+      if (tabId === 'sim') {
+        sincronizarTelaSimulacao();
+      }
 
       document.getElementById('bottomSheet').style.transform = 'translateY(0%)';
       sheetExpanded = true;
@@ -2324,18 +2449,20 @@
         const resp = await fetch('/api/agenda-manejo');
         const data = await resp.json();
         const container = document.getElementById('agendaLista');
-        container.innerHTML = "";
-        data.eventos_chave.forEach(ev => {
-          container.innerHTML += `
-            <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalNotificacao('calor')">
-              <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
-              <div>
-                <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa} 🔔</h4>
-                <p style="font-size:11px; color:var(--text-muted); line-height:1.35;">${ev.orientacao}</p>
+        if (container && data.eventos_chave) {
+          container.innerHTML = "";
+          data.eventos_chave.forEach(ev => {
+            container.innerHTML += `
+              <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalNotificacao('calor')">
+                <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
+                <div>
+                  <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa} 🔔</h4>
+                  <p style="font-size:11px; color:var(--text-muted); line-height:1.35;">${ev.orientacao}</p>
+                </div>
               </div>
-            </div>
-          `;
-        });
+            `;
+          });
+        }
       } catch (e) {}
     }
 
@@ -2343,75 +2470,137 @@
 
     function selecionarCulturaPrimaria(cultura, btn) {
       culturaPrimariaSelecionada = cultura;
+      simulacaoConfig.culturaPartida = cultura;
       document.querySelectorAll('#gridCulturaX .pill-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
+      sincronizarBotoesCulturaPartida(cultura);
+      atualizarResumoSimulacao();
     }
 
-    // Executar Comparativo Triplo de Rotação (NASA Space Apps 2026)
-    async function executarComparativoTriplo() {
-      const container = document.getElementById('cardsEstrategiasContainer');
-      if (!container) return;
-      container.innerHTML = "<p style='font-size:12px; color:#6B7280;'>Consultando motor agroclimático...</p>";
-
-      // Obter objetivo selecionado
-      const objInput = document.querySelector('input[name="objSim"]:checked');
-      const objetivo = objInput ? objInput.value : "saude_solo";
+    // Executar Simulação da Etapa 8 (Rotação recomendada dinâmica)
+    async function executarSimulacaoEtapa8() {
+      const t = dadosPropriedade.talhoes[simulacaoConfig.talhaoId] || { nome: "Talhão 1", area: 6.2 };
+      
+      const sub = document.getElementById('screen8Subheading');
+      if (sub) sub.innerText = `Sugestão adaptada para o ${t.nome} (${t.area} ha) com base climática NASA.`;
 
       try {
         const resp = await fetch('/api/simular-rotacao', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            talhao_id: "T1",
-            cultura_atual: culturaPrimariaSelecionada,
-            periodo_anos: periodoComparacaoAnos || 3,
-            objetivo: objetivo
+            talhao_id: simulacaoConfig.talhaoId,
+            cultura_atual: simulacaoConfig.culturaPartida,
+            periodo_anos: simulacaoConfig.periodo,
+            objetivo: simulacaoConfig.objetivo
           })
         });
         const data = await resp.json();
+        
+        // Estratégia recomendada prioritária
+        const strat = data.estrategias ? (data.estrategias[1] || data.estrategias[0]) : null;
+        if (strat) {
+          const scoreEl = document.getElementById('screen8ScoreSub');
+          if (scoreEl) scoreEl.innerText = `${strat.compatibilidade_score}% adequada às condições da área (${simulacaoConfig.periodo} anos)`;
+          
+          const timelineEl = document.getElementById('screen8Timeline');
+          if (timelineEl && strat.sequencia) {
+            let html = "";
+            const tags = ["Agora", "Próxima", "Depois", "Em seguida"];
+            const colors = ["#D97706", "#B45309", "#EAB308", "#15803D"];
+            strat.sequencia.forEach((s, idx) => {
+              const sigla = s.cultura.substring(0, 2).toUpperCase();
+              const cor = colors[idx % colors.length];
+              const isLast = idx === strat.sequencia.length - 1;
+              html += `
+                <div class="timeline-node">
+                  <div class="node-badge-col">
+                    <div class="node-num">${idx + 1}</div>
+                    <div class="node-circle" style="background: ${cor};">${sigla}</div>
+                    ${!isLast ? '<div class="node-line"></div>' : ''}
+                  </div>
+                  <div class="node-info-col">
+                    <span class="node-tag">${tags[idx] || "Ciclo " + (idx+1)}</span>
+                    <h4 class="node-title">${s.cultura}</h4>
+                    <p class="node-desc">${s.tempo} · ${s.justificativa || "Equilíbrio agronômico"}</p>
+                  </div>
+                </div>
+              `;
+            });
+            timelineEl.innerHTML = html;
+          }
 
-        container.innerHTML = "";
-        data.estrategias.forEach((strat, idx) => {
-          const isSelected = idx === 0 ? "border: 2px solid var(--primary-dark); background:#FAFCF9;" : "border: 1px solid var(--border-soft); background:#fff;";
-          const badgeBg = idx === 0 ? "#DCFCE7" : (idx === 1 ? "#E0F2FE" : "#F1F5F9");
-          const badgeTxt = idx === 0 ? "#15803D" : (idx === 1 ? "#0369A1" : "#475569");
+          const justEl = document.getElementById('screen8Justificativa');
+          if (justEl && strat.evidencias_cientificas) {
+            justEl.innerHTML = strat.evidencias_cientificas.map(e => `<div style="margin-bottom: 4px;">✓ ${e}</div>`).join('');
+          }
+          const riscoEl = document.getElementById('screen8Riscos');
+          if (riscoEl && strat.riscos_climaticos_e_operacionais) {
+            riscoEl.innerHTML = strat.riscos_climaticos_e_operacionais.map(r => `<div style="margin-bottom: 4px;">⚠️ ${r}</div>`).join('');
+          }
 
-          let stepsHtml = "";
-          strat.sequencia.forEach(s => {
-            stepsHtml += `
-              <div style="flex:1; text-align:center; background:#fff; border:1px solid var(--border-soft); border-radius:10px; padding:6px 4px;">
-                <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">${s.tempo}</div>
-                <div style="font-size:11px; font-weight:800; color:var(--primary-dark);">${s.cultura}</div>
+          // Atualiza Screen 9 (Resultado Final)
+          const prox = (strat.sequencia && strat.sequencia[1]) ? strat.sequencia[1].cultura : (strat.sequencia ? strat.sequencia[0].cultura : 'feijão-caupi');
+          const pEl = document.getElementById('screen9ProximoCiclo');
+          if (pEl) pEl.innerText = `Preparar o ${t.nome} para ${prox}`;
+          
+          if (strat.sequencia) {
+            const cultList = strat.sequencia.map(s => s.cultura.split(' ')[0]).join(', ');
+            const lEl = document.getElementById('screen9ListaCulturas');
+            if (lEl) lEl.innerText = cultList;
+          }
+        }
+
+        // Também atualiza cards do Hub se renderizados
+        const container = document.getElementById('cardsEstrategiasContainer');
+        if (container && data.estrategias) {
+          container.innerHTML = "";
+          data.estrategias.forEach((s, idx) => {
+            const isSelected = idx === 0 ? "border: 2px solid var(--primary-dark); background:#FAFCF9;" : "border: 1px solid var(--border-soft); background:#fff;";
+            const badgeBg = idx === 0 ? "#DCFCE7" : (idx === 1 ? "#E0F2FE" : "#F1F5F9");
+            const badgeTxt = idx === 0 ? "#15803D" : (idx === 1 ? "#0369A1" : "#475569");
+
+            let stepsHtml = "";
+            s.sequencia.forEach(st => {
+              stepsHtml += `
+                <div style="flex:1; text-align:center; background:#fff; border:1px solid var(--border-soft); border-radius:10px; padding:6px 4px;">
+                  <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">${st.tempo}</div>
+                  <div style="font-size:11px; font-weight:800; color:var(--primary-dark);">${st.cultura}</div>
+                </div>
+              `;
+            });
+
+            container.innerHTML += `
+              <div style="border-radius:16px; padding:14px; margin-bottom:12px; cursor:pointer; ${isSelected}" onclick="abrirModalNotificacao('calor')">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:${badgeBg}; color:${badgeTxt};">${s.tipo}</span>
+                  <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${s.compatibilidade_score}% compatível</span>
+                </div>
+                <strong style="font-size:13px; display:block; margin-bottom:8px;">${s.nome}</strong>
+                <div style="display:flex; gap:6px; margin-bottom:10px;">${stepsHtml}</div>
+                <div style="font-size:11px; line-height:1.4; color:var(--text-muted); background:#F8FAF6; padding:8px 10px; border-radius:8px;">
+                  <strong>🔬 Evidências:</strong> ${s.evidencias_cientificas[0]}<br>
+                  <strong>⚠️ Riscos:</strong> ${s.riscos_climaticos_e_operacionais[0]}<br>
+                  <strong>❓ Incerteza:</strong> ${s.incertezas_biofisicas[0]}
+                </div>
               </div>
             `;
           });
-
-          container.innerHTML += `
-            <div style="border-radius:16px; padding:14px; margin-bottom:12px; cursor:pointer; ${isSelected}" onclick="abrirModalNotificacao('calor')">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:${badgeBg}; color:${badgeTxt};">${strat.tipo}</span>
-                <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${strat.compatibilidade_score}% compatível</span>
-              </div>
-              <strong style="font-size:13px; display:block; margin-bottom:8px;">${strat.nome}</strong>
-              <div style="display:flex; gap:6px; margin-bottom:10px;">${stepsHtml}</div>
-              <div style="font-size:11px; line-height:1.4; color:var(--text-muted); background:#F8FAF6; padding:8px 10px; border-radius:8px;">
-                <strong>🔬 Evidências:</strong> ${strat.evidencias_cientificas[0]}<br>
-                <strong>⚠️ Riscos:</strong> ${strat.riscos_climaticos_e_operacionais[0]}<br>
-                <strong>❓ Incerteza:</strong> ${strat.incertezas_biofisicas[0]}
-              </div>
-            </div>
-          `;
-        });
+        }
       } catch (err) {
-        container.innerHTML = "<p style='color:red;'>Erro ao carregar estratégias.</p>";
+        console.error("Erro na simulação:", err);
       }
     }
+
+    // Executar Comparativo Triplo de Rotação (NASA Space Apps 2026)
+    async function executarComparativoTriplo() {
+      await executarSimulacaoEtapa8();
+    }
+
     let periodoComparacaoAnos = 3;
 
     function selecionarPeriodo(anos, btn) {
-      periodoComparacaoAnos = anos;
-      btn.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      selecionarPeriodoPill(anos, btn);
     }
   </script>
 </body>
