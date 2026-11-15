@@ -73,72 +73,74 @@ def calculate_ndvi_analysis(
     Consulta a Process API do Sentinel-2 no Copernicus CDSE para a geometria do imóvel.
     Retorna métricas de vigor vegetativo e cobertura do solo.
     """
-    token = get_access_token()
-
-    # Evalscript oficial de cálculo de NDVI com categorização de solo
-    evalscript = """
-    //VERSION=3
-    function setup() {
-      return {
-        input: ['B04', 'B08'],
-        output: { id: 'default', bands: 3, sampleType: 'AUTO' }
-      };
-    }
-    function evaluatePixel(sample) {
-      let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04 + 0.0001);
-      
-      // Retorna mapa temático: Verde (biomassa), Amarelo (palhada), Vermelho (solo nu)
-      if (ndvi > 0.55) {
-        return [0.1, 0.75, 0.2]; // Alta biomassa
-      } else if (ndvi > 0.30) {
-        return [0.9, 0.75, 0.1]; // Palhada / Cobertura morta
-      } else {
-        return [0.85, 0.25, 0.2]; // Solo exposto
-      }
-    }
-    """
-
-    payload = {
-        "input": {
-            "bounds": {
-                "geometry": geometry
-            },
-            "data": [
-                {
-                    "type": "sentinel-2-l2a",
-                    "dataFilter": {
-                        "timeRange": {
-                            "from": date_from,
-                            "to": date_to
-                        },
-                        "maxCloudCoverage": 35
-                    }
-                }
-            ]
-        },
-        "output": {
-            "width": 128,
-            "height": 128,
-            "responses": [
-                {
-                    "identifier": "default",
-                    "format": {"type": "image/png"}
-                }
-            ]
-        },
-        "evalscript": evalscript
-    }
-
-    req = urllib.request.Request(
-        PROCESS_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-    )
-
     try:
+        if not CLIENT_ID or not CLIENT_SECRET:
+            raise ValueError("Credenciais CDSE não configuradas.")
+        token = get_access_token()
+
+        # Evalscript oficial de cálculo de NDVI com categorização de solo
+        evalscript = """
+        //VERSION=3
+        function setup() {
+          return {
+            input: ['B04', 'B08'],
+            output: { id: 'default', bands: 3, sampleType: 'AUTO' }
+          };
+        }
+        function evaluatePixel(sample) {
+          let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04 + 0.0001);
+          
+          // Retorna mapa temático: Verde (biomassa), Amarelo (palhada), Vermelho (solo nu)
+          if (ndvi > 0.55) {
+            return [0.1, 0.75, 0.2]; // Alta biomassa
+          } else if (ndvi > 0.30) {
+            return [0.9, 0.75, 0.1]; // Palhada / Cobertura morta
+          } else {
+            return [0.85, 0.25, 0.2]; // Solo exposto
+          }
+        }
+        """
+
+        payload = {
+            "input": {
+                "bounds": {
+                    "geometry": geometry
+                },
+                "data": [
+                    {
+                        "type": "sentinel-2-l2a",
+                        "dataFilter": {
+                            "timeRange": {
+                                "from": date_from,
+                                "to": date_to
+                            },
+                            "maxCloudCoverage": 35
+                        }
+                    }
+                ]
+            },
+            "output": {
+                "width": 128,
+                "height": 128,
+                "responses": [
+                    {
+                        "identifier": "default",
+                        "format": {"type": "image/png"}
+                    }
+                ]
+            },
+            "evalscript": evalscript
+        }
+
+        req = urllib.request.Request(
+            PROCESS_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
+        )
+
         with urllib.request.urlopen(req, timeout=20) as resp:
             # Imagem PNG retornada
             png_bytes = resp.read()
