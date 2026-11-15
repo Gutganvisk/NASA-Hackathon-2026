@@ -877,23 +877,23 @@
 
       <div class="form-group">
         <label class="form-label">Nome da propriedade</label>
-        <input type="text" class="form-input" id="inputNomeProp" value="Sítio Boa Esperança">
+        <input type="text" class="form-input" id="inputNomeProp" value="" placeholder="Ex: Sítio Boa Esperança">
       </div>
 
       <div class="form-group">
         <label class="form-label">Localização</label>
-        <input type="text" class="form-input" id="inputLocalizacao" value="Região do Murupu">
+        <input type="text" class="form-input" id="inputLocalizacao" value="" placeholder="Ex: Região do Murupu">
       </div>
 
       <div class="form-group">
         <label class="form-label">Município</label>
-        <input type="text" class="form-input" id="inputMunicipio" value="Boa Vista, Roraima">
+        <input type="text" class="form-input" id="inputMunicipio" value="" placeholder="Ex: Boa Vista, Roraima">
       </div>
 
       <div class="form-group">
         <label class="form-label">Área aproximada</label>
         <div class="input-unit-wrapper">
-          <input type="text" id="inputArea" value="17.4">
+          <input type="number" step="0.1" id="inputArea" value="" placeholder="0">
           <span>hectares</span>
         </div>
       </div>
@@ -918,7 +918,7 @@
         <span style="font-size: 12px; background: var(--accent-lime-light); color: var(--primary-dark); font-weight: 700; padding: 4px 10px; border-radius: 999px;">🔍 Buscar</span>
       </div>
 
-      <button class="btn-primary" onclick="irParaEtapa(4)">Continuar para o mapa →</button>
+      <button class="btn-primary" onclick="continuarEtapa3Para4()">Continuar para o mapa →</button>
     </section>
 
     <!-- ======================================================== -->
@@ -994,33 +994,33 @@
       </div>
 
       <!-- Grid de 6 Culturas -->
-      <div class="crop-grid">
-        <div class="crop-badge-card active" onclick="alternarCulturaBadge('mandioca', this)">
+      <div class="crop-grid" id="cropGridEtapa5">
+        <div class="crop-badge-card" data-crop="mandioca" onclick="alternarCulturaBadge('mandioca')">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #CA8A04;">MA</div>
           <span class="crop-name">Mandioca</span>
         </div>
-        <div class="crop-badge-card active" onclick="alternarCulturaBadge('milho', this)">
+        <div class="crop-badge-card" data-crop="milho" onclick="alternarCulturaBadge('milho')">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #EAB308;">MI</div>
           <span class="crop-name">Milho</span>
         </div>
-        <div class="crop-badge-card active" onclick="alternarCulturaBadge('feijao_caupi', this)">
+        <div class="crop-badge-card" data-crop="feijao_caupi" onclick="alternarCulturaBadge('feijao_caupi')">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #B45309;">FC</div>
           <span class="crop-name">Feijão-caupi</span>
         </div>
-        <div class="crop-badge-card" onclick="alternarCulturaBadge('banana', this)">
+        <div class="crop-badge-card" data-crop="banana" onclick="alternarCulturaBadge('banana')">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #16A34A;">BA</div>
           <span class="crop-name">Banana</span>
         </div>
-        <div class="crop-badge-card" onclick="alternarCulturaBadge('arroz', this)">
+        <div class="crop-badge-card" data-crop="arroz" onclick="alternarCulturaBadge('arroz')">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #65A30D;">AR</div>
           <span class="crop-name">Arroz</span>
         </div>
-        <div class="crop-badge-card" onclick="alternarCulturaBadge('hortalicas', this)">
+        <div class="crop-badge-card" data-crop="hortalicas" onclick="alternarCulturaBadge('hortalicas')">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #15803D;">HO</div>
           <span class="crop-name">Hortaliças</span>
@@ -1030,7 +1030,7 @@
       <div class="form-group">
         <label class="form-label">Área da cultura no talhão</label>
         <div class="input-unit-wrapper">
-          <input type="text" id="inputAreaTalhao" value="6.2">
+          <input type="number" step="0.1" id="inputAreaTalhao" value="6.2" oninput="atualizarAreaTalhaoInput(this.value)">
           <span>hectares</span>
         </div>
       </div>
@@ -1677,7 +1677,8 @@
         onConfirmar: () => {
           const txt = document.getElementById('modHistoricoTxt').value;
           t.historico = txt;
-          document.getElementById('labelHistoricoTalhao').innerText = txt;
+          t.historico_customizado = true;
+          sincronizarUiTalhao(talhaoSelecionado);
         }
       });
     }
@@ -2022,6 +2023,9 @@
       if (numero === 4) {
         setTimeout(initMapEtapa4, 150);
       }
+      if (numero === 5) {
+        sincronizarUiTalhao(talhaoSelecionado || 'T1');
+      }
       if (numero === 6) {
         carregarDiagnostico();
       }
@@ -2062,27 +2066,137 @@
       t3.bindPopup("<strong>Talhão 3 (T3)</strong><br>5,8 ha");
     }
 
-    // Alternância de Culturas na Etapa 5
-    function selecionarTalhaoPill(tid, btn) {
-      talhaoSelecionado = tid;
-      document.querySelectorAll('.talhao-pills .pill-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    const NOMES_CULTURAS = {
+      mandioca: "Mandioca",
+      milho: "Milho",
+      feijao_caupi: "Feijão-caupi",
+      banana: "Banana",
+      arroz: "Arroz",
+      hortalicas: "Hortaliças"
+    };
 
-      const t = dadosPropriedade.talhoes[tid];
-      document.getElementById('inputAreaTalhao').value = t.area;
-      document.getElementById('labelHistoricoTalhao').innerText = t.historico;
-      document.getElementById('labelContagemCulturas').innerText = `${t.culturas.length} cultura(s) selecionada(s) para o ${t.nome}`;
+    function formatarListaCulturas(culturas) {
+      if (!culturas || culturas.length === 0) return "Nenhuma cultura";
+      const nomes = culturas.map(c => NOMES_CULTURAS[c] || c);
+      if (nomes.length === 1) return nomes[0];
+      if (nomes.length === 2) return `${nomes[0]} e ${nomes[1]}`;
+      return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`;
     }
 
-    function alternarCulturaBadge(cultura, card) {
-      card.classList.toggle('active');
-      const t = dadosPropriedade.talhoes[talhaoSelecionado];
-      if (card.classList.contains('active')) {
-        if (!t.culturas.includes(cultura)) t.culturas.push(cultura);
-      } else {
-        t.culturas = t.culturas.filter(c => c !== cultura);
+    // Sincroniza a interface do talhão garantindo que cada um tenha culturas, histórico e área 100% independentes
+    function sincronizarUiTalhao(tid) {
+      const t = dadosPropriedade.talhoes[tid];
+      if (!t) return;
+
+      // 1. Atualiza abas de talhões
+      document.querySelectorAll('.talhao-pills .pill-tab').forEach((btn, idx) => {
+        const ids = ['T1', 'T2', 'T3'];
+        if (ids[idx] === tid) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // 2. Atualiza a grid de badges para refletir APENAS as culturas deste talhão
+      document.querySelectorAll('#cropGridEtapa5 .crop-badge-card').forEach(card => {
+        const cropKey = card.getAttribute('data-crop');
+        if (t.culturas && t.culturas.includes(cropKey)) {
+          card.classList.add('active');
+        } else {
+          card.classList.remove('active');
+        }
+      });
+
+      // 3. Atualiza campo de área do talhão
+      const areaInput = document.getElementById('inputAreaTalhao');
+      if (areaInput) {
+        areaInput.value = t.area || 0;
       }
-      document.getElementById('labelContagemCulturas').innerText = `${t.culturas.length} cultura(s) selecionada(s) para o ${t.nome}`;
+
+      // 4. Atualiza o texto de contagem de culturas
+      const countEl = document.getElementById('labelContagemCulturas');
+      if (countEl) {
+        const qtd = t.culturas ? t.culturas.length : 0;
+        if (qtd === 0) {
+          countEl.innerText = `Nenhuma cultura selecionada para o ${t.nome}`;
+        } else if (qtd === 1) {
+          countEl.innerText = `1 cultura selecionada para o ${t.nome}`;
+        } else {
+          countEl.innerText = `${qtd} culturas selecionadas para o ${t.nome}`;
+        }
+      }
+
+      // 5. Atualiza o histórico do talhão dinamicamente
+      const histEl = document.getElementById('labelHistoricoTalhao');
+      if (histEl) {
+        if (t.historico_customizado && t.historico) {
+          histEl.innerText = t.historico;
+        } else {
+          const cultStr = formatarListaCulturas(t.culturas);
+          const histDinamico = (t.culturas && t.culturas.length > 0)
+            ? `${cultStr} em cultivo; antes, pousio.`
+            : `Talhão em repouso / pousio anterior.`;
+          t.historico = histDinamico;
+          histEl.innerText = histDinamico;
+        }
+      }
+    }
+
+    function selecionarTalhaoPill(tid, btn) {
+      talhaoSelecionado = tid;
+      sincronizarUiTalhao(tid);
+    }
+
+    function alternarCulturaBadge(cultura) {
+      const t = dadosPropriedade.talhoes[talhaoSelecionado];
+      if (!t.culturas) t.culturas = [];
+
+      const idx = t.culturas.indexOf(cultura);
+      if (idx > -1) {
+        t.culturas.splice(idx, 1);
+      } else {
+        t.culturas.push(cultura);
+      }
+
+      // Ao modificar uma cultura, atualiza imediatamente o histórico e o resumo
+      t.historico_customizado = false;
+      sincronizarUiTalhao(talhaoSelecionado);
+    }
+
+    function atualizarAreaTalhaoInput(val) {
+      const a = parseFloat(val) || 0;
+      const t = dadosPropriedade.talhoes[talhaoSelecionado];
+      if (t) {
+        t.area = a;
+        if (talhaoSelecionado === 'T1') {
+          const v = document.getElementById('areaT1Visual');
+          if (v) v.innerText = `${a} ha`;
+        }
+        if (talhaoSelecionado === 'T2') {
+          const v = document.getElementById('areaT2Visual');
+          if (v) v.innerText = `${a} ha`;
+        }
+        if (talhaoSelecionado === 'T3') {
+          const v = document.getElementById('areaT3Visual');
+          if (v) v.innerText = `${a} ha`;
+        }
+      }
+    }
+
+    function continuarEtapa3Para4() {
+      const nome = document.getElementById('inputNomeProp').value.trim();
+      const loc = document.getElementById('inputLocalizacao').value.trim();
+      const mun = document.getElementById('inputMunicipio').value.trim();
+      const area = parseFloat(document.getElementById('inputArea').value);
+
+      dadosPropriedade.nome = nome || "Sítio Boa Esperança";
+      dadosPropriedade.local = loc || "Região do Murupu";
+      dadosPropriedade.municipio = mun || "Boa Vista, Roraima";
+      if (!isNaN(area) && area > 0) {
+        dadosPropriedade.area_ha = area;
+      }
+      irParaEtapa(4);
     }
 
     // Seleção de Objetivos e Período na Etapa 7
