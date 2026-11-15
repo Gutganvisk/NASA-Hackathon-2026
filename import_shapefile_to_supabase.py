@@ -119,10 +119,12 @@ def parse_and_export_geojson(
     shp_path: str,
     dbf_path: str,
     output_json_path: str,
-    max_records: int = 1000
+    max_records: int = 1000,
+    municipio_filtro: Optional[str] = None,
+    target_car: Optional[str] = "RR-1400175-3772D7A9BD394DA195CD145D10183419"
 ) -> int:
     """
-    Processa os arquivos Shapefile e exporta uma base de dados local / pré-carregada em JSON.
+    Processa os arquivos Shapefile e exporta uma base de dados local em JSON.
     """
     print(f"[INFO] Lendo Shapefile: {shp_path}")
     print(f"[INFO] Lendo DBF: {dbf_path}")
@@ -137,35 +139,40 @@ def parse_and_export_geojson(
         if not rings or not attr.get("cod_imovel"):
             continue
 
+        cod = attr.get("cod_imovel", "").strip()
+        mun = attr.get("municipio", "Não Identificado")
+
+        # Filtro por município ou target CAR
+        if municipio_filtro and municipio_filtro.lower() not in mun.lower() and cod != target_car:
+            continue
+
         try:
-            area_ha = float(attr.get("area") or 0.0)
+            area_ha = float(attr.get("num_area") or attr.get("area") or 0.0)
         except ValueError:
             area_ha = 0.0
 
         try:
-            mod_fiscais = float(attr.get("m_fiscal") or 0.0)
+            mod_fiscais = float(attr.get("mod_fiscal") or attr.get("m_fiscal") or 0.0)
         except ValueError:
             mod_fiscais = 0.0
 
-        # Simula estimativas médias de reserva legal e consolidada caso não venha no DBF básico
         # No bioma Amazônia (Roraima), Reserva Legal é ~80% e Consolidada ~20%
         reserva_ha = round(area_ha * 0.80, 4)
         consolidada_ha = round(area_ha * 0.20, 4)
-
-        # Monta polígono GeoJSON
-        coordinates = [[list(pt) for pt in ring] for ring in rings]
 
         # Centróide
         all_pts = [pt for ring in rings for pt in ring]
         c_lon = round(sum(p[0] for p in all_pts) / len(all_pts), 6) if all_pts else 0.0
         c_lat = round(sum(p[1] for p in all_pts) / len(all_pts), 6) if all_pts else 0.0
 
+        coordinates = [[list(pt) for pt in ring] for ring in rings]
+
         item = {
-            "cod_imovel": attr.get("cod_imovel"),
-            "municipio": attr.get("municipio", "Não Identificado"),
-            "uf": attr.get("uf", "RR"),
-            "status_imovel": attr.get("status_imo", "AT"),
-            "tipo_imovel": attr.get("tipo_imove", "IRU"),
+            "cod_imovel": cod,
+            "municipio": mun,
+            "uf": attr.get("cod_estado") or attr.get("uf", "RR"),
+            "status_imovel": attr.get("ind_status") or attr.get("status_imo", "AT"),
+            "tipo_imovel": attr.get("ind_tipo") or attr.get("tipo_imove", "IRU"),
             "modulos_fiscais": mod_fiscais,
             "area_total_ha": area_ha,
             "area_total_m2": round(area_ha * 10000, 2),
@@ -181,11 +188,12 @@ def parse_and_export_geojson(
                     "coordinates": [coordinates] if len(rings) > 1 else coordinates
                 },
                 "properties": {
-                    "cod_imovel": attr.get("cod_imovel"),
+                    "cod_imovel": cod,
                     "area_ha": area_ha,
                     "area_m2": round(area_ha * 10000, 2),
-                    "municipio": attr.get("municipio"),
-                    "uf": attr.get("uf")
+                    "municipio": mun,
+                    "uf": attr.get("cod_estado") or attr.get("uf", "RR"),
+                    "centroid": {"latitude": c_lat, "longitude": c_lon}
                 }
             }
         }
@@ -198,17 +206,134 @@ def parse_and_export_geojson(
     with open(output_json_path, "w", encoding="utf-8") as out_f:
         json.dump(items, out_f, ensure_ascii=False, indent=2)
 
-    print(f"[SUCESSO] {count} imoveis rurais extraidos e salvos em {output_json_path}!")
+    print(f"[SUCESSO] {count} imóveis rurais extraídos e salvos em {output_json_path}!")
     return count
 
 
+def upload_imoveis_to_supabase(
+    shp_path: str,
+    dbf_path: str,
+    municipio_filtro: Optional[str] = "Boa Vista",
+    target_car: str = "RR-1400175-3772D7A9BD394DA195CD145D10183419",
+    max_records: int = 500,
+    batch_size: int = 50
+) -> Dict[str, Any]:
+    """
+    Lê o Shapefile e envia em lotes diretamente para a tabela propriedades_rurais no Supabase via PostgREST.
+    """
+    from supabase_client import _supabase_request, is_supabase_configured
+
+    if not is_supabase_configured():
+        return {"sucesso": False, "erro": "Supabase não configurado no .env."}
+
+    print(f"[SUPABASE] Iniciando extração e upload para Supabase...")
+    dbf_gen = read_dbf_records(dbf_path)
+    shp_gen = read_shp_polygons(shp_path)
+
+    batch = []
+    total_enviados = 0
+
+    for attr, rings in zip(dbf_gen, shp_gen):
+        if not rings or not attr.get("cod_imovel"):
+            continue
+
+        cod = attr.get("cod_imovel", "").strip()
+        mun = attr.get("municipio", "Não Identificado")
+
+        if municipio_filtro and municipio_filtro.lower() not in mun.lower() and cod != target_car:
+            continue
+
+        try:
+            area_ha = float(attr.get("num_area") or attr.get("area") or 0.0)
+        except ValueError:
+            area_ha = 0.0
+
+        try:
+            mod_fiscais = float(attr.get("mod_fiscal") or attr.get("m_fiscal") or 0.0)
+        except ValueError:
+            mod_fiscais = 0.0
+
+        consolidada_ha = round(area_ha * 0.20, 4)
+
+        all_pts = [pt for ring in rings for pt in ring]
+        c_lon = round(sum(p[0] for p in all_pts) / len(all_pts), 6) if all_pts else 0.0
+        c_lat = round(sum(p[1] for p in all_pts) / len(all_pts), 6) if all_pts else 0.0
+
+        coordinates = [[list(pt) for pt in ring] for ring in rings]
+
+        record = {
+            "cod_car": cod,
+            "nome": f"Imóvel Rural {mun}",
+            "municipio": mun,
+            "uf": attr.get("cod_estado") or attr.get("uf", "RR"),
+            "area_total_ha": area_ha,
+            "area_consolidada_ha": consolidada_ha,
+            "geojson": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "MultiPolygon" if len(rings) > 1 else "Polygon",
+                    "coordinates": [coordinates] if len(rings) > 1 else coordinates
+                },
+                "properties": {
+                    "cod_imovel": cod,
+                    "area_ha": area_ha,
+                    "municipio": mun,
+                    "centroid": {"latitude": c_lat, "longitude": c_lon}
+                }
+            }
+        }
+
+        batch.append(record)
+
+        if len(batch) >= batch_size:
+            try:
+                _supabase_request(
+                    "propriedades_rurais",
+                    method="POST",
+                    data=batch,
+                    prefer="resolution=merge-duplicates"
+                )
+                total_enviados += len(batch)
+                print(f"[SUPABASE] Lote de {len(batch)} enviado com sucesso! Total: {total_enviados}")
+            except Exception as e:
+                print(f"[ERRO SUPABASE] Falha no lote: {e}")
+            batch = []
+
+        if total_enviados >= max_records:
+            break
+
+    if batch:
+        try:
+            _supabase_request(
+                "propriedades_rurais",
+                method="POST",
+                data=batch,
+                prefer="resolution=merge-duplicates"
+            )
+            total_enviados += len(batch)
+            print(f"[SUPABASE] Último lote de {len(batch)} enviado! Total final: {total_enviados}")
+        except Exception as e:
+            print(f"[ERRO SUPABASE] Falha no último lote: {e}")
+
+    return {"sucesso": True, "total_enviados": total_enviados}
+
+
 if __name__ == "__main__":
-    default_dir = os.path.expandvars(r"%USERPROFILE%\Downloads\RR_IMOVEIS_Out2026")
-    shp = os.path.join(default_dir, "sicar_imoveis_rr.shp")
-    dbf = os.path.join(default_dir, "sicar_imoveis_rr.dbf")
+    download_dir = r"c:\Users\ADMIN\Downloads\AREA_IMOVEL"
+    shp = os.path.join(download_dir, "AREA_IMOVEL_1.shp")
+    dbf = os.path.join(download_dir, "AREA_IMOVEL_1.dbf")
     out = os.path.join(os.path.dirname(__file__), "imoveis_rr_sample.json")
 
+    if not os.path.exists(shp):
+        default_dir = os.path.expandvars(r"%USERPROFILE%\Downloads\RR_IMOVEIS_Out2026")
+        shp = os.path.join(default_dir, "sicar_imoveis_rr.shp")
+        dbf = os.path.join(default_dir, "sicar_imoveis_rr.dbf")
+
     if os.path.exists(shp) and os.path.exists(dbf):
-        parse_and_export_geojson(shp, dbf, out, max_records=2000)
+        # 1. Exporta GeoJSON local
+        parse_and_export_geojson(shp, dbf, out, max_records=500, municipio_filtro="Boa Vista")
+        # 2. Upload para Supabase
+        upload_imoveis_to_supabase(shp, dbf, municipio_filtro="Boa Vista", max_records=500, batch_size=50)
     else:
-        print("Arquivos de Roraima não encontrados no caminho padrão de Downloads.")
+        print("Arquivos Shapefile não encontrados no caminho padrão de Downloads.")
+

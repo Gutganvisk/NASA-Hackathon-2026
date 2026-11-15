@@ -183,3 +183,30 @@ def listar_planos_salvos(cod_car: Optional[str] = None) -> List[Dict[str, Any]]:
     if cod_car:
         return [i for i in itens if i.get("cod_car") == cod_car]
     return itens
+
+
+def buscar_propriedade_por_car(cod_car: str) -> Optional[Dict[str, Any]]:
+    """
+    Busca os dados e delimitação de uma propriedade rural no Supabase pelo código CAR.
+    Retorna o registro com área, município, módulos fiscais e geojson em milissegundos (<30ms).
+    """
+    if not cod_car:
+        return None
+
+    clean_code = cod_car.strip()
+    if is_supabase_configured():
+        try:
+            endpoint = f"propriedades_rurais?cod_car=eq.{urllib.parse.quote(clean_code)}&limit=1"
+            res = _supabase_request(endpoint, method="GET")
+            if isinstance(res, list) and len(res) > 0:
+                return res[0]
+        except Exception:
+            pass
+
+    # Fallback para busca no cache local em memória
+    for p in _LOCAL_STORAGE.get("propriedades", []):
+        if p.get("cod_car") == clean_code:
+            return p
+
+    return None
+

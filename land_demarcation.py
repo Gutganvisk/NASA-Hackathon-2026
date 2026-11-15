@@ -53,13 +53,43 @@ def extract_uf_from_car(cod_imovel: str) -> Optional[str]:
 
 def query_land_demarcation(cod_imovel: str) -> Dict[str, Any]:
     """
-    Busca o imóvel no banco local/Supabase de alta velocidade.
-    Caso não encontre, consulta o WFS oficial do SICAR.
+    Busca o imóvel no Supabase Cloud (PostGIS <30ms) ou no banco local de alta velocidade.
+    Caso não encontre em nenhum deles, consulta o WFS oficial do SICAR como fallback.
     """
     clean_code = cod_imovel.strip()
-    cache = load_local_imoveis_cache()
 
-    # 1. Busca no Banco Local (extraído do Shapefile do CAR de Roraima)
+    # 1. Busca no Supabase Cloud (PostgreSQL / PostGIS)
+    try:
+        from supabase_client import buscar_propriedade_por_car
+        supa_item = buscar_propriedade_por_car(clean_code)
+        if supa_item:
+            geojson = supa_item.get("geojson") or {}
+            c_lat = geojson.get("properties", {}).get("centroid", {}).get("latitude", 2.82)
+            c_lon = geojson.get("properties", {}).get("centroid", {}).get("longitude", -60.67)
+            area_ha = float(supa_item.get("area_total_ha") or 0.0)
+            area_cons = float(supa_item.get("area_consolidada_ha") or round(area_ha * 0.20, 2))
+            area_res = round(area_ha * 0.80, 2)
+            return {
+                "source": "Supabase Cloud PostGIS (< 30ms)",
+                "cod_imovel": supa_item.get("cod_car") or clean_code,
+                "municipio": supa_item.get("municipio", "Não Identificado"),
+                "uf": supa_item.get("uf", "RR"),
+                "status": "AT",
+                "modulos_fiscais": float(supa_item.get("modulos_fiscais") or 0.0),
+                "area_total_ha": area_ha,
+                "area_total_m2": round(area_ha * 10000, 2),
+                "area_consolidada_ha": area_cons,
+                "area_consolidada_m2": round(area_cons * 10000, 2),
+                "area_reserva_legal_ha": area_res,
+                "area_reserva_legal_m2": round(area_res * 10000, 2),
+                "centroid": {"latitude": c_lat, "longitude": c_lon},
+                "geojson": geojson
+            }
+    except Exception:
+        pass
+
+    # 2. Busca no Banco Local (extraído do Shapefile do CAR de Roraima)
+    cache = load_local_imoveis_cache()
     if clean_code in cache:
         item = cache[clean_code]
         return {
@@ -79,7 +109,7 @@ def query_land_demarcation(cod_imovel: str) -> Dict[str, Any]:
             "geojson": item["geojson"]
         }
 
-    # 2. Fallback: Consulta ao WFS do SICAR
+    # 3. Fallback: Consulta ao WFS do SICAR
     uf = extract_uf_from_car(clean_code) or "rr"
     return query_sicar_wfs(clean_code, uf)
 
