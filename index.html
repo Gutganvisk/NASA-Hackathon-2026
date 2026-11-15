@@ -17,6 +17,7 @@
   <style>
     :root {
       --primary-dark: #153A24;
+      --primary-card: #204B32;
       --primary-hover: #102e1c;
       --accent-lime: #84CC16;
       --accent-lime-light: #ecfccb;
@@ -26,14 +27,14 @@
       --text-main: #111827;
       --text-muted: #6B7280;
       --text-light: #9CA3AF;
-      --badge-warn-bg: #FEF3C7;
-      --badge-warn-text: #B45309;
-      --badge-blue-bg: #E0F2FE;
-      --badge-blue-text: #0369A1;
+      --warm-bg: #FDF8F3;
+      --warm-border: #FED7AA;
+      --warm-text: #B45309;
+      --callout-bg: #EEF5EB;
       --radius-card: 20px;
       --radius-sm: 12px;
       --radius-pill: 9999px;
-      --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
     }
 
     * {
@@ -91,8 +92,15 @@
       width: 36px;
       height: 36px;
       border-radius: var(--radius-sm);
+      transition: background 0.15s;
     }
     .header-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .header-title-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
     .header-title {
       font-size: 16px;
@@ -133,7 +141,7 @@
 
     /* Área de Conteúdo das Telas */
     .screen-content {
-      padding: 20px;
+      padding: 20px 18px 30px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -180,21 +188,27 @@
     }
     .form-input:focus { border-color: var(--primary-dark); }
 
-    .input-addon-btn {
-      background: var(--primary-dark);
-      color: #ffffff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 6px;
-      width: 100%;
+    .input-unit-wrapper {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
+      background: var(--surface-white);
+      border: 1.5px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      padding: 0 14px;
+    }
+    .input-unit-wrapper input {
+      border: none;
+      outline: none;
+      font-size: 14px;
+      padding: 12px 0;
+      width: 100%;
+      background: transparent;
+      color: var(--text-main);
+    }
+    .input-unit-wrapper span {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: 8px;
     }
 
     /* Cards e Superfícies */
@@ -207,12 +221,25 @@
       box-shadow: var(--shadow-soft);
     }
 
-    .card-highlight {
-      background: #F0FDF4;
-      border-color: #BBF7D0;
+    .callout-card {
+      background: var(--callout-bg);
+      border-radius: var(--radius-card);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
     }
 
-    /* Botão Primário */
+    .warm-card {
+      background: var(--warm-bg);
+      border: 1px solid var(--warm-border);
+      border-radius: var(--radius-card);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    /* Botões */
     .btn-primary {
       background-color: var(--primary-dark);
       color: #ffffff;
@@ -227,7 +254,7 @@
       justify-content: center;
       gap: 8px;
       width: 100%;
-      box-shadow: 0 4px 12px rgba(21, 58, 36, 0.25);
+      box-shadow: 0 4px 14px rgba(21, 58, 36, 0.2);
       transition: all 0.2s;
       margin-top: auto;
     }
@@ -237,9 +264,9 @@
       background-color: transparent;
       color: var(--primary-dark);
       border: 1.5px solid var(--primary-dark);
-      padding: 12px 18px;
+      padding: 13px 18px;
       border-radius: var(--radius-pill);
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -248,17 +275,52 @@
       gap: 6px;
       width: 100%;
       margin-top: 10px;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: rgba(21, 58, 36, 0.05); }
+
+    .btn-link-action {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
     }
 
-    /* Mapa Leaflet Mobile */
-    .map-frame {
+    /* Frame do Mapa Leaflet Mobile */
+    .map-frame-box {
       width: 100%;
       height: 240px;
       border-radius: var(--radius-card);
       overflow: hidden;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       border: 1px solid var(--border-soft);
       position: relative;
+    }
+
+    .map-fab-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: #ffffff;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 500;
     }
 
     /* Badges de Culturas */
@@ -313,26 +375,25 @@
       background: var(--accent-lime);
       color: #ffffff;
       border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      font-size: 10px;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
       display: none;
       align-items: center;
       justify-content: center;
     }
     .crop-badge-card.active .check-icon { display: flex; }
 
-    /* Seletor de Talhões */
+    /* Segmented Talhões */
     .talhao-pills {
       display: flex;
       gap: 8px;
       margin-bottom: 16px;
-      overflow-x: auto;
-      padding-bottom: 4px;
     }
 
-    .pill-btn {
-      padding: 8px 16px;
+    .pill-tab {
+      flex: 1;
+      padding: 8px 12px;
       border-radius: var(--radius-pill);
       border: 1.5px solid var(--border-soft);
       background: var(--surface-white);
@@ -340,238 +401,186 @@
       font-weight: 600;
       color: var(--text-muted);
       cursor: pointer;
-      white-space: nowrap;
+      text-align: center;
+      transition: all 0.15s;
     }
-    .pill-btn.active {
+    .pill-tab.active {
       background: var(--primary-dark);
       color: #ffffff;
       border-color: var(--primary-dark);
     }
 
-    /* Grid de Diagnóstico Ambiental */
-    .diag-grid {
+    /* Grid de Diagnóstico Ambiental (Etapa 6) */
+    .diag-grid-6 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin-bottom: 16px;
     }
 
-    .diag-card {
+    .diag-box {
       background: var(--surface-white);
       border: 1px solid var(--border-soft);
-      border-radius: 14px;
-      padding: 12px;
+      border-radius: 16px;
+      padding: 12px 14px;
       cursor: pointer;
       transition: transform 0.15s, border-color 0.15s;
     }
-    .diag-card:hover {
+    .diag-box:hover {
       transform: translateY(-2px);
       border-color: var(--primary-dark);
     }
 
-    .diag-val {
+    .diag-box-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .diag-box-val {
       font-size: 18px;
       font-weight: 800;
       color: var(--primary-dark);
-      margin: 4px 0 2px;
+      margin: 2px 0 2px;
     }
 
-    .diag-status {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-    .diag-status.warn { color: var(--badge-warn-text); }
-
-    /* Hub Pós-Cadastro: Tela cheia com Bottom Sheet */
-    #screenHub {
-      position: relative;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #hubMap {
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-
-    .hub-floating-controls {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      right: 14px;
-      z-index: 500;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-    }
-
-    .filter-chip {
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-pill);
-      padding: 6px 12px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--primary-dark);
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      cursor: pointer;
-    }
-    .filter-chip.active {
-      background: var(--primary-dark);
-      color: #ffffff;
-    }
-
-    /* Bottom Sheet Deslizante */
-    .bottom-sheet {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--surface-white);
-      border-radius: 28px 28px 0 0;
-      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
-      z-index: 600;
-      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sheet-handle-area {
-      padding: 12px;
-      display: flex;
-      justify-content: center;
-      cursor: grab;
-    }
-
-    .sheet-handle {
-      width: 44px;
-      height: 5px;
-      background: #D1D5DB;
-      border-radius: var(--radius-pill);
-    }
-
-    .sheet-header-tabs {
-      display: flex;
-      gap: 8px;
-      padding: 0 16px 12px;
-      border-bottom: 1px solid var(--border-soft);
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      border: none;
-      background: none;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .tab-btn.active {
-      background: var(--primary-dark);
-      color: #ffffff;
-    }
-
-    .sheet-body {
-      padding: 16px 20px 30px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    /* Timeline de Rotação */
-    .strategy-card {
-      border: 1.5px solid var(--border-soft);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 14px;
-      cursor: pointer;
-    }
-    .strategy-card.selected {
-      border-color: var(--primary-dark);
-      background: #FAFCF9;
-    }
-
-    .strat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .strat-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: var(--radius-pill);
-    }
-
-    .timeline-steps {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .step-item {
-      flex: 1;
-      text-align: center;
-      background: #ffffff;
-      border: 1px solid var(--border-soft);
-      border-radius: 10px;
-      padding: 6px 4px;
-    }
-
-    .step-time { font-size: 9.5px; font-weight: 700; color: var(--text-muted); }
-    .step-crop { font-size: 11px; font-weight: 800; color: var(--primary-dark); }
-
-    .evidence-box {
+    .diag-box-sub {
       font-size: 11px;
-      line-height: 1.4;
       color: var(--text-muted);
-      background: #F8FAF6;
-      padding: 8px 10px;
-      border-radius: 8px;
-      margin-top: 6px;
+      font-weight: 500;
     }
+    .diag-box-sub.warn { color: var(--warm-text); }
 
-    /* Timeline da Agenda */
-    .agenda-item {
+    /* Hero Card (Dark Green) */
+    .hero-metric-card {
+      background: var(--primary-card);
+      color: #ffffff;
+      border-radius: var(--radius-card);
+      padding: 18px 20px;
+      margin-bottom: 16px;
       display: flex;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-soft);
-      cursor: pointer;
+      align-items: center;
+      justify-content: space-between;
     }
-    .agenda-item:hover { background: #F9FAFB; }
 
-    .agenda-date {
-      min-width: 65px;
+    /* Timeline de Rotação (Etapa 8) */
+    .rotation-timeline {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      margin: 8px 0 16px;
+    }
+
+    .timeline-node {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    .node-badge-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 44px;
+    }
+
+    .node-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-dark);
+      color: #ffffff;
       font-size: 11px;
       font-weight: 800;
-      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
     }
 
-    .agenda-content h4 {
-      font-size: 12.5px;
+    .node-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .node-line {
+      width: 2px;
+      height: 24px;
+      background: #CBD5E1;
+      margin: 4px 0;
+    }
+
+    .node-info-col {
+      flex: 1;
+      padding: 6px 0;
+    }
+
+    .node-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .node-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      line-height: 1.25;
+    }
+
+    .node-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Badges de Métricas do Resultado (Etapa 9) */
+    .metric-triad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .metric-triad-card {
+      background: var(--surface-white);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .metric-triad-val {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .metric-triad-label {
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-main);
+      margin-bottom: 2px;
     }
-    .agenda-content p {
-      font-size: 11px;
+
+    .metric-triad-sub {
+      font-size: 9.5px;
       color: var(--text-muted);
-      line-height: 1.35;
+      line-height: 1.2;
     }
 
     /* ======================================================== */
-    /* SISTEMA DE MODAL INTERATIVO (SUBSTITUI ALERTS/PROMPTS)    */
+    /* MODAIS INTERATIVOS (SUBSTITUI PROMPT/ALERT)              */
     /* ======================================================== */
     .modal-backdrop {
       position: fixed;
@@ -653,6 +662,109 @@
       from { transform: translateY(20px) scale(0.97); opacity: 0; }
       to { transform: translateY(0) scale(1); opacity: 1; }
     }
+
+    /* HUB INTERATIVO PÓS-CADASTRO */
+    #screenHub {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #hubMap {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .hub-floating-controls {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 500;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .filter-chip {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-pill);
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+    .filter-chip.active {
+      background: var(--primary-dark);
+      color: #ffffff;
+    }
+
+    /* Bottom Sheet */
+    .bottom-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface-white);
+      border-radius: 28px 28px 0 0;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+      z-index: 600;
+      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sheet-handle-area {
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .sheet-handle {
+      width: 44px;
+      height: 5px;
+      background: #D1D5DB;
+      border-radius: var(--radius-pill);
+    }
+
+    .sheet-header-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border: none;
+      background: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: var(--primary-dark);
+      color: #ffffff;
+    }
+
+    .sheet-body {
+      padding: 16px 20px 30px;
+      overflow-y: auto;
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -661,87 +773,115 @@
 
     <!-- Header Fixo Superior -->
     <header class="app-header">
-      <button class="header-btn" onclick="voltarEtapa()">‹</button>
-      <div class="header-title" id="topHeaderTitle">Crop Rotation</div>
-      <button class="header-btn" onclick="abrirModalInfo()">☰</button>
+      <button class="header-btn" id="headerBackBtn" onclick="voltarEtapa()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="header-title-box">
+        <span id="headerLogoIcon" style="display: inline-block;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c0-4.4 3.6-8 8-8V4c-4.4 0-8 3.6-8 8v8"/><path d="M4 11a8 8 0 0 1 8-8v1"/></svg>
+        </span>
+        <div class="header-title" id="topHeaderTitle">Crop Rotation</div>
+      </div>
+      <button class="header-btn" onclick="abrirModalInfo()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
     </header>
 
-    <!-- Barra de Progresso das Etapas (1 a 5 no cadastro) -->
-    <div class="progress-bar-container" id="progressBarBox">
+    <!-- Barra de Progresso das Etapas (Mostrada da Etapa 3 até 9) -->
+    <div class="progress-bar-container" id="progressBarBox" style="display: none;">
       <div class="progress-info">
-        <span id="labelEtapa">Etapa 1 de 5</span>
-        <span id="labelPercent">20%</span>
+        <span id="labelEtapa">Etapa 3 de 9</span>
+        <span id="labelPercent">33%</span>
       </div>
       <div class="progress-track">
-        <div class="progress-fill" id="barFill" style="width: 20%;"></div>
+        <div class="progress-fill" id="barFill" style="width: 33%;"></div>
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- ETAPA 1 & 2: LANDING / BOAS-VINDAS                        -->
+    <!-- ETAPA 1 & 2: LANDING / BOAS-VINDAS (IMAGE 7)             -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen1" style="display: flex;">
-      <div class="card" style="background: var(--primary-dark); color: #ffffff; padding: 22px 18px; margin-bottom: 16px;">
+      <div class="card" style="background: var(--primary-dark); color: #ffffff; padding: 22px 18px 20px; border-radius: 24px; margin-bottom: 16px;">
         <span style="font-size: 10.5px; font-weight: 800; letter-spacing: 1px; color: var(--accent-lime); text-transform: uppercase;">Planejamento Agrícola Simples</span>
-        <h2 style="font-size: 20px; font-weight: 800; line-height: 1.25; margin: 8px 0 10px;">Cuide melhor da sua terra, safra após safra.</h2>
-        <p style="font-size: 12px; color: #D1D5DB; line-height: 1.45;">Planeje a rotação de culturas com dados de satélite da NASA, ESA e parâmetros agronômicos da Embrapa Roraima.</p>
-        <div style="margin-top: 14px; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 16px;">🌱</span>
-          <span style="font-size: 11px; font-weight: 600;">Solo mais saudável e menos riscos climáticos</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px;">Como funciona:</h3>
-        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
-          <span style="background: var(--accent-lime-light); color: var(--primary-dark); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">1</span>
-          <div>
-            <strong style="font-size: 13px;">Mapeie sua gleba e talhões</strong>
-            <p style="font-size: 11px; color: var(--text-muted);">Pelo código CAR ou no mapa de satélite.</p>
-          </div>
-        </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
-          <span style="background: var(--accent-lime-light); color: var(--primary-dark); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">2</span>
-          <div>
-            <strong style="font-size: 13px;">Entenda as condições do solo e clima</strong>
-            <p style="font-size: 11px; color: var(--text-muted);">Chuva, saturação de água e vigor vegetal.</p>
-          </div>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: flex-start;">
-          <span style="background: var(--accent-lime-light); color: var(--primary-dark); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">3</span>
-          <div>
-            <strong style="font-size: 13px;">Compare 3 estratégias de rotação</strong>
-            <p style="font-size: 11px; color: var(--text-muted);">Veja evidências, riscos e o calendário ideal.</p>
+        <h1 style="font-size: 22px; font-weight: 800; line-height: 1.25; margin: 8px 0 10px;">Cuide melhor da sua terra, safra após safra.</h1>
+        <p style="font-size: 12.5px; color: #D1D5DB; line-height: 1.45; margin-bottom: 16px;">Planeje a rotação de culturas com informações da sua propriedade e da região de Boa Vista.</p>
+        
+        <!-- Banner Visual Agrícola -->
+        <div style="position: relative; border-radius: 16px; overflow: hidden; height: 160px; background: linear-gradient(135deg, #15803D 0%, #166534 50%, #14532D 100%); display: flex; align-items: flex-end; padding: 12px; border: 1px solid rgba(255,255,255,0.15);">
+          <!-- Representação gráfica de campo verde com carreador -->
+          <svg style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.25;" viewBox="0 0 400 160" preserveAspectRatio="none">
+            <line x1="0" y1="20" x2="400" y2="20" stroke="#bef264" stroke-width="4"/>
+            <line x1="0" y1="50" x2="400" y2="50" stroke="#bef264" stroke-width="4"/>
+            <line x1="0" y1="80" x2="400" y2="80" stroke="#bef264" stroke-width="4"/>
+            <line x1="0" y1="110" x2="400" y2="110" stroke="#bef264" stroke-width="4"/>
+            <line x1="0" y1="140" x2="400" y2="140" stroke="#bef264" stroke-width="4"/>
+            <rect x="185" y="0" width="30" height="160" fill="#92400e" opacity="0.6"/>
+          </svg>
+          <div style="background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 8px 14px; border-radius: var(--radius-pill); display: flex; align-items: center; gap: 8px; z-index: 2;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            <div>
+              <strong style="font-size: 11.5px; color: var(--text-main); display: block;">Solo mais saudável</strong>
+              <span style="font-size: 10px; color: var(--text-muted);">decisões para o longo prazo</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <button class="btn-primary" onclick="irParaEtapa(3)">Começar por sua propriedade →</button>
+      <!-- Card Como Funciona / Comece por sua propriedade -->
+      <div class="card" style="padding: 18px 16px;">
+        <h2 style="font-size: 17px; font-weight: 800; color: var(--primary-dark); margin-bottom: 4px;">Comece por sua propriedade</h2>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">Em poucos passos, você recebe sugestões adaptadas à sua área.</p>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 14px; align-items: center;">
+          <div style="background: #E8F5E9; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+          </div>
+          <div>
+            <strong style="font-size: 13.5px; color: var(--text-main);">Mapeie seus talhões</strong>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Desenhe cada área de plantio</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 14px; align-items: center;">
+          <div style="background: #E8F5E9; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+          </div>
+          <div>
+            <strong style="font-size: 13.5px; color: var(--text-main);">Entenda as condições</strong>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Clima, solo e umidade simplificados</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="background: #E8F5E9; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          </div>
+          <div>
+            <strong style="font-size: 13.5px; color: var(--text-main);">Compare rotações</strong>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Veja opções antes de decidir</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(3)">Começar →</button>
+      <p style="font-size: 10.5px; color: var(--text-light); text-align: center; margin-top: 12px;">A ferramenta apoia sua decisão. Consulte também a assistência técnica local.</p>
     </section>
 
     <!-- ======================================================== -->
-    <!-- ETAPA 3: DADOS DA PROPRIEDADE & BUSCA CAR               -->
+    <!-- ETAPA 3: DADOS DA PROPRIEDADE (IMAGE 8)                  -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen3" style="display: none;">
       <h2 class="screen-heading">Conte sobre sua propriedade</h2>
-      <p class="screen-subheading">Informe o Código CAR ou preencha a localização para demarcar automaticamente os limites oficiais.</p>
-
-      <div class="card card-highlight">
-        <label class="form-label">Código do CAR (SICAR / Roraima)</label>
-        <input type="text" class="form-input" id="inputCodCar" value="RR-1400175-3772D7A9BD394DA195CD145D10183419" placeholder="Ex: RR-1400175-...">
-        <button class="input-addon-btn" onclick="buscarCarNoSicar()">
-          <span>🔍 Buscar Demarcação Oficial no SICAR</span>
-        </button>
-        <span style="font-size: 10.5px; color: var(--text-muted); display: block; margin-top: 6px;" id="sicarStatusMsg">Gleba localizada: Caracaraí / Boa Vista (87,1 ha)</span>
-      </div>
+      <p class="screen-subheading">Essas informações ajudam a adaptar as sugestões à sua realidade.</p>
 
       <div class="form-group">
-        <label class="form-label">Nome da Propriedade</label>
+        <label class="form-label">Nome da propriedade</label>
         <input type="text" class="form-input" id="inputNomeProp" value="Sítio Boa Esperança">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Localização / Vicinal</label>
+        <label class="form-label">Localização</label>
         <input type="text" class="form-input" id="inputLocalizacao" value="Região do Murupu">
       </div>
 
@@ -751,49 +891,88 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Área Consolidada para Plantio (ha)</label>
-        <input type="text" class="form-input" id="inputArea" value="17.4">
+        <label class="form-label">Área aproximada</label>
+        <div class="input-unit-wrapper">
+          <input type="text" id="inputArea" value="17.4">
+          <span>hectares</span>
+        </div>
+      </div>
+
+      <!-- Callout: Não sabe o tamanho exato? -->
+      <div class="callout-card">
+        <div style="background: #E8F5E9; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div>
+          <strong style="font-size: 12.5px; color: var(--text-main); display: block;">Não sabe o tamanho exato?</strong>
+          <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">Sem problema. Na próxima etapa você pode marcar a área diretamente no mapa.</p>
+        </div>
+      </div>
+
+      <!-- Opção de Busca via CAR (Modal SICAR) -->
+      <div style="background: #ffffff; border: 1.5px dashed var(--accent-lime); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="abrirModalBuscarCar()">
+        <div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--primary-dark); display: block;">Possui Código CAR?</span>
+          <span style="font-size: 10px; color: var(--text-muted);">Buscar demarcação oficial no SICAR</span>
+        </div>
+        <span style="font-size: 12px; background: var(--accent-lime-light); color: var(--primary-dark); font-weight: 700; padding: 4px 10px; border-radius: 999px;">🔍 Buscar</span>
       </div>
 
       <button class="btn-primary" onclick="irParaEtapa(4)">Continuar para o mapa →</button>
     </section>
 
     <!-- ======================================================== -->
-    <!-- ETAPA 4: MAPA CONJUNTO & DELIMITAÇÃO DOS TALHÕES         -->
+    <!-- ETAPA 4: ÁREA NO MAPA (IMAGE 1)                          -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen4" style="display: none;">
       <h2 class="screen-heading">Marque sua área no mapa</h2>
-      <p class="screen-subheading">Imagem de satélite Sentinel-2 e NASA. Toque nos talhões para inspecionar.</p>
+      <p class="screen-subheading">Toque nos pontos do limite da propriedade. Ajuste se precisar.</p>
 
-      <div class="map-frame" id="mapEtapa4"></div>
+      <div class="map-frame-box" id="mapFrameBoxEtapa4">
+        <div id="mapEtapa4" style="width: 100%; height: 100%;"></div>
+        <button class="map-fab-btn" onclick="abrirModalAjustarTalhoes()" title="Ajustar Mapa">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#153A24" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+        </button>
+      </div>
 
-      <div class="card" style="padding: 12px 16px;">
-        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-main);">
-          <span>Área demarcada (CAR)</span>
-          <span style="color: var(--primary-dark);" id="areaTotalLabel">87,11 ha</span>
+      <div class="card" style="padding: 14px 16px; margin-bottom: 14px;">
+        <span style="font-size: 10.5px; color: var(--text-muted); font-weight: 600;">Área selecionada</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2px 0 6px;">
+          <strong style="font-size: 16px; color: var(--primary-dark);">Toque no mapa</strong>
+          <span style="font-size: 12px; font-weight: 700; color: #15803D; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">+ Marcar área</span>
         </div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-          Imagem de satélite ESA Sentinel-2 • Atualização: há 3 dias
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted);">
+          <span style="background: #F1F5F9; padding: 2px 8px; border-radius: 999px;">🔗 Imagem de satélite ESA</span>
+          <span>Atualização: 3 dias</span>
         </div>
       </div>
 
-      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <strong style="font-size: 13.5px;">Delimitação dos talhões</strong>
-        <span style="font-size: 11px; color: var(--primary-dark); font-weight: 700; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">✏️ Ajustar Talhões</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div>
+          <strong style="font-size: 13.5px; color: var(--text-main); display: block;">Delimitação dos talhões</strong>
+          <span style="font-size: 11px; color: var(--text-muted);">3 áreas dentro da propriedade</span>
+        </div>
+        <span style="font-size: 12px; font-weight: 700; color: #15803D; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="abrirModalAjustarTalhoes()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Ajustar
+        </span>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;" id="gridTalhoesEtapa4">
-        <div style="background: #E8F5E9; border: 1.5px solid #A5D6A7; border-radius: 12px; padding: 10px 8px; text-align: center;" onclick="abrirModalAjustarTalhoes()">
-          <strong style="font-size: 12px; color: #1B5E20;">T1</strong>
-          <div style="font-size: 10.5px; color: #2E7D32;" id="areaT1Badge">6,2 ha</div>
+      <!-- Representação Visual dos Talhões (2 top, 1 bottom) -->
+      <div style="background: #E5E9E1; border-radius: 18px; padding: 8px; margin-bottom: 16px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+          <div style="background: #D9F99D; border: 1.5px solid #BEF264; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">
+            <strong style="font-size: 14px; color: #166534; display: block;">T1</strong>
+            <span style="font-size: 11px; color: #15803D;" id="areaT1Visual">6,2 ha</span>
+          </div>
+          <div style="background: #FEF08A; border: 1.5px solid #FDE047; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">
+            <strong style="font-size: 14px; color: #854D0E; display: block;">T2</strong>
+            <span style="font-size: 11px; color: #A16207;" id="areaT2Visual">5,0 ha</span>
+          </div>
         </div>
-        <div style="background: #FFF9C4; border: 1.5px solid #FFF59D; border-radius: 12px; padding: 10px 8px; text-align: center;" onclick="abrirModalAjustarTalhoes()">
-          <strong style="font-size: 12px; color: #F57F17;">T2</strong>
-          <div style="font-size: 10.5px; color: #F57F17;" id="areaT2Badge">5,0 ha</div>
-        </div>
-        <div style="background: #E0F2F1; border: 1.5px solid #80CBC4; border-radius: 12px; padding: 10px 8px; text-align: center;" onclick="abrirModalAjustarTalhoes()">
-          <strong style="font-size: 12px; color: #004D40;">T3</strong>
-          <div style="font-size: 10.5px; color: #004D40;" id="areaT3Badge">5,0 ha</div>
+        <div style="background: #A7F3D0; border: 1.5px solid #6EE7B7; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">
+          <strong style="font-size: 14px; color: #065F46; display: block;">T3</strong>
+          <span style="font-size: 11px; color: #047857;" id="areaT3Visual">5,8 ha</span>
         </div>
       </div>
 
@@ -801,76 +980,463 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- ETAPA 5: CULTURAS ATUAIS & HISTÓRICO DINÂMICO           -->
+    <!-- ETAPA 5: CULTURAS ATUAIS (IMAGE 2)                       -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen5" style="display: none;">
       <h2 class="screen-heading">O que está plantado hoje?</h2>
-      <p class="screen-subheading">Selecione as culturas presentes no talhão e adicione o histórico de safras passadas.</p>
+      <p class="screen-subheading">Selecione as culturas presentes na propriedade.</p>
 
-      <!-- Seletor de Talhões -->
+      <!-- Tabs de Talhão -->
       <div class="talhao-pills">
-        <button class="pill-btn active" onclick="selecionarTalhaoAba('T1', this)">Talhão 1 (6,2 ha)</button>
-        <button class="pill-btn" onclick="selecionarTalhaoAba('T2', this)">Talhão 2 (5,0 ha)</button>
-        <button class="pill-btn" onclick="selecionarTalhaoAba('T3', this)">Talhão 3 (5,0 ha)</button>
+        <button class="pill-tab active" onclick="selecionarTalhaoPill('T1', this)">Talhão 1</button>
+        <button class="pill-tab" onclick="selecionarTalhaoPill('T2', this)">Talhão 2</button>
+        <button class="pill-tab" onclick="selecionarTalhaoPill('T3', this)">Talhão 3</button>
       </div>
 
-      <!-- Badges de Culturas -->
+      <!-- Grid de 6 Culturas -->
       <div class="crop-grid">
-        <div class="crop-badge-card active" onclick="selecionarCultura('mandioca', this)">
+        <div class="crop-badge-card active" onclick="alternarCulturaBadge('mandioca', this)">
           <div class="check-icon">✓</div>
-          <div class="crop-circle" style="background: #D97706;">MA</div>
+          <div class="crop-circle" style="background: #CA8A04;">MA</div>
           <span class="crop-name">Mandioca</span>
         </div>
-        <div class="crop-badge-card" onclick="selecionarCultura('milho', this)">
+        <div class="crop-badge-card active" onclick="alternarCulturaBadge('milho', this)">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #EAB308;">MI</div>
           <span class="crop-name">Milho</span>
         </div>
-        <div class="crop-badge-card" onclick="selecionarCultura('feijao_caupi', this)">
+        <div class="crop-badge-card active" onclick="alternarCulturaBadge('feijao_caupi', this)">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #B45309;">FC</div>
           <span class="crop-name">Feijão-caupi</span>
         </div>
-        <div class="crop-badge-card" onclick="selecionarCultura('banana', this)">
+        <div class="crop-badge-card" onclick="alternarCulturaBadge('banana', this)">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #16A34A;">BA</div>
           <span class="crop-name">Banana</span>
         </div>
-        <div class="crop-badge-card" onclick="selecionarCultura('arroz', this)">
+        <div class="crop-badge-card" onclick="alternarCulturaBadge('arroz', this)">
           <div class="check-icon">✓</div>
           <div class="crop-circle" style="background: #65A30D;">AR</div>
           <span class="crop-name">Arroz</span>
         </div>
-        <div class="crop-badge-card" onclick="selecionarPousioComModal(this)">
+        <div class="crop-badge-card" onclick="alternarCulturaBadge('hortalicas', this)">
           <div class="check-icon">✓</div>
-          <div class="crop-circle" style="background: #64748B;">💤</div>
-          <span class="crop-name">Em Pousio</span>
+          <div class="crop-circle" style="background: #15803D;">HO</div>
+          <span class="crop-name">Hortaliças</span>
         </div>
       </div>
 
-      <!-- Histórico Dinâmico Extensível -->
-      <div class="card">
-        <strong style="font-size: 13px; color: var(--text-main); display: block; margin-bottom: 8px;">Histórico de cultivos neste talhão:</strong>
-        <div id="historicoLista">
-          <div style="background: var(--bg-page); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;">
-            <span>Mandioca há 10 meses</span>
-            <span style="color: var(--text-muted);">Safra 2024</span>
-          </div>
-          <div style="background: var(--bg-page); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;">
-            <span>Pousio não manejado</span>
-            <span style="color: var(--text-muted);">6 meses</span>
-          </div>
+      <div class="form-group">
+        <label class="form-label">Área da cultura no talhão</label>
+        <div class="input-unit-wrapper">
+          <input type="text" id="inputAreaTalhao" value="6.2">
+          <span>hectares</span>
         </div>
-        <button style="background: none; border: 1.5px dashed var(--primary-dark); color: var(--primary-dark); padding: 8px; width: 100%; border-radius: 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; margin-top: 6px;" onclick="abrirModalHistorico()">
-          + Adicionar safra anterior
-        </button>
       </div>
 
-      <button class="btn-primary" onclick="concluirCadastroEAbrirHub()">Concluir Cadastro & Abrir Gleba →</button>
+      <div class="form-group">
+        <label class="form-label">Histórico do talhão</label>
+        <div class="form-input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="abrirModalHistorico()">
+          <span id="labelHistoricoTalhao">Mandioca há 10 meses; antes, pousio.</span>
+          <span style="color: var(--accent-lime); font-weight: 700;">✏️</span>
+        </div>
+      </div>
+
+      <div style="font-size: 11.5px; color: var(--primary-dark); font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+        <span>✓</span> <span id="labelContagemCulturas">3 culturas selecionadas para o Talhão 1</span>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(6)">Analisar condições da área →</button>
     </section>
 
     <!-- ======================================================== -->
-    <!-- HUB PRINCIPAL DO PRODUTOR (PÓS-CADASTRO)                 -->
+    <!-- ETAPA 6: CONDIÇÕES DA ÁREA (IMAGE 3)                     -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen6" style="display: none;">
+      <h2 class="screen-heading">Condições da sua área</h2>
+      <p class="screen-subheading">Traduzimos dados ambientais para uma leitura simples.</p>
+
+      <!-- Hero Card Dark Green com Circular Score -->
+      <div class="hero-metric-card" onclick="abrirModalNotificacao('score_geral')" style="cursor: pointer;">
+        <div>
+          <span style="font-size: 11px; color: #86EFAC; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Condição geral</span>
+          <h3 style="font-size: 24px; font-weight: 800; line-height: 1.2; margin: 2px 0 4px;">Favorável</h3>
+          <p style="font-size: 11.5px; color: #BBF7D0;">para o planejamento da próxima safra</p>
+        </div>
+        <div>
+          <svg width="76" height="76" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.2)" stroke-width="6" fill="none"/>
+            <circle cx="40" cy="40" r="34" stroke="#84CC16" stroke-width="6" fill="none" stroke-dasharray="213.6" stroke-dashoffset="47" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+            <text x="40" y="38" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="800" font-family="Poppins">78</text>
+            <text x="40" y="52" text-anchor="middle" fill="#a3e635" font-size="10" font-weight="600" font-family="Poppins">de 100</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Grid 2x3 de Parâmetros -->
+      <div class="diag-grid-6">
+        <div class="diag-box" onclick="abrirModalNotificacao('chuva')">
+          <div class="diag-box-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Chuva recente</span>
+          </div>
+          <div class="diag-box-val" id="diagValChuva">142 mm</div>
+          <div class="diag-box-sub">Dentro do esperado</div>
+        </div>
+
+        <div class="diag-box" onclick="abrirModalNotificacao('calor')">
+          <div class="diag-box-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Temperatura</span>
+          </div>
+          <div class="diag-box-val" id="diagValTemp">28,4 °C</div>
+          <div class="diag-box-sub warn">Atenção ao calor</div>
+        </div>
+
+        <div class="diag-box" onclick="abrirModalNotificacao('solo')">
+          <div class="diag-box-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0"/><path d="M2 17c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0"/></svg>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Umidade do solo</span>
+          </div>
+          <div class="diag-box-val" id="diagValSolo">64%</div>
+          <div class="diag-box-sub">Nível adequado</div>
+        </div>
+
+        <div class="diag-box" onclick="abrirModalNotificacao('vigor')">
+          <div class="diag-box-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#65A30D" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Cobertura vegetal</span>
+          </div>
+          <div class="diag-box-val" id="diagValVigor">Boa</div>
+          <div class="diag-box-sub">Solo protegido</div>
+        </div>
+
+        <div class="diag-box" onclick="abrirModalNotificacao('relevo')">
+          <div class="diag-box-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Relevo</span>
+          </div>
+          <div class="diag-box-val">Suave</div>
+          <div class="diag-box-sub">Baixo risco de erosão</div>
+        </div>
+
+        <div class="diag-box" onclick="abrirModalNotificacao('condicao_solo')">
+          <div class="diag-box-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2"><path d="M2 12h20"/><path d="M20 12v8H4v-8"/><path d="m4 4 16 0-8 8z"/></svg>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Condição do solo</span>
+          </div>
+          <div class="diag-box-val">Regular</div>
+          <div class="diag-box-sub warn">Reforçar cobertura</div>
+        </div>
+      </div>
+
+      <!-- Leitura Simples Callout -->
+      <div class="callout-card" style="padding: 14px 16px;">
+        <div style="background: #DCFCE7; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
+        </div>
+        <div>
+          <strong style="font-size: 12.5px; color: var(--text-main); display: block; margin-bottom: 2px;">Leitura simples</strong>
+          <p style="font-size: 11.5px; color: #4B5563; line-height: 1.45;">O solo mantém boa umidade, mas o calor pode aumentar nas próximas semanas. Prefira culturas resistentes e mantenha cobertura no solo.</p>
+        </div>
+      </div>
+
+      <!-- Fontes de Dados Badges -->
+      <div style="margin-bottom: 16px; font-size: 10.5px; color: var(--text-muted);">
+        <span style="display: block; margin-bottom: 6px;">Fontes dos dados:</span>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()">🔗 NASA POWER</span>
+          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()">🔗 ESA Sentinel</span>
+          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()">🔗 Embrapa</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(7)">Simular uma rotação →</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ETAPA 7: SIMULAÇÃO (IMAGE 4)                             -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen7" style="display: none;">
+      <h2 class="screen-heading">Monte sua simulação</h2>
+      <p class="screen-subheading">Escolha o que é mais importante para você agora.</p>
+
+      <div class="form-group">
+        <label class="form-label">Qual é seu principal objetivo?</label>
+        
+        <!-- Opção 1 (Selecionada) -->
+        <div class="card" id="cardObjSolo" style="border: 2px solid var(--accent-lime); background: #F7FEE7; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="selecionarObjetivo('saude_solo')">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background: #ECFCCB; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#65A30D" stroke-width="2"><path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0"/></svg>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main); display: block;">Melhorar a saúde do solo</strong>
+              <span style="font-size: 11px; color: var(--text-muted);">Aumentar matéria orgânica e reduzir desgaste</span>
+            </div>
+          </div>
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #65A30D; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;">✓</div>
+        </div>
+
+        <!-- Opção 2 -->
+        <div class="card" id="cardObjRenda" style="padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="selecionarObjetivo('renda')">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background: #F1F5F9; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main); display: block;">Diversificar a renda</strong>
+              <span style="font-size: 11px; color: var(--text-muted);">Alternar culturas com boas oportunidades</span>
+            </div>
+          </div>
+          <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></div>
+        </div>
+
+        <!-- Opção 3 -->
+        <div class="card" id="cardObjClima" style="padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="selecionarObjetivo('clima')">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background: #F1F5F9; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main); display: block;">Reduzir riscos climáticos</strong>
+              <span style="font-size: 11px; color: var(--text-muted);">Priorizar culturas mais resistentes</span>
+            </div>
+          </div>
+          <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Período da simulação</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <div class="pill-tab" onclick="selecionarPeriodoPill(2, this)" style="border-radius: 14px; padding: 12px 6px;">2 anos</div>
+          <div class="pill-tab active" onclick="selecionarPeriodoPill(3, this)" style="border-radius: 14px; padding: 12px 6px; border-color: var(--accent-lime); background: #ECFCCB; color: #365314;">3 anos</div>
+          <div class="pill-tab" onclick="selecionarPeriodoPill(4, this)" style="border-radius: 14px; padding: 12px 6px;">4 anos</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Culturas para comparar</label>
+        <div style="background: var(--surface-white); border: 1px solid var(--border-soft); border-radius: 16px; padding: 6px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="background: #65A30D; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">1</span>
+              <span style="font-size: 13px; font-weight: 600;">Mandioca</span>
+            </div>
+            <span style="color: #65A30D; font-weight: 700;">✓</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="background: #65A30D; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">2</span>
+              <span style="font-size: 13px; font-weight: 600;">Milho</span>
+            </div>
+            <span style="color: #65A30D; font-weight: 700;">✓</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="background: #65A30D; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">3</span>
+              <span style="font-size: 13px; font-weight: 600;">Feijão-caupi</span>
+            </div>
+            <span style="color: #65A30D; font-weight: 700;">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout-card" style="padding: 12px 14px; margin-bottom: 12px;">
+        <div>
+          <strong style="font-size: 12px; color: var(--text-main); display: block;">3 possibilidades comparadas</strong>
+          <p style="font-size: 11px; color: var(--text-muted);">O sistema avalia solo, clima, sequência e diversidade antes de recomendar.</p>
+        </div>
+      </div>
+
+      <div class="callout-card" style="padding: 10px 14px; margin-bottom: 16px; align-items: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        <div style="font-size: 11.5px; color: #166534;">
+          <strong>Sua simulação</strong><br>
+          <span style="color: #4B5563;">3 anos · 3 talhões · foco em saúde do solo</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(8)">Gerar recomendação 🔄</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ETAPA 8: RECOMENDAÇÃO (IMAGE 5)                          -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen8" style="display: none;">
+      <h2 class="screen-heading">Rotação recomendada</h2>
+      <p class="screen-subheading">Uma sugestão equilibrada para seu primeiro talhão.</p>
+
+      <!-- Banner de Compatibilidade -->
+      <div style="background: #ECFCCB; border: 1.5px solid #BEF264; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+        <div style="background: #15803D; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">✓</div>
+        <div>
+          <strong style="font-size: 13px; color: #15803D; display: block;">Boa compatibilidade</strong>
+          <span style="font-size: 11px; color: #166534;">86% adequada às condições da área</span>
+        </div>
+      </div>
+
+      <!-- Card Timeline de Rotação Vertical -->
+      <div class="card" style="padding: 16px 18px; margin-bottom: 14px;">
+        <div class="rotation-timeline">
+          <!-- Item 1: Mandioca -->
+          <div class="timeline-node">
+            <div class="node-badge-col">
+              <div class="node-num">1</div>
+              <div class="node-circle" style="background: #D97706;">MA</div>
+              <div class="node-line"></div>
+            </div>
+            <div class="node-info-col">
+              <span class="node-tag">Agora</span>
+              <h4 class="node-title">Mandioca</h4>
+              <p class="node-desc">Em cultivo</p>
+            </div>
+          </div>
+
+          <!-- Item 2: Feijão-caupi -->
+          <div class="timeline-node">
+            <div class="node-badge-col">
+              <div class="node-num">2</div>
+              <div class="node-circle" style="background: #B45309;">FE</div>
+              <div class="node-line"></div>
+            </div>
+            <div class="node-info-col">
+              <span class="node-tag">Próxima</span>
+              <h4 class="node-title">Feijão-caupi</h4>
+              <p class="node-desc">Recupera nutrientes</p>
+            </div>
+          </div>
+
+          <!-- Item 3: Milho + cobertura -->
+          <div class="timeline-node">
+            <div class="node-badge-col">
+              <div class="node-num">3</div>
+              <div class="node-circle" style="background: #EAB308;">MI</div>
+            </div>
+            <div class="node-info-col">
+              <span class="node-tag">Depois</span>
+              <h4 class="node-title">Milho + cobertura</h4>
+              <p class="node-desc">Gera palhada</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Por que esta sequência? -->
+      <div class="callout-card" style="display: block; padding: 14px 16px; margin-bottom: 12px;">
+        <strong style="font-size: 13px; color: var(--primary-dark); display: block; margin-bottom: 8px;">Por que esta sequência?</strong>
+        <div style="font-size: 11.5px; color: #374151; line-height: 1.5;">
+          <div style="margin-bottom: 4px;">✓ O feijão-caupi ajuda a repor nitrogênio no solo</div>
+          <div style="margin-bottom: 4px;">✓ O milho aproveita os nutrientes da etapa anterior</div>
+          <div>✓ A cobertura reduz a perda de umidade no calor</div>
+        </div>
+      </div>
+
+      <!-- Card Possíveis Riscos -->
+      <div class="warm-card" style="margin-bottom: 12px;">
+        <strong style="font-size: 13px; color: #92400E; display: block; margin-bottom: 8px;">Possíveis riscos</strong>
+        <div style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
+          <div style="margin-bottom: 6px;">☀️ <strong>Calor intenso</strong> pode reduzir a umidade no início do ciclo.</div>
+          <div>🌧️ <strong>Atraso das chuvas</strong> pode exigir ajuste na data do plantio.</div>
+        </div>
+      </div>
+
+      <!-- Card Antes de Plantar -->
+      <div class="callout-card" style="margin-bottom: 16px; align-items: center;">
+        <div style="background: #E8F5E9; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; font-weight: 700; color: #15803D;">?</div>
+        <div>
+          <strong style="font-size: 12px; color: var(--text-main); display: block;">Antes de plantar</strong>
+          <p style="font-size: 11px; color: var(--text-muted);">Confirme a disponibilidade de sementes e converse com um técnico da sua região.</p>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="irParaEtapa(9)">Ver resultado completo →</button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- ETAPA 9: RESULTADO DA ANÁLISE (IMAGE 6)                  -->
+    <!-- ======================================================== -->
+    <section class="screen-content" id="screen9" style="display: none;">
+      <h2 class="screen-heading">Resultado da análise</h2>
+      <p class="screen-subheading">Seu plano está pronto para apoiar a próxima decisão.</p>
+
+      <!-- Hero Card Dark Green Potencial de Melhoria -->
+      <div class="card" style="background: var(--primary-card); color: #ffffff; padding: 18px 20px; border-radius: var(--radius-card); margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+          <div style="background: rgba(255,255,255,0.15); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
+          </div>
+          <span style="font-size: 11px; color: #86EFAC; text-transform: uppercase; font-weight: 700;">Potencial de melhoria</span>
+        </div>
+        <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 4px;">Alto</h3>
+        <p style="font-size: 12px; color: #BBF7D0; line-height: 1.45;">A rotação sugerida pode proteger o solo e distribuir melhor os riscos ao longo das safras.</p>
+      </div>
+
+      <!-- Triad de Métricas -->
+      <div class="metric-triad">
+        <div class="metric-triad-card">
+          <div class="metric-triad-val" style="color: #15803D;">+18%</div>
+          <div class="metric-triad-label">Proteção do solo</div>
+          <div class="metric-triad-sub">Estimativa após 3 ciclos</div>
+        </div>
+        <div class="metric-triad-card">
+          <div class="metric-triad-val" style="color: #0369A1;">-12%</div>
+          <div class="metric-triad-label">Risco climático</div>
+          <div class="metric-triad-sub">Com maior diversidade</div>
+        </div>
+        <div class="metric-triad-card">
+          <div class="metric-triad-val" style="color: #B45309;">3</div>
+          <div class="metric-triad-label">Culturas no plano</div>
+          <div class="metric-triad-sub">Mandioca, caupi e milho</div>
+        </div>
+      </div>
+
+      <!-- Pontos de Atenção -->
+      <div class="warm-card" style="margin-bottom: 12px;">
+        <strong style="font-size: 13px; color: #92400E; display: block; margin-bottom: 6px;">Pontos de atenção</strong>
+        <div style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
+          <div style="margin-bottom: 6px;">☀️ <strong>Calor entre março e maio:</strong> Evite deixar o solo descoberto nesse período.</div>
+          <div>🌧️ <strong>Chuva irregular:</strong> Acompanhe a previsão antes do plantio.</div>
+        </div>
+      </div>
+
+      <!-- Plano para o Próximo Ciclo -->
+      <div class="callout-card" style="margin-bottom: 14px;">
+        <div style="background: #DCFCE7; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M7 20h10"/><path d="M10 20c0-4.4 3.6-8 8-8V4c-4.4 0-8 3.6-8 8v8"/></svg>
+        </div>
+        <div>
+          <span style="font-size: 10px; font-weight: 700; color: #15803D; text-transform: uppercase;">Plano para o próximo ciclo</span>
+          <strong style="font-size: 12.5px; color: var(--text-main); display: block;">Preparar o Talhão 1 para feijão-caupi</strong>
+          <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">Manter cobertura entre as linhas e confirmar o início das chuvas antes do plantio.</p>
+        </div>
+      </div>
+
+      <!-- Disclaimer Científico -->
+      <p style="font-size: 10.5px; color: var(--text-light); line-height: 1.4; margin-bottom: 16px;">
+        Esta análise usa dados da NASA, ESA e orientações agronômicas da Embrapa. Ela apoia, mas não substitui, sua experiência e a orientação técnica.
+      </p>
+
+      <button class="btn-primary" onclick="abrirModalSalvarPlano()">+ Salvar este plano</button>
+      <button class="btn-secondary" onclick="abrirModalCompartilhar()">→ Compartilhar resultado</button>
+
+      <button class="btn-link-action" onclick="concluirCadastroEAbrirHub()" style="color: #15803D; font-weight: 700;">
+        🗺️ Abrir Mapa & Comparativo Completo (Hub)
+      </button>
+
+      <button class="btn-link-action" onclick="irParaEtapa(7)">
+        🔄 Criar uma nova simulação
+      </button>
+
+      <button class="btn-link-action" style="color: var(--text-muted); font-size: 12px; margin-top: 6px;" onclick="irParaEtapa(1)">
+        Sair da conta
+      </button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- HUB PRINCIPAL DO PRODUTOR (MAPA + BOTTOM SHEET)          -->
     <!-- ======================================================== -->
     <section id="screenHub" style="display: none;">
       <!-- Controles Flutuantes do Mapa -->
@@ -900,140 +1466,85 @@
         </div>
 
         <div class="sheet-body">
-          <!-- 1. DIAGNÓSTICO (ETAPA 6) -->
+          <!-- 1. DIAGNÓSTICO -->
           <div id="tabContentDiag">
-            <div class="card card-highlight" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer;" onclick="abrirModalNotificacao('score_geral')">
+            <div class="card" style="background: var(--primary-card); color: #fff; padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="abrirModalNotificacao('score_geral')">
               <div>
-                <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Condição Geral</span>
-                <h3 style="font-size: 20px; font-weight: 800; color: var(--primary-dark);">Favorável</h3>
-                <p style="font-size: 11px; color: var(--text-muted);">Para o planejamento da próxima safra</p>
+                <span style="font-size: 11px; font-weight: 700; color: #86EFAC; text-transform: uppercase;">Condição Geral</span>
+                <h3 style="font-size: 20px; font-weight: 800; color: #fff;">Favorável</h3>
+                <p style="font-size: 11px; color: #BBF7D0;">Para o planejamento da próxima safra</p>
               </div>
-              <div style="background: var(--primary-dark); color: #ffffff; width: 54px; height: 54px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <span style="font-size: 18px; font-weight: 800; line-height: 1;">78</span>
+              <div style="background: rgba(255,255,255,0.15); width: 50px; height: 50px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <span style="font-size: 17px; font-weight: 800; line-height: 1;">78</span>
                 <span style="font-size: 8px; color: var(--accent-lime);">de 100</span>
               </div>
             </div>
 
-            <div class="diag-grid">
-              <div class="diag-card" onclick="abrirModalNotificacao('chuva')">
+            <div class="diag-grid-6">
+              <div class="diag-box" onclick="abrirModalNotificacao('chuva')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Chuva recente</span>
-                <div class="diag-val" id="valChuva">142 mm</div>
-                <div class="diag-status">Dentro do esperado ℹ️</div>
+                <div class="diag-box-val" id="hubValChuva">142 mm</div>
+                <div class="diag-box-sub">Dentro do esperado ℹ️</div>
               </div>
-              <div class="diag-card" onclick="abrirModalNotificacao('calor')">
+              <div class="diag-box" onclick="abrirModalNotificacao('calor')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Temperatura</span>
-                <div class="diag-val" id="valTemp">28,4 °C</div>
-                <div class="diag-status warn">Atenção ao calor ⚠️</div>
+                <div class="diag-box-val" id="hubValTemp">28,4 °C</div>
+                <div class="diag-box-sub warn">Atenção ao calor ⚠️</div>
               </div>
-              <div class="diag-card" onclick="abrirModalNotificacao('solo')">
-                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Saturação do Solo</span>
-                <div class="diag-val" id="valSolo">64%</div>
-                <div class="diag-status">NASA MERRA-2 (0-100cm) ℹ️</div>
+              <div class="diag-box" onclick="abrirModalNotificacao('solo')">
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Saturação Solo</span>
+                <div class="diag-box-val" id="hubValSolo">64%</div>
+                <div class="diag-box-sub">MERRA-2 ℹ️</div>
               </div>
-              <div class="diag-card" onclick="abrirModalNotificacao('vigor')">
+              <div class="diag-box" onclick="abrirModalNotificacao('vigor')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Vigor Vegetal</span>
-                <div class="diag-val" id="valVigor">Bom</div>
-                <div class="diag-status">NDVI 0.64 (Sentinel-2) ℹ️</div>
+                <div class="diag-box-val" id="hubValVigor">Boa</div>
+                <div class="diag-box-sub">Sentinel-2 ℹ️</div>
               </div>
             </div>
 
-            <div class="card" style="font-size: 11.5px; line-height: 1.45; color: var(--text-muted); padding: 12px 14px; cursor: pointer;" onclick="abrirModalNotificacao('calor')">
-              💡 <strong>Leitura Agroclimática:</strong> O solo mantém saturação adequada no perfil, mas o calor aumentará. Toque para agendar lembrete de manejo.
-            </div>
-
-            <button class="btn-primary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Simular Rotações de Culturas →</button>
+            <button class="btn-primary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Simular Rotações →</button>
           </div>
 
-          <!-- 2. SIMULAÇÃO (ETAPA 7) -->
+          <!-- 2. SIMULAÇÃO -->
           <div id="tabContentSim" style="display: none;">
             <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-bottom: 6px;">Monte sua simulação</h3>
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Defina o objetivo e horizonte temporal de comparação.</p>
-
-            <div class="form-group">
-              <label class="form-label">Principal Objetivo:</label>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <label style="background: var(--surface-white); border: 1.5px solid var(--accent-lime); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <input type="radio" name="objSim" value="saude_solo" checked> Melhorar a saúde do solo e palhada
-                </label>
-                <label style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <input type="radio" name="objSim" value="renda"> Diversificar renda familiar
-                </label>
-                <label style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <input type="radio" name="objSim" value="clima"> Reduzir riscos climáticos e seca
-                </label>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Período de Comparação:</label>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                <button class="pill-btn" onclick="selecionarPeriodo(2, this)">2 anos</button>
-                <button class="pill-btn active" onclick="selecionarPeriodo(3, this)">3 anos</button>
-                <button class="pill-btn" onclick="selecionarPeriodo(4, this)">4 anos</button>
-              </div>
-            </div>
-
-            <button class="btn-primary" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo de Estratégias ⚖️</button>
+            <button class="btn-primary" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo ⚖️</button>
           </div>
 
-          <!-- 3. COMPARATIVO TRIPLO DE ROTAÇÃO (ETAPA 8 - REQUISITO SPACE APPS 2026) -->
+          <!-- 3. COMPARATIVO TRIPLO (NASA SPACE APPS 2026) -->
           <div id="tabContentComp" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
               <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark);">3 Estratégias Comparadas</h3>
-              <span style="font-size: 11px; background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 999px; font-weight: 700;">NASA Space Apps</span>
+              <span style="font-size: 10.5px; background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 999px; font-weight: 700;">NASA Space Apps</span>
             </div>
-
             <div id="cardsEstrategiasContainer">
-              <!-- Renderizado via JavaScript a partir da API /api/simular-rotacao -->
+              <!-- Renderizado via /api/simular-rotacao -->
             </div>
-
             <button class="btn-primary" onclick="navegarHubTab('agenda', document.querySelectorAll('.tab-btn')[3])">Ver Agenda Fenoclimática →</button>
           </div>
 
-          <!-- 4. AGENDA FENOCLIMÁTICA & ALERTAS -->
+          <!-- 4. AGENDA FENOCLIMÁTICA -->
           <div id="tabContentAgenda" style="display: none;">
             <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-bottom: 4px;">Agenda de Manejo em Roraima</h3>
             <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Toque em qualquer evento para configurar lembretes ou ações.</p>
-
             <div id="agendaLista">
               <!-- Renderizado via /api/agenda-manejo -->
             </div>
-
             <button class="btn-primary" style="margin-top: 14px;" onclick="navegarHubTab('dossie', document.querySelectorAll('.tab-btn')[4])">Acessar Plano Operacional →</button>
           </div>
 
-          <!-- 5. RESULTADO & PLANO OPERACIONAL (ETAPA 9) -->
+          <!-- 5. PLANO OPERACIONAL -->
           <div id="tabContentDossie" style="display: none;">
-            <div class="card card-highlight">
-              <span style="font-size: 11px; font-weight: 700; color: var(--primary-dark);">POTENCIAL DE MELHORIA ESTIMADO</span>
-              <h2 style="font-size: 24px; font-weight: 800; color: var(--primary-dark); margin: 4px 0 10px;">Alto</h2>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
-                <div style="background: #ffffff; padding: 8px 4px; border-radius: 8px;">
-                  <strong style="color: #15803d; font-size: 15px;">+18%</strong>
-                  <div style="font-size: 9.5px; color: var(--text-muted);">Proteção Solo</div>
-                </div>
-                <div style="background: #ffffff; padding: 8px 4px; border-radius: 8px;">
-                  <strong style="color: #0369a1; font-size: 15px;">-12%</strong>
-                  <div style="font-size: 9.5px; color: var(--text-muted);">Risco Seca</div>
-                </div>
-                <div style="background: #ffffff; padding: 8px 4px; border-radius: 8px;">
-                  <strong style="color: #b45309; font-size: 15px;">3</strong>
-                  <div style="font-size: 9.5px; color: var(--text-muted);">Culturas</div>
-                </div>
-              </div>
+            <div class="card" style="background: var(--primary-card); color: #fff; padding: 14px 18px; margin-bottom: 12px;">
+              <span style="font-size: 11px; font-weight: 700; color: #86EFAC;">POTENCIAL DE MELHORIA</span>
+              <h2 style="font-size: 24px; font-weight: 800; color: #fff; margin: 2px 0 6px;">Alto</h2>
+              <p style="font-size: 11.5px; color: #BBF7D0;">A rotação sugerida pode proteger o solo e distribuir riscos.</p>
             </div>
-
-            <div class="card">
-              <strong style="font-size: 12.5px;">Plano para o Próximo Ciclo:</strong>
-              <p style="font-size: 11.5px; color: var(--text-muted); margin: 6px 0 10px;">Preparar o Talhão 1 para feijão-caupi BRS Novaera na palhada residual logo no início de agosto.</p>
-              <div style="font-size: 11px; color: #b45309; background: #fffbeb; padding: 8px; border-radius: 8px;">
-                ⚠️ <strong>Atenção:</strong> Analisar saturação por bases antes do plantio para assegurar a fixação biológica de nitrogênio.
-              </div>
-            </div>
-
             <button class="btn-primary" onclick="abrirModalSalvarPlano()">💾 Salvar este Plano no Banco</button>
-            <button class="btn-secondary" style="border-color:#15803d; color:#15803d; margin-top:8px;" onclick="abrirModalCompartilhar()">📤 Compartilhar com Assistência Técnica</button>
-            <button class="btn-secondary" onclick="irParaEtapa(1)">🔄 Criar Nova Simulação</button>
+            <button class="btn-secondary" onclick="abrirModalCompartilhar()">📤 Compartilhar com Assistência</button>
+            <button class="btn-secondary" onclick="irParaEtapa(1)">Voltar ao Início</button>
           </div>
         </div>
       </div>
@@ -1074,15 +1585,15 @@
       cod_car: "RR-1400175-3772D7A9BD394DA195CD145D10183419",
       area_ha: 87.1178,
       talhoes: {
-        "T1": { nome: "Talhão 1", area: 6.2, cultura: "mandioca" },
-        "T2": { nome: "Talhão 2", area: 5.0, cultura: "milho" },
-        "T3": { nome: "Talhão 3", area: 5.0, cultura: "feijao_caupi" }
+        "T1": { nome: "Talhão 1", area: 6.2, culturas: ["mandioca", "milho", "feijao_caupi"], historico: "Mandioca há 10 meses; antes, pousio." },
+        "T2": { nome: "Talhão 2", area: 5.0, culturas: ["milho"], historico: "Pousio 4 meses; antes, feijão." },
+        "T3": { nome: "Talhão 3", area: 5.8, culturas: ["feijao_caupi"], historico: "Caupi safra passada." }
       }
     };
     let talhaoSelecionado = 'T1';
 
     // ========================================================
-    // GERENCIADOR CENTRAL DE MODAIS
+    // GERENCIADOR CENTRAL DE MODAIS INTERATIVOS
     // ========================================================
     function abrirModal({ titulo, subtitulo, htmlConteudo, textoBotao = "Confirmar", onConfirmar = null }) {
       document.getElementById('modalTitle').innerText = titulo;
@@ -1104,54 +1615,40 @@
       document.getElementById('globalModalBackdrop').style.display = 'none';
     }
 
-    // Modal 1: Adicionar Safra Anterior / Histórico (Etapa 5)
+    // Modal: Histórico do Talhão
     function abrirModalHistorico() {
+      const t = dadosPropriedade.talhoes[talhaoSelecionado];
       const html = `
         <div class="form-group">
-          <label class="form-label">Cultura Anterior:</label>
-          <select class="form-input" id="modCulturaAnt">
-            <option value="Milho (Zea mays)">Milho (Zea mays)</option>
-            <option value="Mandioca (Manihot esculenta)">Mandioca (Manihot esculenta)</option>
-            <option value="Feijão-caupi (Vigna unguiculata)">Feijão-caupi (Vigna unguiculata)</option>
-            <option value="Feijão-Guandu / Adubação Verde">Feijão-Guandu / Adubação Verde</option>
-            <option value="Banana / Fruticultura">Banana / Fruticultura</option>
-            <option value="Pousio / Repouso Não Manejado" selected>Pousio / Repouso Não Manejado</option>
-          </select>
+          <label class="form-label">Histórico Agronômico (${t.nome}):</label>
+          <textarea class="form-input" id="modHistoricoTxt" rows="3">${t.historico}</textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Safra / Período:</label>
-          <input type="text" class="form-input" id="modSafraAno" value="Safra 2023/2024" placeholder="Ex: Safra 2023 ou 1 ano">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Manejo Adotado:</label>
-          <select class="form-input" id="modManejo">
-            <option value="Sem Insumos / Tradicional">Sem Insumos / Tradicional</option>
-            <option value="Plantio Direto na Palhada">Plantio Direto na Palhada</option>
-            <option value="Preparo Convencional (Gradagem)">Preparo Convencional (Gradagem)</option>
-            <option value="Adubação Orgânica / Compostagem">Adubação Orgânica / Compostagem</option>
+          <label class="form-label">Adicionar Safra / Prática Passada:</label>
+          <select class="form-input" id="modSafraAdd">
+            <option value="Mandioca (10 a 12 meses)">Mandioca (10 a 12 meses)</option>
+            <option value="Milho solteiro ou consorciado">Milho solteiro ou consorciado</option>
+            <option value="Feijão-caupi BRS Novaera">Feijão-caupi BRS Novaera</option>
+            <option value="Pousio não manejado (descanso)">Pousio não manejado (descanso)</option>
+            <option value="Adubação verde / Guandu">Adubação verde / Guandu</option>
           </select>
         </div>
       `;
 
       abrirModal({
-        titulo: "Adicionar Safra Anterior",
-        subtitulo: `Registrar histórico agronômico para ${talhaoSelecionado}`,
+        titulo: "Editar Histórico do Talhão",
+        subtitulo: `Histórico de cultivos e manejo para ${t.nome}`,
         htmlConteudo: html,
-        textoBotao: "Adicionar ao Talhão",
+        textoBotao: "Salvar Histórico",
         onConfirmar: () => {
-          const cultura = document.getElementById('modCulturaAnt').value;
-          const safra = document.getElementById('modSafraAno').value;
-          const manejo = document.getElementById('modManejo').value;
-
-          const item = document.createElement('div');
-          item.style = "background: var(--bg-page); padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;";
-          item.innerHTML = `<span>${cultura} (${safra})</span><span style="color: var(--text-muted); font-size: 10.5px;">${manejo}</span>`;
-          document.getElementById('historicoLista').appendChild(item);
+          const txt = document.getElementById('modHistoricoTxt').value;
+          t.historico = txt;
+          document.getElementById('labelHistoricoTalhao').innerText = txt;
         }
       });
     }
 
-    // Modal 2: Ajuste Manual de Talhões (Etapa 4)
+    // Modal: Ajuste de Talhões
     function abrirModalAjustarTalhoes() {
       const html = `
         <div class="form-group">
@@ -1166,94 +1663,138 @@
           <label class="form-label">Área do Talhão 3 (ha):</label>
           <input type="number" step="0.1" class="form-input" id="modAreaT3" value="${dadosPropriedade.talhoes.T3.area}">
         </div>
-        <p style="font-size:11px; color:var(--text-muted);">Área consolidada total disponível: <strong>${dadosPropriedade.area_ha ? (dadosPropriedade.area_ha * 0.2).toFixed(1) : 17.4} ha</strong></p>
+        <p style="font-size:11px; color:var(--text-muted);">Área consolidada total: <strong>${(dadosPropriedade.talhoes.T1.area + dadosPropriedade.talhoes.T2.area + dadosPropriedade.talhoes.T3.area).toFixed(1)} ha</strong></p>
       `;
 
       abrirModal({
-        titulo: "Ajustar Limites dos Talhões",
-        subtitulo: "Redefinir áreas internas para planejamento",
+        titulo: "Delimitação dos Talhões",
+        subtitulo: "Ajuste os hectares de cada área interna",
         htmlConteudo: html,
-        textoBotao: "Salvar Áreas",
+        textoBotao: "Salvar Delimitação",
         onConfirmar: () => {
           const a1 = parseFloat(document.getElementById('modAreaT1').value) || 6.2;
           const a2 = parseFloat(document.getElementById('modAreaT2').value) || 5.0;
-          const a3 = parseFloat(document.getElementById('modAreaT3').value) || 5.0;
+          const a3 = parseFloat(document.getElementById('modAreaT3').value) || 5.8;
 
           dadosPropriedade.talhoes.T1.area = a1;
           dadosPropriedade.talhoes.T2.area = a2;
           dadosPropriedade.talhoes.T3.area = a3;
 
-          document.getElementById('areaT1Badge').innerText = `${a1} ha`;
-          document.getElementById('areaT2Badge').innerText = `${a2} ha`;
-          document.getElementById('areaT3Badge').innerText = `${a3} ha`;
+          document.getElementById('areaT1Visual').innerText = `${a1} ha`;
+          document.getElementById('areaT2Visual').innerText = `${a2} ha`;
+          document.getElementById('areaT3Visual').innerText = `${a3} ha`;
+          if (talhaoSelecionado === 'T1') document.getElementById('inputAreaTalhao').value = a1;
         }
       });
     }
 
-    // Modal 3: Alertas Agroclimáticos e Agendamento de Ação
+    // Modal: Busca no SICAR
+    function abrirModalBuscarCar() {
+      const html = `
+        <div class="form-group">
+          <label class="form-label">Código do CAR Oficial:</label>
+          <input type="text" class="form-input" id="modCarInput" value="${dadosPropriedade.cod_car}">
+        </div>
+        <p style="font-size:11.5px; color:var(--text-muted); line-height:1.4;">
+          O sistema consultará a geometria oficial no banco do SICAR / Incra para traçar o polígono da gleba rural.
+        </p>
+      `;
+
+      abrirModal({
+        titulo: "Localizar pelo Código CAR",
+        subtitulo: "Consulta automatizada na base oficial SICAR",
+        htmlConteudo: html,
+        textoBotao: "Buscar Demarcação",
+        onConfirmar: async () => {
+          const car = document.getElementById('modCarInput').value.trim();
+          try {
+            const resp = await fetch(`/api/demarcation?car=${encodeURIComponent(car)}`);
+            const data = await resp.json();
+            if (data.cod_imovel) {
+              dadosPropriedade.cod_car = data.cod_imovel;
+              dadosPropriedade.municipio = `${data.municipio}, Roraima`;
+              dadosPropriedade.area_ha = data.area_total_ha;
+              document.getElementById('inputMunicipio').value = `${data.municipio}, Roraima`;
+              document.getElementById('inputArea').value = data.area_consolidada_ha;
+              setTimeout(() => {
+                abrirModal({
+                  titulo: "✓ Imóvel Localizado!",
+                  subtitulo: "SICAR - Cadastro Ambiental Rural",
+                  htmlConteudo: `
+                    <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:12px; color:#166534;">
+                      Município: <strong>${data.municipio} - RR</strong><br>
+                      Área Total: <strong>${data.area_total_ha} ha</strong><br>
+                      Área Consolidada: <strong>${data.area_consolidada_ha} ha</strong><br>
+                      Reserva Legal: <strong>${data.area_reserva_legal_ha} ha</strong>
+                    </div>
+                  `,
+                  textoBotao: "Continuar"
+                });
+              }, 200);
+            }
+          } catch(e) {
+            alert("Gleba mantida com dados padrão.");
+          }
+        }
+      });
+    }
+
+    // Modal: Notificações e Alertas dos Cards
     function abrirModalNotificacao(tipo) {
-      let titulo = "Aviso Agroclimático";
-      let subtitulo = "Recomendação baseada em leituras orbitais";
+      let titulo = "Diagnóstico Ambiental";
+      let subtitulo = "Detalhes dos sensores orbitais";
       let corpo = "";
 
       if (tipo === 'calor') {
-        titulo = "Alerta Térmico: Temperatura de Superfície";
-        subtitulo = "Monitoramento NASA POWER AG (28,4 °C média / picos de 33,4 °C)";
+        titulo = "Atenção ao Calor: Temperatura";
+        subtitulo = "NASA POWER Agroclimatology (28,4 °C / picos de 33,4 °C)";
         corpo = `
-          <div style="background:#FFFBEB; border:1px solid #FDE68A; padding:10px; border-radius:10px; font-size:11.5px; color:#92400E; margin-bottom:12px;">
-            ⚠️ <strong>Risco de Desidratação Superficial:</strong> Em Roraima, o calor intenso entre março e maio desidrata os primeiros 5cm do solo, afetando o pegamento da maniva e de sementes.
+          <div style="background:#FFFBEB; border:1px solid #FDE68A; padding:10px; border-radius:12px; font-size:11.5px; color:#92400E; margin-bottom:12px;">
+            ⚠️ <strong>Estresse Térmico Superficial:</strong> Em Roraima, o calor intenso entre março e maio aquece os primeiros 5cm do solo, acelerando a perda de umidade e prejudicando sementes.
           </div>
           <div class="form-group">
-            <label class="form-label">Ação Preventiva Escolhida:</label>
-            <select class="form-input" id="modAcaoPreventiva">
-              <option value="Manter palhada de milho grossa (C/N > 60)">Manter palhada de milho grossa (C/N > 60)</option>
-              <option value="Semeadura de forrageira consorciada">Semeadura de forrageira consorciada</option>
-              <option value="Evitar dessecação total da área">Evitar dessecação total da área</option>
+            <label class="form-label">Ação Recomendada:</label>
+            <select class="form-input" id="modAcaoCalor">
+              <option value="Manter palhada de cobertura para sombrear o solo" selected>Manter palhada de cobertura para sombrear o solo</option>
+              <option value="Ajustar semeadura para início da manhã">Ajustar semeadura para início da manhã</option>
+              <option value="Usar consórcio milho + braquiária">Usar consórcio milho + braquiária</option>
             </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data Limite de Aplicação:</label>
-            <input type="date" class="form-input" id="modDataAlerta" value="2026-04-15">
           </div>
         `;
       } else if (tipo === 'chuva') {
-        titulo = "Janela Pluviométrica & Corte de Chuvas";
-        subtitulo = "NASA POWER / GPM Precipitation (142 mm acumulados)";
+        titulo = "Precipitação Recente";
+        subtitulo = "NASA POWER / GPM (142 mm acumulados no ciclo)";
         corpo = `
-          <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:10px; border-radius:10px; font-size:11.5px; color:#1E40AF; margin-bottom:12px;">
-            ℹ️ <strong>Corte Sazonal das Chuvas:</strong> Em Roraima, as chuvas cortam bruscamente em outubro. O caupi deve ser semeado no início de agosto para fechar o ciclo.
+          <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:10px; border-radius:12px; font-size:11.5px; color:#1E40AF; margin-bottom:12px;">
+            🌧️ <strong>Janela de Chuvas em Roraima:</strong> O período chuvoso ocorre entre abril e setembro. O corte brusco das chuvas se dá em outubro.
           </div>
-          <div class="form-group">
-            <label class="form-label">Data Estimada de Semeadura:</label>
-            <input type="date" class="form-input" value="2026-08-10">
-          </div>
+          <p style="font-size:11.5px; color:var(--text-muted);">
+            O plantio do feijão-caupi deve ser feito no início de agosto para fechar o ciclo de 65-70 dias com solo úmido.
+          </p>
         `;
       } else if (tipo === 'solo') {
-        titulo = "Saturação Hídrica do Solo (MERRA-2)";
+        titulo = "Umidade e Saturação do Solo";
         subtitulo = "NASA GMAO MERRA-2 Catchment Model (64% saturação relativa)";
         corpo = `
-          <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:10px; font-size:11.5px; color:#166534; margin-bottom:12px;">
-            💧 <strong>Saturação Relativa Adequada:</strong> O perfil radicular (0-100cm) possui reserva suficiente para suportar o desenvolvimento inicial da cultura.
+          <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:11.5px; color:#166534; margin-bottom:12px;">
+            💧 <strong>Saturação Adequada no Perfil:</strong> O modelo Catchment indica grau de saturação de 0,64 na camada radicular (0-100cm), garantindo sustentação hídrica.
           </div>
-          <div class="form-group">
-            <label class="form-label">Profundidade Prioritária para o Talhão:</label>
-            <select class="form-input">
-              <option value="root">Zona Radicular (0-100cm / GWETROOT) - Recomendada</option>
-              <option value="top">Camada de Semeadura (0-5cm / GWETTOP)</option>
-            </select>
+        `;
+      } else if (tipo === 'vigor') {
+        titulo = "Cobertura Vegetal e Vigor";
+        subtitulo = "Copernicus Sentinel-2 L2A (10 metros)";
+        corpo = `
+          <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:11.5px; color:#166534; margin-bottom:12px;">
+            🌿 <strong>Vigor Fotossintético:</strong> NDVI médio de 0,64 no talhão indica dossel verde bem estabelecido. Para palhada seca (resíduo), o monitoramento deve priorizar bandas SWIR.
           </div>
         `;
       } else {
-        titulo = "Diagnóstico Global de Aptidão";
-        subtitulo = "Score ponderado preliminar: 78 de 100";
+        titulo = "Score Geral de Aptidão";
+        subtitulo = "78 de 100 - Condição Favorável";
         corpo = `
-          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-            Esta avaliação cruza o histórico do imóvel cadastrado no SICAR com os dados de precipitação, saturação MERRA-2 e relevo SRTM.
+          <p style="font-size:12px; color:var(--text-muted); line-height:1.45;">
+            Calculado combinando a saturação hídrica MERRA-2, a precipitação recente NASA POWER, a declividade suave SRTM e o vigor Sentinel-2.
           </p>
-          <div class="form-group">
-            <label class="form-label">Observação Técnica para o Agrônomo:</label>
-            <textarea class="form-input" rows="2" placeholder="Digite uma observação sobre a área..."></textarea>
-          </div>
         `;
       }
 
@@ -1261,308 +1802,81 @@
         titulo: titulo,
         subtitulo: subtitulo,
         htmlConteudo: corpo,
-        textoBotao: "Registrar Ação no Talhão",
-        onConfirmar: () => {
-          // Confirmado com sucesso
-        }
+        textoBotao: "Entendido"
       });
     }
 
-    // Modal 4: Salvar Plano e Vincular Produtor (Etapa 9)
+    // Modal: Salvar Plano
     function abrirModalSalvarPlano() {
       const html = `
         <div class="form-group">
-          <label class="form-label">Nome Completo do Produtor:</label>
-          <input type="text" class="form-input" id="cadNomeProdutor" value="Guilherme Pereira" placeholder="Seu nome">
+          <label class="form-label">Nome do Produtor:</label>
+          <input type="text" class="form-input" id="modNomeProd" value="Guilherme Pereira">
         </div>
         <div class="form-group">
-          <label class="form-label">WhatsApp / Telefone para Notificações:</label>
-          <input type="tel" class="form-input" id="cadTelefone" value="(95) 99123-4567" placeholder="(95) 99999-9999">
+          <label class="form-label">WhatsApp para Notificações e Lembretes:</label>
+          <input type="tel" class="form-input" id="modTelProd" value="(95) 99123-4567">
         </div>
         <div class="form-group">
           <label class="form-label">Gleba Rural Vinculada:</label>
-          <input type="text" class="form-input" value="CAR: ${dadosPropriedade.cod_car}" readonly style="background:#F9FAFB;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Observações Particulares:</label>
-          <input type="text" class="form-input" id="cadObs" value="Priorizar rotação com baixo custo de sementes">
+          <input type="text" class="form-input" value="Sítio Boa Esperança (CAR: RR-1400175)" readonly style="background:#F9FAFB;">
         </div>
       `;
 
       abrirModal({
-        titulo: "Salvar Plano & Ativar Lembretes",
-        subtitulo: "Gravação permanente na base PostGIS de Roraima",
+        titulo: "Salvar Plano & Lembretes",
+        subtitulo: "Armazenamento no banco espacial da plataforma",
         htmlConteudo: html,
         textoBotao: "Confirmar Gravação",
         onConfirmar: async () => {
-          const nome = document.getElementById('cadNomeProdutor').value;
-          const tel = document.getElementById('cadTelefone').value;
-          const obs = document.getElementById('cadObs').value;
-
+          const nome = document.getElementById('modNomeProd').value;
+          const tel = document.getElementById('modTelProd').value;
           try {
             await fetch('/api/cadastrar-produtor', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                nome: nome,
-                telefone: tel,
-                cod_car: dadosPropriedade.cod_car,
-                observacoes: obs
-              })
+              body: JSON.stringify({ nome: nome, telefone: tel, cod_car: dadosPropriedade.cod_car })
             });
             setTimeout(() => {
               abrirModal({
                 titulo: "✓ Plano Salvo com Sucesso!",
-                subtitulo: "Dados sincronizados com o banco espacial PostGIS",
-                htmlConteudo: `
-                  <p style="font-size:12px; color:var(--text-muted); line-height:1.45;">
-                    O plano de rotação e os dados da gleba foram registrados com sucesso. Você receberá os avisos da janela de plantio e alertas de estiagem no telefone cadastrado.
-                  </p>
-                `,
+                subtitulo: "Lembretes fenoclimáticos ativados",
+                htmlConteudo: "<p style='font-size:12px; color:var(--text-muted);'>Seu plano foi salvo no sistema. Avisos sobre janelas de chuva e manejo serão enviados para seu WhatsApp.</p>",
                 textoBotao: "Concluir"
               });
             }, 200);
-          } catch (e) {
-            alert("Erro ao gravar plano.");
-          }
+          } catch(e) {}
         }
       });
     }
 
-    // Modal 5: Filtro e Camada de Satélite (Hub)
-    function abrirModalFiltroCamada(tipo, nome) {
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      const html = `
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-          Camada ativa: <strong>${nome}</strong>.
-        </p>
-        <div class="form-group">
-          <label class="form-label">Data de Amostragem do Satélite:</label>
-          <input type="date" class="form-input" value="2026-11-14">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Opacidade da Camada Espectral:</label>
-          <input type="range" min="20" max="100" value="80" style="width:100%;">
-        </div>
-      `;
-
-      abrirModal({
-        titulo: "Configurar Camada Espacial",
-        subtitulo: "Ajuste os parâmetros visuais no mapa",
-        htmlConteudo: html,
-        textoBotao: "Aplicar no Mapa",
-        onConfirmar: () => {
-          // Aplica visualmente
-        }
-      });
-    }
-
-    // Modal 6: Menu e Informações da Plataforma
-    function abrirModalInfo() {
-      const html = `
-        <div style="font-size:12px; line-height:1.45; color:var(--text-muted);">
-          <strong style="color:var(--primary-dark);">Crop Rotation RR (Versão 2.0)</strong><br>
-          Desenvolvido para o <strong>NASA Space Apps Challenge 2026</strong>.<br><br>
-          🛰️ <strong>Fontes Orbitais Integradas:</strong>
-          <ul style="padding-left:18px; margin:6px 0 12px;">
-            <li>NASA POWER v2.0 (Climatologia 30 anos e NRT)</li>
-            <li>NASA GMAO MERRA-2 (Saturação GWETROOT/GWETTOP)</li>
-            <li>ESA Copernicus Sentinel-2 L2A (NDVI 10m fCover)</li>
-            <li>NASA SRTM (Declividade e relevo 30m)</li>
-          </ul>
-          🌾 <strong>Parâmetros Agronômicos:</strong> Calibrado com os boletins e passaportes biológicos da Embrapa Roraima.
-        </div>
-      `;
-
-      abrirModal({
-        titulo: "Sobre a Plataforma",
-        subtitulo: "Informações técnicas e fontes de dados",
-        htmlConteudo: html,
-        textoBotao: "Fechar"
-      });
-    }
-
-    // Navegação de Telas
-    function irParaEtapa(numero) {
-      etapaAtual = numero;
-      document.querySelectorAll('.screen-content').forEach(s => s.style.display = 'none');
-      document.getElementById('screenHub').style.display = 'none';
-      document.getElementById('progressBarBox').style.display = 'block';
-
-      if (numero <= 5) {
-        document.getElementById(`screen${numero}`).style.display = 'flex';
-        atualizarProgressBar(numero);
-      }
-
-      if (numero === 4) {
-        setTimeout(initMapEtapa4, 150);
-      }
-    }
-
-    function atualizarProgressBar(etapa) {
-      const pcts = { 1: 20, 2: 30, 3: 45, 4: 70, 5: 100 };
-      const pct = pcts[etapa] || 20;
-      document.getElementById('barFill').style.width = pct + '%';
-      document.getElementById('labelEtapa').innerText = `Etapa ${etapa} de 5`;
-      document.getElementById('labelPercent').innerText = pct + '%';
-    }
-
-    function voltarEtapa() {
-      if (etapaAtual > 1 && etapaAtual <= 5) {
-        irParaEtapa(etapaAtual - 1);
-      } else if (etapaAtual === 6) {
-        irParaEtapa(5);
-      }
-    }
-
-    // Busca CAR no SICAR
-    async function buscarCarNoSicar() {
-      const car = document.getElementById('inputCodCar').value.trim();
-      const msg = document.getElementById('sicarStatusMsg');
-      msg.innerText = "Consultando base WFS SICAR / Supabase...";
-      try {
-        const resp = await fetch(`/api/demarcation?car=${encodeURIComponent(car)}`);
-        const data = await resp.json();
-        if (data.cod_imovel) {
-          msg.innerText = `✓ Gleba localizada: ${data.municipio} - RR (${data.area_total_ha} ha)`;
-          document.getElementById('inputMunicipio').value = `${data.municipio}, Roraima`;
-          document.getElementById('inputArea').value = data.area_consolidada_ha;
-          dadosPropriedade.area_ha = data.area_total_ha;
-          dadosPropriedade.cod_car = data.cod_imovel;
-          abrirModalNotificacaoSicar(data);
-        }
-      } catch (err) {
-        msg.innerText = "Uso de geometria padrão de Roraima.";
-      }
-    }
-
-    // Modal 7: Notificação e Confirmação de Imóvel SICAR
-    function abrirModalNotificacaoSicar(data) {
-      const html = `
-        <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; margin-bottom:12px; font-size:12px; color:#166534;">
-          ✓ <strong>Imóvel Rural Homologado:</strong> Registrado no Cadastro Ambiental Rural de Roraima.
-        </div>
-        <div class="form-group">
-          <label class="form-label">Código CAR Oficial:</label>
-          <input type="text" class="form-input" value="${data.cod_imovel}" readonly style="background:#F9FAFB;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Município / UF:</label>
-          <input type="text" class="form-input" id="modSicarMunicipio" value="${data.municipio}, Roraima">
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="form-group">
-            <label class="form-label">Área Total (ha):</label>
-            <input type="text" class="form-input" value="${data.area_total_ha}" readonly style="background:#F9FAFB;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Área Consolidada (ha):</label>
-            <input type="number" step="0.1" class="form-input" id="modSicarAreaConsolidada" value="${data.area_consolidada_ha}">
-          </div>
-        </div>
-        <p style="font-size:10.5px; color:var(--text-muted);">Reserva Legal preservada: <strong>${data.area_reserva_legal_ha} ha</strong> (Bioma Amazônia 80%).</p>
-      `;
-
-      abrirModal({
-        titulo: "Notificação SICAR: Imóvel Localizado",
-        subtitulo: "Dados geoespaciais carregados do banco oficial",
-        htmlConteudo: html,
-        textoBotao: "Confirmar e Aplicar na Gleba",
-        onConfirmar: () => {
-          const mun = document.getElementById('modSicarMunicipio').value;
-          const aCons = parseFloat(document.getElementById('modSicarAreaConsolidada').value) || data.area_consolidada_ha;
-          document.getElementById('inputMunicipio').value = mun;
-          document.getElementById('inputArea').value = aCons;
-          document.getElementById('sicarStatusMsg').innerText = `✓ Gleba confirmada: ${mun} (${data.area_total_ha} ha)`;
-        }
-      });
-    }
-
-    // Modal 8: Pousio / Repouso com Entrada de Dados
-    function selecionarPousioComModal(card) {
-      document.querySelectorAll('.crop-badge-card').forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-
-      const html = `
-        <div class="form-group">
-          <label class="form-label">Tipo de Pousio / Repouso:</label>
-          <select class="form-input" id="modTipoPousio">
-            <option value="Pousio com Cobertura / Adubação Verde" selected>Pousio com Cobertura / Adubação Verde (Recomendado)</option>
-            <option value="Pousio com Palhada Residual de Milho">Pousio com Palhada Residual de Milho</option>
-            <option value="Pousio Espontâneo / Repouso Tradicional">Pousio Espontâneo / Repouso Tradicional</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tempo Previsto de Repouso (Meses):</label>
-          <input type="number" class="form-input" id="modTempoPousio" value="6" min="1" max="36">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Objetivo do Pousio neste Talhão:</label>
-          <select class="form-input" id="modObjPousio">
-            <option value="Recuperação de fertilidade e matéria orgânica">Recuperação de matéria orgânica</option>
-            <option value="Quebra do ciclo de pragas de solo">Quebra do ciclo de pragas de solo</option>
-            <option value="Aguardando janela ideal de semeadura">Aguardando janela ideal de semeadura</option>
-          </select>
-        </div>
-      `;
-
-      abrirModal({
-        titulo: "Registrar Talhão em Repouso",
-        subtitulo: `Configurar dados de pousio para o ${talhaoSelecionado}`,
-        htmlConteudo: html,
-        textoBotao: "Salvar Dados do Pousio",
-        onConfirmar: () => {
-          const tipo = document.getElementById('modTipoPousio').value;
-          const tempo = document.getElementById('modTempoPousio').value;
-          const obj = document.getElementById('modObjPousio').value;
-
-          dadosPropriedade.talhoes[talhaoSelecionado].cultura = 'pousio';
-          dadosPropriedade.talhoes[talhaoSelecionado].is_pousio = true;
-
-          const item = document.createElement('div');
-          item.style = "background: #F1F5F9; border: 1px solid #CBD5E1; padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;";
-          item.innerHTML = `<span>💤 ${tipo} (${tempo} meses)</span><span style="color: var(--text-muted); font-size: 10px;">${obj}</span>`;
-          document.getElementById('historicoLista').appendChild(item);
-        }
-      });
-    }
-
-    // Modal 9: Compartilhar Dossiê com Assistência Técnica
+    // Modal: Compartilhar Dossiê
     function abrirModalCompartilhar() {
       const html = `
         <div class="form-group">
-          <label class="form-label">Nome do Extensionista / Agrônomo:</label>
-          <input type="text" class="form-input" id="modTecnicoNome" placeholder="Ex: Dr. Roberto / Técnico AATER" value="Técnico da Região de Roraima">
+          <label class="form-label">Nome do Técnico / Extensionista:</label>
+          <input type="text" class="form-input" value="Técnico da Região de Roraima">
         </div>
         <div class="form-group">
-          <label class="form-label">WhatsApp ou E-mail para Envio:</label>
-          <input type="text" class="form-input" id="modTecnicoContato" placeholder="Ex: (95) 99123-4567 ou email@embrapa.br" value="(95) 99111-2233">
+          <label class="form-label">WhatsApp / E-mail de Envio:</label>
+          <input type="text" class="form-input" value="(95) 99111-2233">
         </div>
-        <div class="form-group">
-          <label class="form-label">Órgão / Entidade de Apoio:</label>
-          <select class="form-input">
-            <option value="Embrapa Roraima">Embrapa Roraima</option>
-            <option value="Iater / Aater Roraima">Iater / Aater Roraima</option>
-            <option value="Secretaria de Agricultura (Seadi)">Secretaria de Agricultura (Seadi)</option>
-            <option value="Cooperativa Local">Cooperativa Agrícola Local</option>
-          </select>
-        </div>
-        <div style="font-size:11px; color:var(--text-muted); background:#F8FAF6; padding:8px; border-radius:8px;">
-          ✓ Será enviado o comparativo das 3 estratégias de rotação, dados MERRA-2 e o calendário fenoclimático.
-        </div>
+        <p style="font-size:11.5px; color:var(--text-muted);">
+          Serão enviados o comparativo das 3 estratégias de rotação, os dados ambientais NASA e a agenda de semeadura.
+        </p>
       `;
 
       abrirModal({
-        titulo: "Compartilhar Dossiê Agronômico",
-        subtitulo: "Enviar relatório para validação com especialista",
+        titulo: "Compartilhar com Assistência Técnica",
+        subtitulo: "Envio para Embrapa / AATER Roraima",
         htmlConteudo: html,
         textoBotao: "Enviar Relatório",
         onConfirmar: () => {
           setTimeout(() => {
             abrirModal({
               titulo: "✓ Dossiê Enviado!",
-              subtitulo: "Notificação gerada com sucesso",
-              htmlConteudo: "<p style='font-size:12px; color:var(--text-muted);'>O relatório e o mapa da gleba foram enviados para a assistência técnica informada. Eles poderão validar as premissas e ajustar os insumos no campo.</p>",
+              subtitulo: "Compartilhamento concluído",
+              htmlConteudo: "<p style='font-size:12px; color:var(--text-muted);'>O relatório e os mapas foram despachados para a assistência técnica local.</p>",
               textoBotao: "Concluir"
             });
           }, 200);
@@ -1570,39 +1884,216 @@
       });
     }
 
+    // Modal: Sobre a Plataforma
+    function abrirModalInfo() {
+      const html = `
+        <div style="font-size:12px; line-height:1.5; color:var(--text-muted);">
+          <strong style="color:var(--primary-dark);">Crop Rotation (NASA Space Apps 2026)</strong><br>
+          Adapting Farms with NASA Data.<br><br>
+          🛰️ <strong>Bases de Dados Orbitais:</strong>
+          <ul style="padding-left:18px; margin:6px 0 10px;">
+            <li>NASA POWER Agroclimatology (30 anos e NRT)</li>
+            <li>NASA GMAO MERRA-2 (Catchment Land Surface Model)</li>
+            <li>ESA Copernicus Sentinel-2 L2A (10m)</li>
+            <li>NASA SRTM (Topografia e Relevo 30m)</li>
+          </ul>
+          🌾 <strong>Validação Agronômica:</strong> Calibrado com os boletins técnicos da Embrapa Roraima.
+        </div>
+      `;
+
+      abrirModal({
+        titulo: "Sobre a Plataforma",
+        subtitulo: "Tecnologia e bases de dados científicos",
+        htmlConteudo: html,
+        textoBotao: "Fechar"
+      });
+    }
+
+    // Modal: Configuração de Camada do Mapa
+    function abrirModalFiltroCamada(tipo, nome) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      const html = `
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Camada ativa: <strong>${nome}</strong></p>
+        <div class="form-group">
+          <label class="form-label">Data da Imagem de Satélite:</label>
+          <input type="date" class="form-input" value="2026-11-14">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Opacidade da Camada:</label>
+          <input type="range" min="10" max="100" value="80" style="width:100%;">
+        </div>
+      `;
+
+      abrirModal({
+        titulo: "Camada Espacial",
+        subtitulo: "Ajuste visual no mapa",
+        htmlConteudo: html,
+        textoBotao: "Aplicar no Mapa"
+      });
+    }
+
+    // ========================================================
+    // NAVEGAÇÃO DE ETAPAS (1 A 9)
+    // ========================================================
+    function irParaEtapa(numero) {
+      etapaAtual = numero;
+
+      // Oculta todas as telas normais e hub
+      for (let i = 1; i <= 9; i++) {
+        const sc = document.getElementById(`screen${i}`);
+        if (sc) sc.style.display = 'none';
+      }
+      document.getElementById('screenHub').style.display = 'none';
+
+      // Mostra a tela alvo
+      const telaAlvo = document.getElementById(`screen${numero}`);
+      if (telaAlvo) telaAlvo.style.display = 'flex';
+
+      // Atualiza Top Header e Barra de Progresso
+      const pBox = document.getElementById('progressBarBox');
+      const backBtn = document.getElementById('headerBackBtn');
+      const logoIcon = document.getElementById('headerLogoIcon');
+      const titleEl = document.getElementById('topHeaderTitle');
+
+      if (numero === 1) {
+        pBox.style.display = 'none';
+        backBtn.style.display = 'none';
+        logoIcon.style.display = 'inline-block';
+        titleEl.innerText = "Crop Rotation";
+      } else {
+        pBox.style.display = 'block';
+        backBtn.style.display = 'flex';
+        logoIcon.style.display = 'none';
+
+        const titulos = {
+          3: "Propriedade",
+          4: "Área no mapa",
+          5: "Culturas atuais",
+          6: "Condições da área",
+          7: "Simulação",
+          8: "Recomendação",
+          9: "Resultado"
+        };
+        titleEl.innerText = titulos[numero] || "Crop Rotation";
+
+        const pcts = { 3: 33, 4: 44, 5: 56, 6: 67, 7: 78, 8: 89, 9: 100 };
+        const pct = pcts[numero] || 33;
+        document.getElementById('barFill').style.width = pct + '%';
+        document.getElementById('labelEtapa').innerText = `Etapa ${numero} de 9`;
+        document.getElementById('labelPercent').innerText = pct + '%';
+      }
+
+      // Inicializa mapas conforme necessário
+      if (numero === 4) {
+        setTimeout(initMapEtapa4, 150);
+      }
+      if (numero === 6) {
+        carregarDiagnostico();
+      }
+      if (numero === 8) {
+        executarComparativoTriplo();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function voltarEtapa() {
+      if (etapaAtual === 9) irParaEtapa(8);
+      else if (etapaAtual === 8) irParaEtapa(7);
+      else if (etapaAtual === 7) irParaEtapa(6);
+      else if (etapaAtual === 6) irParaEtapa(5);
+      else if (etapaAtual === 5) irParaEtapa(4);
+      else if (etapaAtual === 4) irParaEtapa(3);
+      else if (etapaAtual === 3) irParaEtapa(1);
+      else if (etapaAtual === 10) irParaEtapa(9);
+    }
+
     // Inicialização do Mapa na Etapa 4
     function initMapEtapa4() {
-      if (mapaEtapa4) return;
+      if (mapaEtapa4) {
+        mapaEtapa4.invalidateSize();
+        return;
+      }
       mapaEtapa4 = L.map('mapEtapa4', { zoomControl: false }).setView([1.8984, -60.6906], 14);
       L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 19 }).addTo(mapaEtapa4);
 
       // Polígonos dos 3 talhões
-      const t1 = L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.45 }).addTo(mapaEtapa4);
-      const t2 = L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.45 }).addTo(mapaEtapa4);
-      const t3 = L.polygon([[1.894, -60.693], [1.888, -60.682], [1.885, -60.686], [1.890, -60.696]], { color: '#004d40', fillColor: '#4db6ac', fillOpacity: 0.45 }).addTo(mapaEtapa4);
+      const t1 = L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(mapaEtapa4);
+      const t2 = L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(mapaEtapa4);
+      const t3 = L.polygon([[1.894, -60.693], [1.888, -60.682], [1.885, -60.686], [1.890, -60.696]], { color: '#004d40', fillColor: '#4db6ac', fillOpacity: 0.5 }).addTo(mapaEtapa4);
 
-      t1.bindPopup("<strong>Talhão 1 (T1)</strong><br>6,2 ha • Mandioca");
-      t2.bindPopup("<strong>Talhão 2 (T2)</strong><br>5,0 ha • Milho");
-      t3.bindPopup("<strong>Talhão 3 (T3)</strong><br>5,0 ha • Feijão-caupi");
+      t1.bindPopup("<strong>Talhão 1 (T1)</strong><br>6,2 ha");
+      t2.bindPopup("<strong>Talhão 2 (T2)</strong><br>5,0 ha");
+      t3.bindPopup("<strong>Talhão 3 (T3)</strong><br>5,8 ha");
     }
 
-    // Seleção de Talhão e Culturas na Etapa 5
-    function selecionarTalhaoAba(tid, btn) {
+    // Alternância de Culturas na Etapa 5
+    function selecionarTalhaoPill(tid, btn) {
       talhaoSelecionado = tid;
-      document.querySelectorAll('.talhao-pills .pill-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.talhao-pills .pill-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+
+      const t = dadosPropriedade.talhoes[tid];
+      document.getElementById('inputAreaTalhao').value = t.area;
+      document.getElementById('labelHistoricoTalhao').innerText = t.historico;
+      document.getElementById('labelContagemCulturas').innerText = `${t.culturas.length} cultura(s) selecionada(s) para o ${t.nome}`;
     }
 
-    function selecionarCultura(cultura, card) {
-      document.querySelectorAll('.crop-badge-card').forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-      dadosPropriedade.talhoes[talhaoSelecionado].cultura = cultura;
+    function alternarCulturaBadge(cultura, card) {
+      card.classList.toggle('active');
+      const t = dadosPropriedade.talhoes[talhaoSelecionado];
+      if (card.classList.contains('active')) {
+        if (!t.culturas.includes(cultura)) t.culturas.push(cultura);
+      } else {
+        t.culturas = t.culturas.filter(c => c !== cultura);
+      }
+      document.getElementById('labelContagemCulturas').innerText = `${t.culturas.length} cultura(s) selecionada(s) para o ${t.nome}`;
     }
 
-    // Conclusão do Cadastro e Abertura do Hub Principal
+    // Seleção de Objetivos e Período na Etapa 7
+    function selecionarObjetivo(obj) {
+      const cards = ['cardObjSolo', 'cardObjRenda', 'cardObjClima'];
+      cards.forEach(id => {
+        const el = document.getElementById(id);
+        el.style.border = '1px solid var(--border-soft)';
+        el.style.background = 'var(--surface-white)';
+        el.querySelector('div:last-child').innerHTML = '';
+        el.querySelector('div:last-child').style.border = '1.5px solid #CBD5E1';
+        el.querySelector('div:last-child').style.background = 'transparent';
+      });
+
+      const selectedId = obj === 'saude_solo' ? 'cardObjSolo' : (obj === 'renda' ? 'cardObjRenda' : 'cardObjClima');
+      const sel = document.getElementById(selectedId);
+      sel.style.border = '2px solid var(--accent-lime)';
+      sel.style.background = '#F7FEE7';
+      const indicator = sel.querySelector('div:last-child');
+      indicator.innerHTML = '✓';
+      indicator.style.border = 'none';
+      indicator.style.background = '#65A30D';
+      indicator.style.color = '#fff';
+    }
+
+    function selecionarPeriodoPill(anos, btn) {
+      btn.parentElement.querySelectorAll('.pill-tab').forEach(b => {
+        b.classList.remove('active');
+        b.style.borderColor = 'var(--border-soft)';
+        b.style.background = 'var(--surface-white)';
+        b.style.color = 'var(--text-muted)';
+      });
+      btn.classList.add('active');
+      btn.style.borderColor = 'var(--accent-lime)';
+      btn.style.background = '#ECFCCB';
+      btn.style.color = '#365314';
+    }
+
+    // Abertura do Hub Principal (Mapa Completo com Bottom Sheet)
     function concluirCadastroEAbrirHub() {
-      etapaAtual = 6;
-      document.querySelectorAll('.screen-content').forEach(s => s.style.display = 'none');
+      etapaAtual = 10;
+      for (let i = 1; i <= 9; i++) {
+        const sc = document.getElementById(`screen${i}`);
+        if (sc) sc.style.display = 'none';
+      }
       document.getElementById('progressBarBox').style.display = 'none';
       document.getElementById('screenHub').style.display = 'flex';
       document.getElementById('topHeaderTitle').innerText = "Gleba: Sítio Boa Esperança";
@@ -1613,13 +2104,14 @@
       executarComparativoTriplo();
     }
 
-    // Inicialização do Mapa do Hub
     function initHubMap() {
-      if (hubMap) return;
+      if (hubMap) {
+        hubMap.invalidateSize();
+        return;
+      }
       hubMap = L.map('hubMap', { zoomControl: false }).setView([1.8984, -60.6906], 14);
       L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 19 }).addTo(hubMap);
 
-      // Perímetro do Imóvel
       L.polygon([
         [1.90254, -60.69588],
         [1.89921, -60.68929],
@@ -1634,12 +2126,10 @@
         fillOpacity: 0.15
       }).addTo(hubMap).bindPopup("<strong>Sítio Boa Esperança</strong><br>CAR: RR-1400175<br>87,1 ha demarcados");
 
-      // Talhões
       L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 1 (6,2 ha)");
       L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 2 (5,0 ha)");
     }
 
-    // Alternar Bottom Sheet
     let sheetExpanded = false;
     function toggleBottomSheet() {
       sheetExpanded = !sheetExpanded;
@@ -1657,28 +2147,30 @@
         if (el) el.style.display = (t === tabId) ? 'block' : 'none';
       });
 
-      // Garante que a folha suba ao clicar
       document.getElementById('bottomSheet').style.transform = 'translateY(0%)';
       sheetExpanded = true;
     }
 
-    // Carregar Diagnóstico da API
+    // Carregamento de Dados da API
     async function carregarDiagnostico() {
       try {
         const resp = await fetch('/api/condicoes-completas?lat=1.8984&lon=-60.6906');
         const data = await resp.json();
         if (data.cards) {
-          document.getElementById('valChuva').innerText = data.cards.chuva_recente.valor;
-          document.getElementById('valTemp').innerText = data.cards.temperatura.valor;
-          document.getElementById('valSolo').innerText = data.cards.umidade_solo.valor;
-          document.getElementById('valVigor').innerText = data.cards.cobertura_vegetal.valor;
+          const c = data.cards;
+          if (document.getElementById('diagValChuva')) document.getElementById('diagValChuva').innerText = c.chuva_recente.valor;
+          if (document.getElementById('diagValTemp')) document.getElementById('diagValTemp').innerText = c.temperatura.valor;
+          if (document.getElementById('diagValSolo')) document.getElementById('diagValSolo').innerText = c.umidade_solo.valor;
+          if (document.getElementById('diagValVigor')) document.getElementById('diagValVigor').innerText = c.cobertura_vegetal.valor;
+
+          if (document.getElementById('hubValChuva')) document.getElementById('hubValChuva').innerText = c.chuva_recente.valor;
+          if (document.getElementById('hubValTemp')) document.getElementById('hubValTemp').innerText = c.temperatura.valor;
+          if (document.getElementById('hubValSolo')) document.getElementById('hubValSolo').innerText = c.umidade_solo.valor;
+          if (document.getElementById('hubValVigor')) document.getElementById('hubValVigor').innerText = c.cobertura_vegetal.valor;
         }
-      } catch (e) {
-        console.warn("Diagnóstico em modo offline/cache.");
-      }
+      } catch (e) {}
     }
 
-    // Carregar Agenda da API
     async function carregarAgenda() {
       try {
         const resp = await fetch('/api/agenda-manejo');
@@ -1687,24 +2179,22 @@
         container.innerHTML = "";
         data.eventos_chave.forEach(ev => {
           container.innerHTML += `
-            <div class="agenda-item" onclick="abrirModalNotificacao('agenda_${ev.status.toLowerCase()}')">
-              <div class="agenda-date">${ev.data_estimada}</div>
-              <div class="agenda-content">
-                <h4>${ev.cultura} - ${ev.etapa} 🔔</h4>
-                <p>${ev.orientacao}</p>
+            <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalNotificacao('calor')">
+              <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
+              <div>
+                <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa} 🔔</h4>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.35;">${ev.orientacao}</p>
               </div>
             </div>
           `;
         });
-      } catch (e) {
-        console.warn("Agenda offline.");
-      }
+      } catch (e) {}
     }
 
-    // Executar Comparativo Triplo de Rotação (NASA Space Apps 2026)
     async function executarComparativoTriplo() {
       const container = document.getElementById('cardsEstrategiasContainer');
-      container.innerHTML = "<p style='font-size:12px; color:#6B7280;'>Processando motor de decisão...</p>";
+      if (!container) return;
+      container.innerHTML = "<p style='font-size:12px; color:#6B7280;'>Consultando motor agroclimático...</p>";
 
       try {
         const resp = await fetch('/api/simular-rotacao', {
@@ -1721,29 +2211,29 @@
 
         container.innerHTML = "";
         data.estrategias.forEach((strat, idx) => {
-          const isSelected = idx === 0 ? "selected" : "";
+          const isSelected = idx === 0 ? "border: 2px solid var(--primary-dark); background:#FAFCF9;" : "border: 1px solid var(--border-soft); background:#fff;";
           const badgeBg = idx === 0 ? "#DCFCE7" : (idx === 1 ? "#E0F2FE" : "#F1F5F9");
           const badgeTxt = idx === 0 ? "#15803D" : (idx === 1 ? "#0369A1" : "#475569");
 
           let stepsHtml = "";
           strat.sequencia.forEach(s => {
             stepsHtml += `
-              <div class="step-item">
-                <div class="step-time">${s.tempo}</div>
-                <div class="step-crop">${s.cultura}</div>
+              <div style="flex:1; text-align:center; background:#fff; border:1px solid var(--border-soft); border-radius:10px; padding:6px 4px;">
+                <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">${s.tempo}</div>
+                <div style="font-size:11px; font-weight:800; color:var(--primary-dark);">${s.cultura}</div>
               </div>
             `;
           });
 
           container.innerHTML += `
-            <div class="strategy-card ${isSelected}" onclick="abrirModalNotificacao('estrategia_${strat.id}')">
-              <div class="strat-header">
-                <span class="strat-badge" style="background:${badgeBg}; color:${badgeTxt};">${strat.tipo}</span>
+            <div style="border-radius:16px; padding:14px; margin-bottom:12px; cursor:pointer; ${isSelected}" onclick="abrirModalNotificacao('calor')">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:${badgeBg}; color:${badgeTxt};">${strat.tipo}</span>
                 <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${strat.compatibilidade_score}% compatível</span>
               </div>
-              <strong style="font-size:12.5px; display:block; margin-bottom:8px;">${strat.nome}</strong>
-              <div class="timeline-steps">${stepsHtml}</div>
-              <div class="evidence-box">
+              <strong style="font-size:13px; display:block; margin-bottom:8px;">${strat.nome}</strong>
+              <div style="display:flex; gap:6px; margin-bottom:10px;">${stepsHtml}</div>
+              <div style="font-size:11px; line-height:1.4; color:var(--text-muted); background:#F8FAF6; padding:8px 10px; border-radius:8px;">
                 <strong>🔬 Evidências:</strong> ${strat.evidencias_cientificas[0]}<br>
                 <strong>⚠️ Riscos:</strong> ${strat.riscos_climaticos_e_operacionais[0]}<br>
                 <strong>❓ Incerteza:</strong> ${strat.incertezas_biofisicas[0]}
@@ -1752,13 +2242,8 @@
           `;
         });
       } catch (err) {
-        container.innerHTML = "<p style='color:red;'>Erro ao consultar motor de simulação.</p>";
+        container.innerHTML = "<p style='color:red;'>Erro ao carregar estratégias.</p>";
       }
-    }
-
-    function selecionarPeriodo(anos, btn) {
-      document.querySelectorAll('#tabContentSim .pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
     }
   </script>
 </body>
