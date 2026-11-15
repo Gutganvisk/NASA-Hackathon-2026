@@ -1565,11 +1565,11 @@
     let mapaEtapa4 = null;
     let hubMap = null;
     let dadosPropriedade = {
-      nome: "Sítio Boa Esperança",
-      local: "Região do Murupu",
-      municipio: "Boa Vista, Roraima",
-      cod_car: "RR-1400175-3772D7A9BD394DA195CD145D10183419",
-      area_ha: 87.1178,
+      nome: "",
+      local: "",
+      municipio: "",
+      cod_car: "",
+      area_ha: 0,
       talhoes: {
         "T1": { nome: "Talhão 1", area: 6.2, culturas: ["mandioca", "milho", "feijao_caupi"], historico: "Mandioca há 10 meses; antes, pousio." },
         "T2": { nome: "Talhão 2", area: 5.0, culturas: ["milho"], historico: "Pousio 4 meses; antes, feijão." },
@@ -1680,7 +1680,7 @@
       const html = `
         <div class="form-group">
           <label class="form-label">Código do CAR Oficial:</label>
-          <input type="text" class="form-input" id="modCarInput" value="${dadosPropriedade.cod_car}">
+          <input type="text" class="form-input" id="modCarInput" value="${dadosPropriedade.cod_car || ''}" placeholder="Ex: RR-1400175-3772D7A9BD394DA195CD145D10183419">
         </div>
         <p style="font-size:11.5px; color:var(--text-muted); line-height:1.4;">
           O sistema consultará a geometria oficial no banco do SICAR / Incra para traçar o polígono da gleba rural.
@@ -1793,20 +1793,22 @@
       });
     }
 
-    // Modal: Salvar Plano
+    // Modal: Salvar Plano & Lembretes (Campos limpos para preenchimento)
     function abrirModalSalvarPlano() {
+      const glebaNome = dadosPropriedade.nome || "Propriedade Rural";
+      const carInfo = dadosPropriedade.cod_car ? ` (CAR: ${dadosPropriedade.cod_car})` : " (CAR pendente)";
       const html = `
         <div class="form-group">
           <label class="form-label">Nome do Produtor:</label>
-          <input type="text" class="form-input" id="modNomeProd" value="Guilherme Pereira">
+          <input type="text" class="form-input" id="modNomeProd" value="" placeholder="Ex: Digite seu nome ou da família">
         </div>
         <div class="form-group">
           <label class="form-label">WhatsApp para Notificações e Lembretes:</label>
-          <input type="tel" class="form-input" id="modTelProd" value="(95) 99123-4567">
+          <input type="tel" class="form-input" id="modTelProd" value="" placeholder="Ex: (95) 99999-0000">
         </div>
         <div class="form-group">
           <label class="form-label">Gleba Rural Vinculada:</label>
-          <input type="text" class="form-input" value="Sítio Boa Esperança (CAR: RR-1400175)" readonly style="background:#F9FAFB;">
+          <input type="text" class="form-input" value="${glebaNome}${carInfo}" readonly style="background:#F9FAFB;">
         </div>
       `;
 
@@ -1816,13 +1818,19 @@
         htmlConteudo: html,
         textoBotao: "Confirmar Gravação",
         onConfirmar: async () => {
-          const nome = document.getElementById('modNomeProd').value;
-          const tel = document.getElementById('modTelProd').value;
+          const nomeInput = document.getElementById('modNomeProd');
+          const telInput = document.getElementById('modTelProd');
+          const nome = nomeInput ? nomeInput.value.trim() : "";
+          const tel = telInput ? telInput.value.trim() : "";
           try {
             await fetch('/api/cadastrar-produtor', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nome: nome, telefone: tel, cod_car: dadosPropriedade.cod_car })
+              body: JSON.stringify({
+                nome: nome || "Produtor Rural",
+                telefone: tel,
+                cod_car: dadosPropriedade.cod_car || "CAR-PENDENTE"
+              })
             });
             setTimeout(() => {
               abrirModal({
@@ -1837,16 +1845,56 @@
       });
     }
 
+    // Modal: Lembrete Personalizado da Agenda de Manejo
+    function abrirModalLembrete(cultura, etapa, dataEstimada, orientacao) {
+      const html = `
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:10px 12px; border-radius:12px; font-size:11.5px; color:#1E40AF; margin-bottom:12px;">
+          📅 <strong>${cultura} - ${etapa}</strong><br>
+          <span style="font-size:11px; color:#3B82F6;">Data estimada: ${dataEstimada}</span><br>
+          <span style="font-size:11px; color:#1E3A8A; line-height:1.4; display:block; margin-top:4px;">${orientacao}</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data do Lembrete:</label>
+          <input type="text" class="form-input" id="modDataLembrete" value="${dataEstimada}" placeholder="Ex: 15/04/2026">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anotação ou Ação do Produtor:</label>
+          <textarea class="form-input" id="modAnotacaoLembrete" rows="2" placeholder="Ex: Verificar umidade do solo e preparar maquinário"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp para Notificação:</label>
+          <input type="tel" class="form-input" id="modTelLembrete" value="" placeholder="Ex: (95) 99999-0000">
+        </div>
+      `;
+
+      abrirModal({
+        titulo: "Configurar Lembrete de Manejo",
+        subtitulo: "Aviso programado no calendário fenoclimático",
+        htmlConteudo: html,
+        textoBotao: "Salvar Lembrete",
+        onConfirmar: () => {
+          setTimeout(() => {
+            abrirModal({
+              titulo: "✓ Lembrete Ativado!",
+              subtitulo: "Agendamento concluído",
+              htmlConteudo: `<p style='font-size:12px; color:var(--text-muted);'>Você receberá um alerta automático antes da data estimada (${dataEstimada}) para planejar a operação.</p>`,
+              textoBotao: "Concluir"
+            });
+          }, 200);
+        }
+      });
+    }
+
     // Modal: Compartilhar Dossiê
     function abrirModalCompartilhar() {
       const html = `
         <div class="form-group">
           <label class="form-label">Nome do Técnico / Extensionista:</label>
-          <input type="text" class="form-input" value="Técnico da Região de Roraima">
+          <input type="text" class="form-input" id="modNomeTecnico" value="" placeholder="Ex: Eng. Agrônomo / Técnico AATER">
         </div>
         <div class="form-group">
           <label class="form-label">WhatsApp / E-mail de Envio:</label>
-          <input type="text" class="form-input" value="(95) 99111-2233">
+          <input type="text" class="form-input" id="modContatoTecnico" value="" placeholder="Ex: (95) 99999-0000 ou email@exemplo.com">
         </div>
         <p style="font-size:11.5px; color:var(--text-muted);">
           Serão enviados o comparativo das 3 estratégias de rotação, os dados ambientais NASA e a agenda de semeadura.
@@ -2453,7 +2501,7 @@
           container.innerHTML = "";
           data.eventos_chave.forEach(ev => {
             container.innerHTML += `
-              <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalNotificacao('calor')">
+              <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalLembrete('${ev.cultura}', '${ev.etapa}', '${ev.data_estimada}', '${(ev.orientacao || '').replace(/'/g, "\\'")}')">
                 <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
                 <div>
                   <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa} 🔔</h4>
