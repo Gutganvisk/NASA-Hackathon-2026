@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+__pycache__
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+temp_colleague_repo/
+imoveis_rr_sample.json
+*.pdf
+*.zip
