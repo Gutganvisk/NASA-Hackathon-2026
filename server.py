@@ -33,6 +33,7 @@ from supabase_client import is_supabase_configured, salvar_plano
 
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BRAND_ASSETS = {"/assets/crop-rotation-logo.png", "/assets/crop-rotation-icon.png"}
 
 def coordinates(lat, lon):
     try:
@@ -187,6 +188,17 @@ class AgroHandler(BaseHTTPRequestHandler):
 
         if path == "/healthz":
             self._json(200, {"status": "ok"})
+            return
+
+        if path in BRAND_ASSETS:
+            try:
+                with open(os.path.join(BASE_DIR, path.lstrip("/")), "rb") as asset:
+                    content = asset.read()
+            except FileNotFoundError:
+                self._json(404, {"error": "Imagem indisponível."})
+                return
+            self._set_headers(200, "image/png")
+            self.wfile.write(content)
             return
 
         if path in ("/api/demarcation", "/api/condicoes-completas"):
