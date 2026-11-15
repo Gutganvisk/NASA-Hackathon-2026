@@ -26,6 +26,13 @@ from rotation_planner import (
     summarize_weather,
 )
 
+from supabase_client import (
+    is_supabase_configured,
+    listar_planos_salvos,
+    salvar_produtor_e_plano,
+    salvar_propriedade as salvar_propriedade_supabase,
+)
+
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -298,6 +305,19 @@ class AgroHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
             return
 
+        # 8. Endpoint: /api/planos-salvos (Consultar Planos no Supabase / Local)
+        if path == "/api/planos-salvos":
+            car_code = params.get("car", [None])[0]
+            planos = listar_planos_salvos(car_code)
+            self._set_headers(200)
+            self.wfile.write(json.dumps({
+                "sucesso": True,
+                "supabase_conectado": is_supabase_configured(),
+                "total": len(planos),
+                "planos": planos
+            }, ensure_ascii=False).encode("utf-8"))
+            return
+
         self._set_headers(404)
         self.wfile.write(json.dumps({"error": "Rota nao encontrada"}).encode("utf-8"))
 
@@ -330,27 +350,29 @@ class AgroHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(res, ensure_ascii=False).encode("utf-8"))
             return
 
-        # 2. Endpoint: /api/propriedade (Salvar Propriedade e Talhões)
+        # 2. Endpoint: /api/propriedade (Salvar Propriedade e Talhoes no Supabase / Local)
         if path == "/api/propriedade":
             global _PROPRIEDADE_STATE
             if body_data:
                 _PROPRIEDADE_STATE.update(body_data)
+                res_supa = salvar_propriedade_supabase(body_data)
+            else:
+                res_supa = {"sucesso": True, "storage": "nenhum_dado"}
             self._set_headers(200)
-            self.wfile.write(json.dumps({"sucesso": True, "propriedade": _PROPRIEDADE_STATE}, ensure_ascii=False).encode("utf-8"))
+            self.wfile.write(json.dumps({
+                "sucesso": True,
+                "propriedade": _PROPRIEDADE_STATE,
+                "supabase": res_supa
+            }, ensure_ascii=False).encode("utf-8"))
             return
 
-        # 3. Endpoint: /api/cadastrar-produtor
+        # 3. Endpoint: /api/cadastrar-produtor (Salvar Produtor e Plano no Supabase)
         if path == "/api/cadastrar-produtor":
-            resp = {
-                "sucesso": True,
-                "mensagem": "Produtor vinculado à gleba rural com sucesso!",
-                "id": "prod_" + os.urandom(4).hex(),
-                "dados": body_data
-            }
-            self._set_headers(201)
+            resp = salvar_produtor_e_plano(body_data)
+            status_code = 201 if resp.get("sucesso") else 400
+            self._set_headers(status_code)
             self.wfile.write(json.dumps(resp, ensure_ascii=False).encode("utf-8"))
             return
-
         self._set_headers(404)
         self.wfile.write(json.dumps({"error": "Rota POST nao encontrada"}).encode("utf-8"))
 
