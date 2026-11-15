@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ========================================================
 -- SCHEMA SQL PARA SUPABASE (POSTGRESQL + POSTGIS)
 -- Crop Rotation - NASA Space Apps Challenge 2026
@@ -50,28 +52,17 @@ CREATE INDEX IF NOT EXISTS idx_propriedades_car ON public.propriedades_rurais (c
 ALTER TABLE public.produtores_planos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.propriedades_rurais ENABLE ROW LEVEL SECURITY;
 
--- Política permissiva para a Data API pública (anon) e autenticada (service_role)
+-- O navegador usa o backend. A Data API não concede acesso público às tabelas.
 DROP POLICY IF EXISTS "Permitir leitura pública de planos" ON public.produtores_planos;
-CREATE POLICY "Permitir leitura pública de planos"
-    ON public.produtores_planos FOR SELECT
-    USING (true);
-
 DROP POLICY IF EXISTS "Permitir gravação de planos" ON public.produtores_planos;
-CREATE POLICY "Permitir gravação de planos"
-    ON public.produtores_planos FOR INSERT
-    WITH CHECK (true);
-
 DROP POLICY IF EXISTS "Permitir leitura pública de propriedades" ON public.propriedades_rurais;
-CREATE POLICY "Permitir leitura pública de propriedades"
-    ON public.propriedades_rurais FOR SELECT
-    USING (true);
-
 DROP POLICY IF EXISTS "Permitir gravação e atualização de propriedades" ON public.propriedades_rurais;
-CREATE POLICY "Permitir gravação e atualização de propriedades"
-    ON public.propriedades_rurais FOR ALL
-    USING (true)
-    WITH CHECK (true);
+
+REVOKE ALL ON TABLE public.produtores_planos, public.propriedades_rurais FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.produtores_planos, public.propriedades_rurais TO service_role;
 
 -- Notificação de sucesso
 COMMENT ON TABLE public.produtores_planos IS 'Planos de rotação agroclimáticos salvos pelos produtores';
 COMMENT ON TABLE public.propriedades_rurais IS 'Glebas rurais mapeadas e demarcação de talhões';
+
+COMMIT;

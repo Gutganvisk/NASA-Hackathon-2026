@@ -1,7 +1,7 @@
 """
 Ponto de entrada via terminal (CLI) do projeto Crop Rotation.
 Executa o Motor de Decisão Agroclimático calibrado com o Passaporte Biológico da Embrapa Roraima
-e dados de sensoriamento remoto (NASA POWER v2.0 + SMAP + GPM).
+e dados de sensoriamento remoto (NASA POWER v2.0).
 """
 
 import sys
@@ -45,15 +45,15 @@ def run_analysis(lat: float, lon: float, start_date: str, end_date: str, locatio
 
     print("\n[1. METRICAS ATMOSFERICAS (NASA POWER AG)]")
     print(f" - Dias analisados: {summary['days']} dias")
-    print(f" - Precipitacao total acumulada (GPM/POWER): {summary['total_precip_mm']} mm")
+    print(f" - Precipitacao total acumulada (NASA POWER): {summary['total_precip_mm']} mm")
     print(f" - Temperatura media: {summary['avg_temp_c']} °C (Min: {summary['min_temp_c']} °C | Max: {summary['max_temp_c']} °C)")
     print(f" - Radiacao solar media diaria: {summary['avg_solar_rad_mj']} MJ/m²/dia")
     print(f" - Umidade relativa do ar media: {summary['avg_humidity_pct']} %")
 
-    print("\n[2. METRICAS DO SOLO E RELEVO (NASA SMAP + SRTM)]")
+    print("\n[2. METRICAS DO SOLO E RELEVO (NASA POWER / MERRA-2)]")
     print(f" - Umidade Superficial (0-5 cm / GWETTOP): {summary['avg_soil_surface_pct']} % (Saturacao)")
     print(f" - Umidade Zona Radicular (0-100 cm / GWETROOT): {summary['avg_soil_root_pct']} % (Saturacao)")
-    print(f" - Declividade media do lote (SRTM): {summary['estimated_slope_pct']} %")
+    print(" - Declividade: indisponível")
 
     print("\n" + "-" * 75)
     print(" [3. AVALIACAO DE APTIDAO - PASSAPORTE BIOLOGICO EMBRAPA RORAIMA]")
@@ -61,7 +61,7 @@ def run_analysis(lat: float, lon: float, start_date: str, end_date: str, locatio
 
     for crop_key, passport in MATRIZ_PASSAPORTE.items():
         res = evaluate_with_biological_passport(passport, summary)
-        status_tag = "[APTO]" if res["viavel"] else "[ALERTA]"
+        status_tag = {None: "[PARCIAL]", True: "[APTO]", False: "[ALERTA]"}[res["viavel"]]
         cultivares = ", ".join(res["cultivares_rr"])
         print(f"\n{status_tag} Cultura: {res['cultura']} ({res['nome_cientifico']})")
         print(f"   Cultivares Embrapa RR: {cultivares}")
@@ -87,10 +87,10 @@ def run_analysis(lat: float, lon: float, start_date: str, end_date: str, locatio
     print(" [4. PLANO RECOMENDADO DE ROTACAO / SUCESSAO SINCRONIZADA]")
     print("=" * 75)
     plan = suggest_rotation_plan()
-    for step in plan:
-        print(f"\n>> {step['etapa']}")
-        print(f"   Cultura: {step['cultura']}")
-        print(f"   Fundamentacao Agronomica: {step['justificativa']}")
+    for strategy in plan["estrategias"]:
+        print(f"\n>> {strategy['nome']}")
+        for step in strategy["sequencia"]:
+            print(f"   {step['tempo']}: {step['cultura']} — {step['papel']}")
 
     print("\n" + "=" * 75)
     print("Analise concluida com sucesso!\n")

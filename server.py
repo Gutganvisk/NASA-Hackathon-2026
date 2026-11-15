@@ -7,8 +7,11 @@ import json
 import os
 import sys
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+from math import isfinite
+from statistics import mean
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Dict
 
 if sys.stdout.encoding != "utf-8":
     try:
@@ -18,7 +21,7 @@ if sys.stdout.encoding != "utf-8":
 
 from copernicus_sentinel2 import calculate_ndvi_analysis
 from land_demarcation import query_land_by_point, query_land_demarcation
-from nasa_power import fetch_weather_data
+from nasa_power import fetch_recent_weather, fetch_weather_data
 from passaporte_biologico import MATRIZ_PASSAPORTE
 from rotation_planner import (
     compare_three_rotation_strategies,
@@ -26,42 +29,141 @@ from rotation_planner import (
     summarize_weather,
 )
 
-from supabase_client import (
-    is_supabase_configured,
-    listar_planos_salvos,
-    salvar_produtor_e_plano,
-    salvar_propriedade as salvar_propriedade_supabase,
-)
+from supabase_client import is_supabase_configured, salvar_plano
 
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Armazenamento em memória da propriedade e talhões
-_PROPRIEDADE_STATE: Dict[str, Any] = {
-    "nome": "Sítio Boa Esperança",
-    "localizacao": "Região do Murupu",
-    "municipio": "Boa Vista, Roraima",
-    "cod_car": "RR-1400175-3772D7A9BD394DA195CD145D10183419",
-    "area_total_ha": 87.1178,
-    "area_consolidada_ha": 17.4236,
-    "area_reserva_legal_ha": 69.6942,
-    "talhoes": [
-        { "id": "T1", "nome": "Talhão 1", "area_ha": 6.2, "cultura_atual": "mandioca", "is_pousio": False, "historico": "Mandioca há 10 meses; antes, pousio por 1 ano." },
-        { "id": "T2", "nome": "Talhão 2", "area_ha": 5.0, "cultura_atual": "milho", "is_pousio": False, "historico": "Milho consorciado com forrageira." },
-        { "id": "T3", "nome": "Talhão 3", "area_ha": 5.0, "cultura_atual": "feijao_caupi", "is_pousio": False, "historico": "Feijão-caupi em sucessão." }
-    ]
+def coordinates(lat, lon):
+    try:
+        lat, lon = float(lat), float(lon)
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            return lat, lon
+    except (TypeError, ValueError):
+        pass
+    raise ValueError("Informe coordenadas válidas (lat e lon) ou consulte com o CAR.")
+
+
+def recent_weather(lat, lon):
+    try:
+        return fetch_recent_weather(lat, lon, datetime.now(timezone.utc).date())
+    except (OSError, ValueError) as exc:
+        print(f"[POWER] Consulta indisponível: {type(exc).__name__}", flush=True)
+        return {}
+
+
+def area_diagnosis(lat, lon, geometry):
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        weather_task = pool.submit(recent_weather, lat, lon)
+        ndvi_task = pool.submit(calculate_ndvi_analysis, geometry) if geometry else None
+        weather = weather_task.result()
+        ndvi = ndvi_task.result() if ndvi_task else {}
+
+    records = weather.get("daily_records", {})
+
+    def power_card(title, variable, unit, aggregate, factor=1):
+        values = [
+            (day, value)
+            for day, record in sorted(records.items())
+            if (value := record.get(variable)) is not None and isfinite(value)
+        ]
+        count = len(values)
+        number = round(aggregate([value for _, value in values]) * factor, 2) if count else None
+        return {
+            "titulo": title,
+            "valor": f"{number:g} {unit}" if count else "Indisponível",
+            "medicao": number,
+            "status": f"{count}/14 dias com dados" if count else "Sem dados na janela",
+            "datas_com_dados": [day for day, _ in values],
+            "fonte": "NASA POWER / " + variable,
+        }
+
+    cards = {
+        "chuva_recente": power_card("Chuva acumulada nos dias disponíveis", "PRECTOTCORR", "mm", sum),
+        "temperatura": power_card("Temperatura média", "T2M", "°C", mean),
+        "radiacao_solar": power_card("Radiação solar média", "ALLSKY_SFC_SW_DWN", "MJ/m²/dia", mean),
+        "temperatura_maxima": power_card("Maior temperatura máxima diária", "T2M_MAX", "°C", max),
+        "umidade_solo": power_card("Saturação relativa do solo (0–100 cm)", "GWETROOT", "%", mean, 100),
+        "saturacao_superficial": power_card("Saturação relativa do solo (0–5 cm)", "GWETTOP", "%", mean, 100),
+        "cobertura_vegetal": {
+            "titulo": "Vigor da vegetação (NDVI)",
+            "valor": str(ndvi["ndvi_medio_estimado"]) if ndvi.get("sucesso") else "Indisponível",
+            "status": ndvi.get("periodo_analisado") or ndvi.get("aviso") or "Consulte com um CAR",
+            "fonte": "Copernicus Sentinel-2 L2A",
+        },
+        "relevo": {"titulo": "Relevo", "valor": "Indisponível", "status": "Declividade não medida"},
+        "condicao_solo": {"titulo": "Condição do solo", "valor": "Indisponível", "status": "Requer análise de campo"},
+    }
+    has_data = any(card.get("medicao") is not None for card in cards.values()) or ndvi.get("sucesso")
+    return {
+        "status": "partial" if has_data else "unavailable",
+        "condicao_geral": "Diagnóstico parcial" if has_data else "Dados indisponíveis",
+        "score_geral": None,
+        "coordenadas": {"latitude": lat, "longitude": lon},
+        "periodo_power": {"inicio": weather.get("start_date"), "fim": weather.get("end_date")},
+        "leitura_simples": "A chuva soma os dias disponíveis. A saturação vem de um modelo regional e o NDVI indica vigor da vegetação verde.",
+        "cards": cards,
+        "sentinel": ndvi or None,
+    }
+
+
+ZARC_RR = (
+    "https://www.gov.br/agricultura/pt-br/assuntos/riscos-seguro/"
+    "programa-nacional-de-zoneamento-agricola-de-risco-climatico/portarias/safra-vigente/roraima/roraima-rr"
+)
+
+AGENDA_RR = {
+    "regiao": "Roraima",
+    "janela_climatica_geral": "A distribuição da chuva varia entre municípios e entre anos.",
+    "eventos_chave": [
+        {
+            "data_estimada": "Antes do plantio",
+            "cultura": "Milho",
+            "etapa": "Conferir a janela de semeadura",
+            "orientacao": "Consulte o ZARC de milho ou milho com braquiária, conforme o sistema de cultivo, e confirme umidade no campo.",
+        },
+        {
+            "data_estimada": "Antes do plantio",
+            "cultura": "Feijão-caupi",
+            "etapa": "Avaliar a janela depois da colheita anterior",
+            "orientacao": "Verifique se ainda há janela de semeadura no ZARC para o município e o ciclo escolhido. Avalie a disponibilidade de água até a maturação.",
+        },
+        {
+            "data_estimada": "No estabelecimento",
+            "cultura": "Mandioca",
+            "etapa": "Planejar o estabelecimento das plantas",
+            "orientacao": "Ajuste o plantio para reduzir o risco de falta de água nos primeiros cinco meses e evite terrenos sujeitos a encharcamento.",
+        },
+    ],
+    "avisos_agronomicos": [
+        "Para definir a data de plantio, confira a combinação de município, solo, grupo de cultivar e nível de risco na portaria vigente.",
+    ],
+    "fontes": [
+        {"nome": "MAPA — ZARC vigente de Roraima", "url": ZARC_RR},
+        {
+            "nome": "Embrapa — O Cultivo da Mandioca em Roraima",
+            "url": "https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1155484/1/O-Cultivo-da-Mandioca-em-Roraima.pdf",
+        },
+    ],
 }
 
 
 class AgroHandler(BaseHTTPRequestHandler):
 
+    def log_request(self, code="-", size="-"):
+        path = urllib.parse.urlsplit(self.path).path
+        self.log_message("%s %s %s", self.command, path, code)
+
     def _set_headers(self, status=200, content_type="application/json"):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Referrer-Policy", "no-referrer")
         self.end_headers()
+
+    def _json(self, status, payload):
+        self._set_headers(status, "application/json; charset=utf-8")
+        self.wfile.write(json.dumps(payload, ensure_ascii=False, allow_nan=False).encode("utf-8"))
 
     def do_OPTIONS(self):
         self._set_headers(200)
@@ -83,184 +185,17 @@ class AgroHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b"index.html nao encontrado")
             return
 
-        # 2. Endpoint: /api/demarcation (Busca por CAR ou Coordenada)
-        if path == "/api/demarcation":
-            car_code = params.get("car", [None])[0]
-            lat = params.get("lat", [None])[0]
-            lon = params.get("lon", [None])[0]
-            uf = params.get("uf", ["rr"])[0]
-
-            try:
-                if car_code:
-                    result = query_land_demarcation(car_code)
-                elif lat and lon:
-                    result = query_land_by_point(float(lat), float(lon), uf=uf)
-                else:
-                    self._set_headers(400)
-                    self.wfile.write(json.dumps({"error": "Informe 'car' ou 'lat'/'lon'"}).encode("utf-8"))
-                    return
-
-                self._set_headers(200)
-                self.wfile.write(json.dumps(result).encode("utf-8"))
-            except Exception as e:
-                self._set_headers(500)
-                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+        if path == "/healthz":
+            self._json(200, {"status": "ok"})
             return
 
-        # 3. Endpoint: /api/condicoes-completas (Diagnóstico Agroclimático - Etapa 6)
-        if path == "/api/condicoes-completas":
-            lat = float(params.get("lat", [1.8984])[0])
-            lon = float(params.get("lon", [-60.6906])[0])
-
-            try:
-                weather_data = fetch_weather_data(
-                    latitude=lat,
-                    longitude=lon,
-                    start_date="20241001",
-                    end_date="20250228"
-                )
-                summary = summarize_weather(weather_data["daily_records"])
-            except Exception:
-                summary = {
-                    "total_precip_mm": 142.0,
-                    "avg_temp_c": 28.4,
-                    "avg_soil_root_pct": 64.0,
-                    "estimated_slope_pct": 3.8
-                }
-
-            diag_payload = {
-                "status": "success",
-                "condicao_geral": "Favorável",
-                "score_geral": 78,
-                "score_maximo": 100,
-                "descricao_condicao": "Condições favoráveis para o planejamento da próxima safra.",
-                "cards": {
-                    "chuva_recente": {
-                        "titulo": "Chuva recente",
-                        "valor": f"{int(summary.get('total_precip_mm', 142))} mm",
-                        "status": "Dentro do esperado",
-                        "alerta_tipo": "normal",
-                        "icone": "cloud-rain",
-                        "fonte": "NASA POWER / GPM"
-                    },
-                    "temperatura": {
-                        "titulo": "Temperatura",
-                        "valor": f"{summary.get('avg_temp_c', 28.4)} °C",
-                        "status": "Atenção ao calor",
-                        "alerta_tipo": "atencao",
-                        "icone": "thermometer",
-                        "fonte": "NASA POWER AG"
-                    },
-                    "umidade_solo": {
-                        "titulo": "Umidade do solo",
-                        "valor": f"{int(summary.get('avg_soil_root_pct', 64))}%",
-                        "status": "Nível adequado",
-                        "alerta_tipo": "normal",
-                        "icone": "droplet",
-                        "subtexto": "NASA GMAO MERRA-2 Catchment (0-100cm)",
-                        "fonte": "NASA MERRA-2"
-                    },
-                    "cobertura_vegetal": {
-                        "titulo": "Cobertura vegetal",
-                        "valor": "Boa",
-                        "status": "Solo protegido",
-                        "alerta_tipo": "normal",
-                        "icone": "shield",
-                        "subtexto": "NDVI 0.64 (Vigor verde ativo)",
-                        "fonte": "ESA Sentinel-2 MSI"
-                    },
-                    "relevo": {
-                        "titulo": "Relevo",
-                        "valor": "Suave",
-                        "status": "Baixo risco de erosão",
-                        "alerta_tipo": "normal",
-                        "icone": "map",
-                        "subtexto": "Declividade 3.8%",
-                        "fonte": "NASA SRTM 30m"
-                    },
-                    "condicao_solo": {
-                        "titulo": "Condição do solo",
-                        "valor": "Regular",
-                        "status": "Reforçar cobertura",
-                        "alerta_tipo": "atencao",
-                        "icone": "layers",
-                        "subtexto": "Exige palhada pós-mandioca",
-                        "fonte": "Diretrizes Embrapa RR"
-                    }
-                },
-                "leitura_simples": "O solo mantém boa umidade no perfil, mas o calor pode aumentar nas próximas semanas. Prefira culturas resistentes e mantenha cobertura viva ou palhada no solo.",
-                "advertencias_metodologicas": [
-                    "Saturação do solo derivada do modelo GMAO MERRA-2 Catchment (escala relativa 0 a 1); não substitui sensor volumétrico de campo.",
-                    "NDVI reflete cobertura fotossintética verde ativa; palhada seca requer índice SWIR (NDTI) ou checagem presencial."
-                ],
-                "fontes_oficiais": [
-                    { "nome": "NASA POWER", "tipo": "Climatologia & Reanálise" },
-                    { "nome": "ESA Sentinel-2", "tipo": "Óptico 10m fCover" },
-                    { "nome": "Embrapa Roraima", "tipo": "Recomendações Técnicas" }
-                ]
-            }
-
-            self._set_headers(200)
-            self.wfile.write(json.dumps(diag_payload, ensure_ascii=False).encode("utf-8"))
+        if path in ("/api/demarcation", "/api/condicoes-completas"):
+            self._area_request(path, {key: values[0] for key, values in params.items()})
             return
 
         # 4. Endpoint: /api/agenda-manejo (Calendário Fenoclimático e Lembretes de Roraima)
         if path == "/api/agenda-manejo":
-            agenda_payload = {
-                "safra_referencia": "2026/2027",
-                "regiao": "Polo Agrícola de Boa Vista / Roraima",
-                "janela_climatica_geral": "Período chuvoso de abril a setembro; estiagem severa de outubro a março.",
-                "eventos_chave": [
-                    {
-                        "data_estimada": "15 de Abril",
-                        "cultura": "Milho (BRS 1030 / 1055)",
-                        "etapa": "Início da Semeadura da Safra Principal",
-                        "status": "Recomendado",
-                        "orientacao": "Aguardar a confirmação de início real das chuvas (acumulado > 60 mm no GPM/POWER) para evitar falso início de março."
-                    },
-                    {
-                        "data_estimada": "20 de Maio",
-                        "cultura": "Milho + Forrageira",
-                        "etapa": "Adubação de Cobertura e Consórcio",
-                        "status": "Manejo",
-                        "orientacao": "Aplicar adubação nitrogenada com solo úmido e semear Brachiaria ruziziensis nas entrelinhas para garantir palhada espessa."
-                    },
-                    {
-                        "data_estimada": "10 de Agosto",
-                        "cultura": "Feijão-Caupi (BRS Novaera)",
-                        "etapa": "Plantio Direto da Safrinha na Palhada",
-                        "status": "Crítico",
-                        "orientacao": "Semear na palhada logo após a maturação do milho para aproveitar a água residual do perfil antes do corte das chuvas."
-                    },
-                    {
-                        "data_estimada": "05 de Setembro",
-                        "cultura": "Feijão-Caupi",
-                        "etapa": "Consórcio de Entrelinha com Guandu-anão",
-                        "status": "Preventivo",
-                        "orientacao": "Aos 20-25 DAE, estabelecer consórcio protetor para evitar que o solo fique desprotegido durante a seca de outubro a março."
-                    },
-                    {
-                        "data_estimada": "01 de Outubro",
-                        "cultura": "Monitoramento Geral",
-                        "etapa": "Corte Sazonal das Chuvas em Roraima",
-                        "status": "Alerta",
-                        "orientacao": "Cessação das chuvas torrenciais. O milho já deve estar colhido e o solo 100% coberto para conter evaporação e superaquecimento."
-                    }
-                ],
-                "avisos_agronomicos": [
-                    "Atenção: Chuvas cortam bruscamente em outubro. Não postergar o plantio de leguminosas após 15 de agosto sem irrigação.",
-                    "Recomenda-se realizar análise de solo para verificar saturação por bases (V%) antes de aplicar inoculante no feijão-caupi."
-                ]
-            }
-
-            self._set_headers(200)
-            self.wfile.write(json.dumps(agenda_payload, ensure_ascii=False).encode("utf-8"))
-            return
-
-        # 5. Endpoint: /api/propriedade (GET)
-        if path == "/api/propriedade":
-            self._set_headers(200)
-            self.wfile.write(json.dumps(_PROPRIEDADE_STATE, ensure_ascii=False).encode("utf-8"))
+            self._json(200, AGENDA_RR)
             return
 
         # 6. Endpoint legado: /api/weather-rotation
@@ -294,32 +229,77 @@ class AgroHandler(BaseHTTPRequestHandler):
         if path == "/api/sentinel-ndvi":
             car_code = params.get("car", [None])[0]
             try:
-                land = query_land_demarcation(car_code) if car_code else query_land_by_point(1.8984, -60.6906)
+                if not car_code:
+                    self._json(400, {"error": "Informe o código CAR para consultar o NDVI."})
+                    return
+                land = query_land_demarcation(car_code)
                 geom = land["geojson"]["geometry"]
                 ndvi_result = calculate_ndvi_analysis(geom)
                 ndvi_result["cod_imovel"] = land.get("cod_imovel")
-                self._set_headers(200)
-                self.wfile.write(json.dumps(ndvi_result, ensure_ascii=False).encode("utf-8"))
-            except Exception as e:
-                self._set_headers(500)
-                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
-            return
-
-        # 8. Endpoint: /api/planos-salvos (Consultar Planos no Supabase / Local)
-        if path == "/api/planos-salvos":
-            car_code = params.get("car", [None])[0]
-            planos = listar_planos_salvos(car_code)
-            self._set_headers(200)
-            self.wfile.write(json.dumps({
-                "sucesso": True,
-                "supabase_conectado": is_supabase_configured(),
-                "total": len(planos),
-                "planos": planos
-            }, ensure_ascii=False).encode("utf-8"))
+                self._json(200, ndvi_result)
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except LookupError:
+                self._json(404, {"error": "Imóvel CAR não localizado."})
+            except OSError:
+                self._json(503, {"error": "Consulta de perímetro CAR indisponível."})
             return
 
         self._set_headers(404)
         self.wfile.write(json.dumps({"error": "Rota nao encontrada"}).encode("utf-8"))
+
+    def _area_request(self, path, params):
+        if any(key in params and not isinstance(params[key], str) for key in ("car", "uf")):
+            self._json(400, {"error": "CAR e UF devem ser textos."})
+            return
+        # 2. Endpoint: /api/demarcation (Busca por CAR ou Coordenada)
+        if path == "/api/demarcation":
+            car_code = params.get("car", None)
+            lat = params.get("lat", None)
+            lon = params.get("lon", None)
+            uf = params.get("uf", "rr")
+
+            try:
+                if car_code:
+                    result = query_land_demarcation(car_code)
+                elif lat is not None and lon is not None:
+                    result = query_land_by_point(*coordinates(lat, lon), uf=uf)
+                else:
+                    self._json(400, {"error": "Informe o CAR ou as coordenadas."})
+                    return
+
+                self._json(200, result)
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except LookupError:
+                self._json(404, {"error": "Imóvel CAR não localizado."})
+            except OSError:
+                self._json(503, {"error": "Consulta de perímetro CAR indisponível."})
+            return
+
+        # 3. Endpoint: /api/condicoes-completas (Diagnóstico Agroclimático - Etapa 6)
+        if path == "/api/condicoes-completas":
+            try:
+                car = params.get("car", None)
+                land = query_land_demarcation(car) if car else None
+                if land:
+                    point = land.get("centroid") or {}
+                    lat, lon = coordinates(point.get("latitude"), point.get("longitude"))
+                else:
+                    lat, lon = coordinates(params.get("lat", None), params.get("lon", None))
+                geometry = (land.get("geojson") or {}).get("geometry") if land else None
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+                return
+            except LookupError:
+                self._json(404, {"error": "CAR não localizado."})
+                return
+            except OSError:
+                self._json(503, {"error": "Consulta de perímetro CAR indisponível."})
+                return
+
+            self._json(200, area_diagnosis(lat, lon, geometry))
+            return
 
     def do_POST(self):
         parsed_url = urllib.parse.urlparse(self.path)
@@ -328,50 +308,45 @@ class AgroHandler(BaseHTTPRequestHandler):
         body_str = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
         try:
             body_data = json.loads(body_str)
-        except Exception:
-            body_data = {}
+        except ValueError:
+            self._json(400, {"error": "JSON inválido."})
+            return
+
+        if not isinstance(body_data, dict):
+            self._json(400, {"error": "Envie um objeto JSON."})
+            return
+        if path in ("/api/demarcation", "/api/condicoes-completas"):
+            self._area_request(path, body_data)
+            return
 
         # 1. Endpoint: /api/simular-rotacao (Comparativo Obrigatório de 3 Estratégias)
         if path == "/api/simular-rotacao":
-            cultura_atual = body_data.get("cultura_atual", "mandioca")
-            is_pousio = body_data.get("is_pousio", False)
+            cultura = body_data.get("cultura_atual", "mandioca")
             objetivo = body_data.get("objetivo", "saude_solo")
-            horizonte_anos = int(body_data.get("periodo_anos", 3))
+            horizonte = body_data.get("periodo_anos", 3)
+            if cultura not in ("mandioca", "milho", "feijao_caupi"):
+                self._json(400, {"error": "Selecione mandioca, milho ou feijão-caupi para simular."})
+                return
+            if objetivo not in ("saude_solo", "renda", "clima") or horizonte not in (2, 3, 4, "2", "3", "4"):
+                self._json(400, {"error": "Selecione um objetivo válido e um horizonte de 2 a 4 anos."})
+                return
 
-            # Executa o comparativo triplo multicritério
             res = compare_three_rotation_strategies(
-                current_crop=cultura_atual,
-                is_fallow=is_pousio,
-                objective=objetivo,
-                horizon_years=horizonte_anos
+                current_crop=cultura, objective=objetivo, horizon_years=int(horizonte)
             )
-
-            self._set_headers(200)
-            self.wfile.write(json.dumps(res, ensure_ascii=False).encode("utf-8"))
+            self._json(200, {"talhao_id": body_data.get("talhao_id"), **res})
             return
 
-        # 2. Endpoint: /api/propriedade (Salvar Propriedade e Talhoes no Supabase / Local)
-        if path == "/api/propriedade":
-            global _PROPRIEDADE_STATE
-            if body_data:
-                _PROPRIEDADE_STATE.update(body_data)
-                res_supa = salvar_propriedade_supabase(body_data)
-            else:
-                res_supa = {"sucesso": True, "storage": "nenhum_dado"}
-            self._set_headers(200)
-            self.wfile.write(json.dumps({
-                "sucesso": True,
-                "propriedade": _PROPRIEDADE_STATE,
-                "supabase": res_supa
-            }, ensure_ascii=False).encode("utf-8"))
-            return
-
-        # 3. Endpoint: /api/cadastrar-produtor (Salvar Produtor e Plano no Supabase)
-        if path == "/api/cadastrar-produtor":
-            resp = salvar_produtor_e_plano(body_data)
-            status_code = 201 if resp.get("sucesso") else 400
-            self._set_headers(status_code)
-            self.wfile.write(json.dumps(resp, ensure_ascii=False).encode("utf-8"))
+        if path in ("/api/planos", "/api/cadastrar-produtor"):
+            if not is_supabase_configured():
+                self._json(503, {"error": "Armazenamento Supabase indisponível."})
+                return
+            try:
+                self._json(201, salvar_plano(body_data))
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except OSError:
+                self._json(503, {"error": "O Supabase não confirmou a gravação."})
             return
         self._set_headers(404)
         self.wfile.write(json.dumps({"error": "Rota POST nao encontrada"}).encode("utf-8"))

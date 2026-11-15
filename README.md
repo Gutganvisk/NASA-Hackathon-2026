@@ -6,44 +6,20 @@ Plataforma unificada para planejamento sincronizado de rotação de culturas, se
 
 ---
 
-## 🛰️ 1. Satélites e Sensores Integrados
+## Dados e interpretação
 
-| Sensor / Missão | Agência | Resolução | Parâmetros Monitorados | Aplicação no Motor Agronômico |
-| :--- | :---: | :---: | :--- | :--- |
-| **NASA POWER v2.0 (AG)** | NASA | Grade 0.5° | `PRECTOTCORR`, `T2M`, `ALLSKY_SFC_SW_DWN`, `RH2M` | Histórico climatológico de 30 anos e monitoramento diário para corte de chuvas. |
-| **NASA SMAP** | NASA | 9 km / L4 | `GWETROOT` (0-100 cm), `GWETTOP` (0-5 cm) | Umidade do solo na zona radicular e emergência de sementes / manivas. |
-| **ESA Sentinel-2 (MSI)** | ESA / CDSE | 10 metros | Bandas B04 (Vermelho) e B08 (NIR) | Cálculo de NDVI, % de biomassa ativa, palhada residual e risco de solo exposto. |
-| **NASA SRTM** | NASA | 30 metros | Modelo Digital de Elevação (DEM) | Risco de erosão por declividade (veto para mandioca se > 8% no Lavrado). |
+- **NASA POWER (AG)** fornece chuva acumulada, temperatura, radiação e saturação relativa do solo. O diagnóstico solicita os últimos 14 dias UTC completos e informa quantos dias tinham dados em cada variável.
+- **Copernicus Sentinel-2 L2A** fornece NDVI médio sobre o perímetro CAR, para o dia mais recente com pixels terrestres válidos nos últimos 30 dias. O NDVI indica vigor da vegetação verde. A declividade e a análise de solo exigem fontes adicionais.
+- **CAR** usa o perímetro do Supabase, uma cópia local quando disponível ou a consulta WFS. Área consolidada e reserva legal exigem camadas próprias. O mapa exibe a geometria cadastrada.
+- **Agenda** aponta para o [ZARC vigente de Roraima](https://www.gov.br/agricultura/pt-br/assuntos/riscos-seguro/programa-nacional-de-zoneamento-agricola-de-risco-climatico/portarias/safra-vigente/roraima/roraima-rr) e para as orientações da Embrapa. Confira município, solo, grupo de cultivar e nível de risco para definir a janela de plantio. A simulação compara estratégias qualitativas de manejo.
 
----
+## Supabase e Cloud Run
 
-## 🌾 2. Engrenagens Agronômicas da Embrapa Roraima
+Execute [supabase_schema.sql](supabase_schema.sql) no SQL Editor do projeto antes de publicar. O script revoga o acesso direto de clientes às tabelas e preserva o acesso pelo backend. Registros anteriores permanecem no banco. O fluxo atual grava apenas cultura, objetivo, horizonte e identificador da estratégia, sem vínculo com o CAR.
 
-A plataforma sincroniza as culturas anuais com o regime pluviométrico unimodal de Roraima (chuvas de abril a setembro; seca severa de outubro a março):
+Use `SUPABASE_URL` como configuração do serviço. Vincule `SUPABASE_KEY` (chave de servidor compatível com o papel `service_role`), `CDSE_CLIENT_ID` e `CDSE_CLIENT_SECRET` ao Secret Manager. A identidade do serviço precisa de `roles/secretmanager.secretAccessor` nos segredos vinculados. Prefira versões numéricas no vínculo de cada variável. Veja [Configurar segredos do Cloud Run](https://docs.cloud.google.com/run/docs/configuring/services/secrets).
 
-1. **1ª Fase - Safra Chuvosa Principal (Maio a Agosto):**
-   * **Milho (*Zea mays* - BRS 1030 / BRS 1055):** Semeadura após o início real das chuvas confirmado por GPM. Ciclo de ~110 dias para maturação antes do corte das chuvas. Produz palhada massiva de alta relação C/N (> 60) para plantio direto.
-2. **2ª Fase - Safrinha / Sucessão Imediata (Agosto a Outubro):**
-   * **Feijão-Caupi (*Vigna unguiculata* - BRS Novaera / BRS Tumucumaque):** Plantio direto na palhada do milho. Ciclo de 65–70 dias. Aproveita a umidade residual do solo (SMAP GWETROOT) e fixa nitrogênio atmosférico (FBN).
-3. **3ª Fase - Safra Rústica / Ciclo Longo (Maio a Outubro do Ano 2):**
-   * **Mandioca (*Manihot esculenta* - Aciolina / Platinão):** Alta tolerância a secas prolongadas (até 6 meses). O arranquio das raízes revolve o solo, exigindo retorno imediato com milho/gramínea para recompor a estrutura física.
-
----
-
-## 🔄 3. Pipeline Integrado: Da Pesquisa Científica à Decisão
-
-1. **Extração Científica via NLP (`gerador_passaporte_agronomico.py`):**
-   * Processa os Comunicados Técnicos e Boletins de Pesquisa da Embrapa Roraima (`*.pdf`).
-   * Gera a matriz descritiva de conhecimento agroecológico (`matriz_passaporte_biologico.csv`).
-2. **Parametrização & Motor de Decisão (`rotation_planner.py` & `passaporte_biologico.py`):**
-   * Transforma as recomendações em regras operacionais (`matriz_passaporte_parametrizada.csv`).
-   * Cruza as exigências hídricas, térmicas e de relevo com as leituras orbitais da NASA e ESA.
-3. **Módulo Geoespacial & PostGIS (`land_demarcation.py` & `supabase_schema.sql`):**
-   * Recupera perímetros do CAR, calcula centroides, calcula áreas em $m^2$ e hectares, e isola Reserva Legal e Área Consolidada.
-4. **Dashboard de Prescrição (`index.html` & `server.py`):**
-   * Interface Leaflet interativa com Google Satellite Hybrid, ESA Sentinel-2 Cloudless e diagnóstico agronômico detalhado.
-
----
+O servidor usa o `PORT` injetado pelo Cloud Run. A rota `/healthz` verifica o processo HTTP sem depender dos provedores externos.
 
 ## 🏛️ 4. Estrutura do Repositório
 
@@ -62,8 +38,8 @@ A plataforma sincroniza as culturas anuais com o regime pluviométrico unimodal 
 │   └── rotation_planner.py            # Motor de Decisão e gatilhos de satélite
 │
 ├── 🛰️ Sensoriamento Remoto & Microsserviços
-│   ├── nasa_power.py                  # NASA POWER v2.0 com Snapping de Grade (0.5°)
-│   └── copernicus_sentinel2.py        # Copernicus CDSE Sentinel-2 Process API (NDVI 10m)
+│   ├── nasa_power.py                  # NASA POWER v2.0 com janela móvel
+│   └── copernicus_sentinel2.py        # Copernicus CDSE Sentinel-2 Statistical API (NDVI no perímetro)
 │
 ├── 🗺️ Demarcação Territorial & Banco Espacial
 │   ├── land_demarcation.py            # Consulta WFS SICAR e demarcação local de alta precisão
@@ -88,8 +64,8 @@ A plataforma sincroniza as culturas anuais com o regime pluviométrico unimodal 
    ```bash
    cp .env.example .env
    ```
-2. Insira suas credenciais do [Copernicus Data Space Ecosystem](https://dataspace.copernicus.eu/) caso deseje consultar a Process API diretamente.  
-   *(Se não fornecido, o sistema ativa automaticamente o fallback com dados de Roraima em cache).*
+2. Insira suas credenciais do [Copernicus Data Space Ecosystem](https://dataspace.copernicus.eu/) caso deseje consultar a Statistical API diretamente.
+   Sem credenciais do CDSE, o NDVI aparece como indisponível.
 
 ### Iniciar o Servidor Web e Dashboard
 ```bash

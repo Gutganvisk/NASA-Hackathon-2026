@@ -5,14 +5,18 @@ Implementa as boas práticas da documentação v2.0:
 - Grid Snapping (0.5° x 0.5°) para evitar bloqueio por requisições redundantes (HTTP 429)
 - Microsserviço Climatology API (Normais de 30 anos)
 - Microsserviço Daily API (Monitoramento operacional recente)
-- Tratamento de sentinela -999 com fallback climatológico
+- Preserva dados ausentes em vez de imputar medições
 """
 
 import json
-import math
 import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
+from functools import lru_cache
+from datetime import timedelta
+from time import time
+
+from http_transport import urlopen
 
 NASA_POWER_BASE_DAILY = "https://power.larc.nasa.gov/api/temporal/daily/point"
 NASA_POWER_BASE_CLIMATOLOGY = "https://power.larc.nasa.gov/api/temporal/climatology/point"
@@ -29,7 +33,6 @@ DEFAULT_PARAMETERS = [
 ]
 
 # Cache em memória por célula da grade (evita requisições repetidas para a mesma vicinal)
-_GRID_CACHE: Dict[str, Dict[str, Any]] = {}
 _CLIMATOLOGY_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
@@ -64,7 +67,7 @@ def fetch_climatology_normals(latitude: float, longitude: float) -> Dict[str, An
     req = urllib.request.Request(url, headers={"User-Agent": "CropRotationPlanner/2.0"})
 
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             p = data.get("properties", {}).get("parameter", {})
             _CLIMATOLOGY_CACHE[cache_key] = p
@@ -88,10 +91,9 @@ def fetch_weather_data(
     if parameters is None:
         parameters = DEFAULT_PARAMETERS
 
-    s_lat, s_lon = snap_to_power_grid(latitude, longitude)
-    cache_key = f"daily_{s_lat}_{s_lon}_{start_date}_{end_date}"
-    if cache_key in _GRID_CACHE:
-        return _GRID_CACHE[cache_key]
+    # A própria POWER escolhe a célula de cada variável. Arredondar antes
+    # da consulta pode deslocar o ponto para outra célula.
+    s_lat, s_lon = latitude, longitude
 
     params_str = ",".join(parameters)
     query_params = {
@@ -106,15 +108,7 @@ def fetch_weather_data(
     }
 
     url = f"{NASA_POWER_BASE_DAILY}?{urllib.parse.urlencode(query_params)}"
-    req = urllib.request.Request(url, headers={"User-Agent": "CropRotationPlanner/2.0"})
-
-    try:
-        with urllib.request.urlopen(req, timeout=25) as response:
-            if response.status != 200:
-                raise RuntimeError(f"Erro HTTP {response.status}")
-            raw_data = json.loads(response.read().decode("utf-8"))
-    except Exception as e:
-        raise RuntimeError(f"Falha de conexão com a API NASA POWER: {e}")
+    raw_data = _request_daily(url, int(time() // 900))
 
     properties = raw_data.get("properties", {})
     parameter_data = properties.get("parameter", {})
@@ -130,11 +124,28 @@ def fetch_weather_data(
     result = {
         "latitude": latitude,
         "longitude": longitude,
-        "snapped_grid": {"latitude": s_lat, "longitude": s_lon},
+        "ponto_consultado": {"latitude": s_lat, "longitude": s_lon},
         "start_date": start_date,
         "end_date": end_date,
         "daily_records": daily_records
     }
 
-    _GRID_CACHE[cache_key] = result
     return result
+
+
+@lru_cache(maxsize=128)
+def _request_daily(url, refresh_slot):
+    with urlopen(
+        urllib.request.Request(url, headers={"User-Agent": "CropRotationPlanner/2.0"}), timeout=15
+    ) as response:
+        return json.load(response)
+
+
+def fetch_recent_weather(latitude, longitude, today):
+    """Pede os últimos 14 dias completos e mantém o atraso visível no resultado."""
+    return fetch_weather_data(
+        latitude, longitude,
+        (today - timedelta(days=14)).strftime("%Y%m%d"),
+        (today - timedelta(days=1)).strftime("%Y%m%d"),
+        parameters=["PRECTOTCORR", "T2M", "T2M_MAX", "GWETROOT", "GWETTOP", "ALLSKY_SFC_SW_DWN"],
+    )

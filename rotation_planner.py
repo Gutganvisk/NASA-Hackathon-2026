@@ -19,7 +19,7 @@ def summarize_weather(daily_records: Dict[str, Dict[str, float]]) -> Dict[str, f
     Nota: GWETTOP e GWETROOT são frações adimensionais de saturação de poros
     do modelo GMAO MERRA-2 Catchment Land Surface Model.
     """
-    total_precip = 0.0
+    precipitation = []
     temps = []
     rads = []
     humidities = []
@@ -29,7 +29,7 @@ def summarize_weather(daily_records: Dict[str, Dict[str, float]]) -> Dict[str, f
     for _, vals in daily_records.items():
         p = vals.get("PRECTOTCORR")
         if p is not None:
-            total_precip += p
+            precipitation.append(p)
             
         t = vals.get("T2M")
         if t is not None:
@@ -53,25 +53,25 @@ def summarize_weather(daily_records: Dict[str, Dict[str, float]]) -> Dict[str, f
             gwetroots.append(g_root * 100.0)
             
     days_count = len(daily_records)
-    avg_temp = sum(temps) / len(temps) if temps else 28.5
-    min_temp = min(temps) if temps else 24.0
-    max_temp = max(temps) if temps else 33.0
-    avg_rad = sum(rads) / len(rads) if rads else 18.5
-    avg_hum = sum(humidities) / len(humidities) if humidities else 65.0
-    avg_soil_top = sum(gwettops) / len(gwettops) if gwettops else 50.0
-    avg_soil_root = sum(gwetroots) / len(gwetroots) if gwetroots else 60.0
+    avg_temp = sum(temps) / len(temps) if temps else None
+    min_temp = min(temps) if temps else None
+    max_temp = max(temps) if temps else None
+    avg_rad = sum(rads) / len(rads) if rads else None
+    avg_hum = sum(humidities) / len(humidities) if humidities else None
+    avg_soil_top = sum(gwettops) / len(gwettops) if gwettops else None
+    avg_soil_root = sum(gwetroots) / len(gwetroots) if gwetroots else None
 
     return {
         "days": days_count,
-        "total_precip_mm": round(total_precip, 1),
-        "avg_temp_c": round(avg_temp, 1),
-        "min_temp_c": round(min_temp, 1),
-        "max_temp_c": round(max_temp, 1),
-        "avg_solar_rad_mj": round(avg_rad, 2),
-        "avg_humidity_pct": round(avg_hum, 1),
-        "avg_soil_surface_pct": round(avg_soil_top, 1),
-        "avg_soil_root_pct": round(avg_soil_root, 1),
-        "estimated_slope_pct": 3.8
+        "total_precip_mm": round(sum(precipitation), 1) if precipitation else None,
+        "avg_temp_c": round(avg_temp, 1) if avg_temp is not None else None,
+        "min_temp_c": round(min_temp, 1) if min_temp is not None else None,
+        "max_temp_c": round(max_temp, 1) if max_temp is not None else None,
+        "avg_solar_rad_mj": round(avg_rad, 2) if avg_rad is not None else None,
+        "avg_humidity_pct": round(avg_hum, 1) if avg_hum is not None else None,
+        "avg_soil_surface_pct": round(avg_soil_top, 1) if avg_soil_top is not None else None,
+        "avg_soil_root_pct": round(avg_soil_root, 1) if avg_soil_root is not None else None,
+        "estimated_slope_pct": None
     }
 
 
@@ -87,10 +87,6 @@ def compare_three_rotation_strategies(
     Retorna a Linha de Base (Manejo Atual) e duas estratégias alternativas balanceadas,
     adaptando-se dinamicamente à cultura primária (current_crop) selecionada pelo produtor.
     """
-    precip = weather_summary.get("total_precip_mm", 280.0) if weather_summary else 280.0
-    soil_root = weather_summary.get("avg_soil_root_pct", 60.0) if weather_summary else 60.0
-    slope = weather_summary.get("estimated_slope_pct", 3.8) if weather_summary else 3.8
-
     crop_clean = current_crop.lower().strip() if current_crop else "milho"
 
     if "milho" in crop_clean:
@@ -321,27 +317,34 @@ def compare_three_rotation_strategies(
             ]
         }
 
+    preferred = estrategia_intensificacao if objective == "renda" else estrategia_resiliencia
+    alternatives = [estrategia_intensificacao, estrategia_resiliencia]
+    strategies = [preferred, *(item for item in alternatives if item is not preferred), estrategia_baseline]
+
+    for strategy in strategies:
+        sequence = strategy["sequencia"][:horizon_years]
+        if horizon_years == 4:
+            sequence.append({
+                "fase": 4, "tempo": "Ano 4", "cultura": "Reavaliar a rotação",
+                "sigla": "RE", "cor": "#64748b",
+                "papel": "Revisar cobertura, histórico, solo e janela de plantio antes do novo ciclo",
+            })
+        strategy["sequencia"] = sequence
+        strategy.pop("compatibilidade_score", None)
+
     return {
-        "talhao_id": "T1",
         "objetivo_selecionado": objective,
         "horizonte_anos": horizon_years,
-        "score_melhoria": "+18%",
-        "reducao_risco": "-12%",
-        "diversidade_culturas": 3,
-        "estrategias": [
-            estrategia_intensificacao,
-            estrategia_resiliencia,
-            estrategia_baseline
-        ],
+        "metodo": "Comparação qualitativa de práticas de manejo.",
+        "estrategias": strategies,
         "pontos_atencao": [
-            { "titulo": "Calor entre março e maio", "descricao": "Evitar manter o solo descoberto nas semanas mais secas e quentes." },
-            { "titulo": "Corte de chuvas em setembro/outubro", "descricao": "Monitorar a curva diária do NASA POWER para confirmar início da estiagem." }
+            {"titulo": "Janela local de plantio", "descricao": "Consulte o ZARC vigente e confirme a umidade no campo."},
         ],
         "recomendacao_prioritaria": {
-            "estrategia_destaque_id": "estrategia_1_intensificacao",
-            "proximo_passo": "Preparar o Talhão 1 para feijão-caupi na palhada residual",
-            "mensagem": "Manter a cobertura morta e confirmar o início do plantio assim que o perfil radicular atingir saturação favorável."
-        }
+            "estrategia_destaque_id": preferred["id"],
+            "proximo_passo": preferred["sequencia"][1]["cultura"],
+            "mensagem": "Valide a sequência com assistência técnica antes do plantio.",
+        },
     }
 
 
@@ -357,7 +360,9 @@ def evaluate_with_biological_passport(
     favorable = []
 
     soil_root = summary["avg_soil_root_pct"]
-    if soil_root < passport.smap_gwetroot_min_pct:
+    if soil_root is None:
+        alerts.append("Sem dados de saturação radicular para o período.")
+    elif soil_root < passport.smap_gwetroot_min_pct:
         alerts.append(
             f"Saturação de Raiz (MERRA-2: {soil_root}%) abaixo do limiar heurístico de {passport.smap_gwetroot_min_pct}%."
         )
@@ -371,7 +376,11 @@ def evaluate_with_biological_passport(
         )
 
     precip = summary["total_precip_mm"]
-    if precip < passport.precipitacao_ciclo_min_mm:
+    if precip is None:
+        alerts.append("Sem dados de precipitação para o período.")
+    elif summary["days"] < passport.ciclo_dias_min:
+        alerts.append("O período consultado é mais curto que o ciclo da cultura.")
+    elif precip < passport.precipitacao_ciclo_min_mm:
         if passport.tolerancia_seca_meses >= 5.0:
             favorable.append(
                 f"Resiliência Comprovada: A cultura tolera até {passport.tolerancia_seca_meses} meses de estiagem severa."
@@ -385,8 +394,10 @@ def evaluate_with_biological_passport(
             f"Pluviometria Acumulada ({precip} mm) adequada às exigências estimadas da cultura."
         )
 
-    slope = summary.get("estimated_slope_pct", 3.8)
-    if passport.revolvimento_solo_colheita and slope > passport.declividade_max_tolerada_pct:
+    slope = summary.get("estimated_slope_pct")
+    if slope is None:
+        alerts.append("Declividade não medida.")
+    elif passport.revolvimento_solo_colheita and slope > passport.declividade_max_tolerada_pct:
         alerts.append(
             f"Declividade ({slope}%) superior ao limiar conservacionista ({passport.declividade_max_tolerada_pct}%). Risco de erosão no arranquio."
         )
@@ -402,7 +413,7 @@ def evaluate_with_biological_passport(
     if passport.exige_calagem_pesada:
         actions.append("Correção Química: Recomenda-se calagem prévia para solos ácidos com saturação por bases V% < 50.")
 
-    is_viable = len([a for a in alerts if "Declividade" in a]) == 0
+    is_viable = None if slope is None else len([a for a in alerts if "Declividade" in a]) == 0
 
     return {
         "cultura": passport.cultura,

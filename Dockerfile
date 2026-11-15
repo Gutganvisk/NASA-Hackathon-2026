@@ -4,12 +4,12 @@ FROM python:3.11-slim
 # Otimizações de runtime para contêineres Google Cloud Run
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8080
 
 WORKDIR /app
 
-# Copia todos os arquivos da aplicação
-COPY . .
+# Copia apenas os arquivos necessários para servir a aplicação.
+COPY server.py http_transport.py nasa_power.py copernicus_sentinel2.py land_demarcation.py supabase_client.py rotation_planner.py passaporte_biologico.py index.html ./
+USER 65532
 
 # Expõe a porta padrão do Cloud Run
 EXPOSE 8080

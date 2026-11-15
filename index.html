@@ -5,14 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Crop Rotation - Plataforma Agroclimática Familiar</title>
 
-  <!-- Google Font: Poppins -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 
   <style>
     :root {
@@ -765,6 +761,17 @@
       overflow-y: auto;
       flex: 1;
     }
+    @media (max-width: 359px) {
+      .screen-content { padding-inline: 12px; }
+      .crop-grid, .metric-triad, .diag-grid-6 { gap: 6px; }
+      .crop-grid, .metric-triad { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .diag-grid-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .crop-badge-card, .metric-triad-card, .diag-box, .pill-btn, .agenda-row > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .agenda-row { flex-direction: column; gap: 4px !important; }
+    }
   </style>
 </head>
 <body>
@@ -876,16 +883,6 @@
       <p class="screen-subheading">Essas informações ajudam a adaptar as sugestões à sua realidade.</p>
 
       <div class="form-group">
-        <label class="form-label">Nome da propriedade</label>
-        <input type="text" class="form-input" id="inputNomeProp" value="" placeholder="Ex: Sítio Boa Esperança">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Localização</label>
-        <input type="text" class="form-input" id="inputLocalizacao" value="" placeholder="Ex: Região do Murupu">
-      </div>
-
-      <div class="form-group">
         <label class="form-label">Município</label>
         <input type="text" class="form-input" id="inputMunicipio" value="" placeholder="Ex: Boa Vista, Roraima">
       </div>
@@ -905,7 +902,7 @@
         </div>
         <div>
           <strong style="font-size: 12.5px; color: var(--text-main); display: block;">Não sabe o tamanho exato?</strong>
-          <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">Sem problema. Na próxima etapa você pode marcar a área diretamente no mapa.</p>
+          <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">Sem problema. Busque a propriedade pelo código CAR para visualizar o perímetro cadastrado.</p>
         </div>
       </div>
 
@@ -1057,22 +1054,7 @@
       <h2 class="screen-heading">Condições da sua área</h2>
       <p class="screen-subheading">Traduzimos dados ambientais para uma leitura simples.</p>
 
-      <!-- Hero Card Dark Green com Circular Score -->
-      <div class="hero-metric-card" onclick="abrirModalNotificacao('score_geral')" style="cursor: pointer;">
-        <div>
-          <span style="font-size: 11px; color: #86EFAC; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Condição geral</span>
-          <h3 style="font-size: 24px; font-weight: 800; line-height: 1.2; margin: 2px 0 4px;">Favorável</h3>
-          <p style="font-size: 11.5px; color: #BBF7D0;">para o planejamento da próxima safra</p>
-        </div>
-        <div>
-          <svg width="76" height="76" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.2)" stroke-width="6" fill="none"/>
-            <circle cx="40" cy="40" r="34" stroke="#84CC16" stroke-width="6" fill="none" stroke-dasharray="213.6" stroke-dashoffset="47" stroke-linecap="round" transform="rotate(-90 40 40)"/>
-            <text x="40" y="38" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="800" font-family="Poppins">78</text>
-            <text x="40" y="52" text-anchor="middle" fill="#a3e635" font-size="10" font-weight="600" font-family="Poppins">de 100</text>
-          </svg>
-        </div>
-      </div>
+      <div class="hero-metric-card" role="status" data-diagnostico>Consulte pelo CAR</div>
 
       <!-- Grid 2x3 de Parâmetros -->
       <div class="diag-grid-6">
@@ -1081,8 +1063,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
             <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Chuva recente</span>
           </div>
-          <div class="diag-box-val" id="diagValChuva">142 mm</div>
-          <div class="diag-box-sub">Dentro do esperado</div>
+          <div class="diag-box-val" data-medicao="chuva_recente">—</div>
+          <div class="diag-box-sub"></div>
         </div>
 
         <div class="diag-box" onclick="abrirModalNotificacao('calor')">
@@ -1090,8 +1072,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
             <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Temperatura</span>
           </div>
-          <div class="diag-box-val" id="diagValTemp">28,4 °C</div>
-          <div class="diag-box-sub warn">Atenção ao calor</div>
+          <div class="diag-box-val" data-medicao="temperatura">—</div>
+          <div class="diag-box-sub"></div>
         </div>
 
         <div class="diag-box" onclick="abrirModalNotificacao('solo')">
@@ -1099,8 +1081,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0"/><path d="M2 17c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0"/></svg>
             <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Umidade do solo</span>
           </div>
-          <div class="diag-box-val" id="diagValSolo">64%</div>
-          <div class="diag-box-sub">Nível adequado</div>
+          <div class="diag-box-val" data-medicao="umidade_solo">—</div>
+          <div class="diag-box-sub"></div>
         </div>
 
         <div class="diag-box" onclick="abrirModalNotificacao('vigor')">
@@ -1108,8 +1090,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#65A30D" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
             <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Cobertura vegetal</span>
           </div>
-          <div class="diag-box-val" id="diagValVigor">Boa</div>
-          <div class="diag-box-sub">Solo protegido</div>
+          <div class="diag-box-val" data-medicao="cobertura_vegetal">—</div>
+          <div class="diag-box-sub"></div>
         </div>
 
         <div class="diag-box" onclick="abrirModalNotificacao('relevo')">
@@ -1117,8 +1099,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
             <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Relevo</span>
           </div>
-          <div class="diag-box-val">Suave</div>
-          <div class="diag-box-sub">Baixo risco de erosão</div>
+          <div class="diag-box-val" data-medicao="relevo">—</div>
+          <div class="diag-box-sub"></div>
         </div>
 
         <div class="diag-box" onclick="abrirModalNotificacao('condicao_solo')">
@@ -1126,8 +1108,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2"><path d="M2 12h20"/><path d="M20 12v8H4v-8"/><path d="m4 4 16 0-8 8z"/></svg>
             <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Condição do solo</span>
           </div>
-          <div class="diag-box-val">Regular</div>
-          <div class="diag-box-sub warn">Reforçar cobertura</div>
+          <div class="diag-box-val" data-medicao="condicao_solo">—</div>
+          <div class="diag-box-sub"></div>
         </div>
       </div>
 
@@ -1138,7 +1120,7 @@
         </div>
         <div>
           <strong style="font-size: 12.5px; color: var(--text-main); display: block; margin-bottom: 2px;">Leitura simples</strong>
-          <p style="font-size: 11.5px; color: #4B5563; line-height: 1.45;">O solo mantém boa umidade, mas o calor pode aumentar nas próximas semanas. Prefira culturas resistentes e mantenha cobertura no solo.</p>
+          <p style="font-size: 11.5px; color: #4B5563; line-height: 1.45;">A chuva soma os dias disponíveis. A saturação é uma estimativa regional. O NDVI indica o vigor da vegetação verde.</p>
         </div>
       </div>
 
@@ -1271,8 +1253,8 @@
       <div style="background: #ECFCCB; border: 1.5px solid #BEF264; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
         <div style="background: #15803D; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">✓</div>
         <div>
-          <strong style="font-size: 13px; color: #15803D; display: block;" id="screen8ScoreTitulo">Alta compatibilidade</strong>
-          <span style="font-size: 11px; color: #166534;" id="screen8ScoreSub">Adequada às condições da área e horizonte planejado</span>
+          <strong style="font-size: 13px; color: #15803D; display: block;" id="screen8ScoreTitulo">Comparação agronômica</strong>
+          <span style="font-size: 11px; color: #166534;" id="screen8ScoreSub">Calculando estratégias…</span>
         </div>
       </div>
 
@@ -1316,35 +1298,9 @@
       <h2 class="screen-heading">Resultado da análise</h2>
       <p class="screen-subheading">Seu plano está pronto para apoiar a próxima decisão.</p>
 
-      <!-- Hero Card Dark Green Potencial de Melhoria -->
-      <div class="card" style="background: var(--primary-card); color: #ffffff; padding: 18px 20px; border-radius: var(--radius-card); margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-          <div style="background: rgba(255,255,255,0.15); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
-          </div>
-          <span style="font-size: 11px; color: #86EFAC; text-transform: uppercase; font-weight: 700;">Potencial de melhoria</span>
-        </div>
-        <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 4px;" id="screen9ScorePotencial">Alto</h3>
-        <p style="font-size: 12px; color: #BBF7D0; line-height: 1.45;">A rotação sugerida protege o solo contra calor equatorial e distribui melhor os riscos ao longo das safras.</p>
-      </div>
-
-      <!-- Triad de Métricas -->
-      <div class="metric-triad">
-        <div class="metric-triad-card">
-          <div class="metric-triad-val" style="color: #15803D;" id="screen9GanhoSolo">+22%</div>
-          <div class="metric-triad-label">Proteção do solo</div>
-          <div class="metric-triad-sub">Estimativa pós-rotação</div>
-        </div>
-        <div class="metric-triad-card">
-          <div class="metric-triad-val" style="color: #0369A1;" id="screen9RiscoClima">-15%</div>
-          <div class="metric-triad-label">Risco climático</div>
-          <div class="metric-triad-sub">Com maior diversidade</div>
-        </div>
-        <div class="metric-triad-card">
-          <div class="metric-triad-val" style="color: #B45309;" id="screen9TotalCulturas">3</div>
-          <div class="metric-triad-label">Culturas no plano</div>
-          <div class="metric-triad-sub" id="screen9ListaCulturas">Mandioca, caupi e milho</div>
-        </div>
+      <div class="card">
+        <strong id="screen9ScorePotencial">Estratégia sugerida</strong>
+        <p id="screen9ListaCulturas" style="font-size:12px; color:var(--text-muted);">Gere uma simulação para ver a sequência.</p>
       </div>
 
       <!-- Pontos de Atenção -->
@@ -1352,7 +1308,7 @@
         <strong style="font-size: 13px; color: #92400E; display: block; margin-bottom: 6px;">Pontos de atenção</strong>
         <div style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
           <div style="margin-bottom: 6px;">☀️ <strong>Calor entre março e maio:</strong> Evite deixar o solo descoberto nesse período.</div>
-          <div>🌧️ <strong>Chuva irregular:</strong> Acompanhe a previsão NASA POWER antes do plantio.</div>
+          <div>🌧️ <strong>Chuva irregular:</strong> Consulte o ZARC e confirme a umidade no campo antes do plantio.</div>
         </div>
       </div>
 
@@ -1370,7 +1326,7 @@
 
       <!-- Disclaimer Científico -->
       <p style="font-size: 10.5px; color: var(--text-light); line-height: 1.4; margin-bottom: 16px;">
-        Esta análise usa dados da NASA (POWER, MERRA-2), ESA (Sentinel-2) e orientações da Embrapa Roraima. Apoia, mas não substitui, a experiência do produtor e a assistência técnica local.
+        As estratégias são propostas de manejo. Valide a janela local de plantio com a assistência técnica.
       </p>
 
       <button class="btn-primary" onclick="abrirModalSalvarPlano()">+ Salvar este plano</button>
@@ -1385,20 +1341,12 @@
       </button>
 
       <button class="btn-link-action" style="color: var(--text-muted); font-size: 12px; margin-top: 6px;" onclick="irParaEtapa(1)">
-        Sair da conta
+        Voltar ao início
       </button>
     </section>
 
     <!-- ======================================================== -->
     <section id="screenHub" style="display: none;">
-      <!-- Controles Flutuantes do Mapa -->
-      <div class="hub-floating-controls">
-        <div class="filter-chip active" onclick="abrirModalFiltroCamada('talhoes', 'Talhões de Plantio (T1, T2, T3)')">🚜 Talhões (T1, T2, T3)</div>
-        <div class="filter-chip" onclick="abrirModalFiltroCamada('ndvi', 'Vigor Vegetativo (Sentinel-2 fCover)')">🌿 Vigor (NDVI)</div>
-        <div class="filter-chip" onclick="abrirModalFiltroCamada('smap', 'Saturação de Solo (MERRA-2 Catchment)')">💧 Saturação Solo</div>
-        <div class="filter-chip" onclick="abrirModalFiltroCamada('sat', 'Satélite Natural Alta Resolução')">🛰️ Satélite Natural</div>
-      </div>
-
       <!-- Mapa Tela Cheia -->
       <div id="hubMap"></div>
 
@@ -1420,38 +1368,28 @@
         <div class="sheet-body">
           <!-- 1. DIAGNÓSTICO -->
           <div id="tabContentDiag">
-            <div class="card" style="background: var(--primary-card); color: #fff; padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="abrirModalNotificacao('score_geral')">
-              <div>
-                <span style="font-size: 11px; font-weight: 700; color: #86EFAC; text-transform: uppercase;">Condição Geral</span>
-                <h3 style="font-size: 20px; font-weight: 800; color: #fff;">Favorável</h3>
-                <p style="font-size: 11px; color: #BBF7D0;">Para o planejamento da próxima safra</p>
-              </div>
-              <div style="background: rgba(255,255,255,0.15); width: 50px; height: 50px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <span style="font-size: 17px; font-weight: 800; line-height: 1;">78</span>
-                <span style="font-size: 8px; color: var(--accent-lime);">de 100</span>
-              </div>
-            </div>
+            <div class="hero-metric-card" role="status" data-diagnostico>Consulte pelo CAR</div>
 
             <div class="diag-grid-6">
               <div class="diag-box" onclick="abrirModalNotificacao('chuva')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Chuva recente</span>
-                <div class="diag-box-val" id="hubValChuva">142 mm</div>
-                <div class="diag-box-sub">Dentro do esperado ℹ️</div>
+                <div class="diag-box-val" data-medicao="chuva_recente">—</div>
+                <div class="diag-box-sub"></div>
               </div>
               <div class="diag-box" onclick="abrirModalNotificacao('calor')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Temperatura</span>
-                <div class="diag-box-val" id="hubValTemp">28,4 °C</div>
-                <div class="diag-box-sub warn">Atenção ao calor ⚠️</div>
+                <div class="diag-box-val" data-medicao="temperatura">—</div>
+                <div class="diag-box-sub"></div>
               </div>
               <div class="diag-box" onclick="abrirModalNotificacao('solo')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Saturação Solo</span>
-                <div class="diag-box-val" id="hubValSolo">64%</div>
-                <div class="diag-box-sub">MERRA-2 ℹ️</div>
+                <div class="diag-box-val" data-medicao="umidade_solo">—</div>
+                <div class="diag-box-sub"></div>
               </div>
               <div class="diag-box" onclick="abrirModalNotificacao('vigor')">
                 <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Vigor Vegetal</span>
-                <div class="diag-box-val" id="hubValVigor">Boa</div>
-                <div class="diag-box-sub">Sentinel-2 ℹ️</div>
+                <div class="diag-box-val" data-medicao="cobertura_vegetal">—</div>
+                <div class="diag-box-sub"></div>
               </div>
             </div>
 
@@ -1476,13 +1414,13 @@
               <label class="form-label">Principal Objetivo:</label>
               <div style="display: flex; flex-direction: column; gap: 8px;">
                 <label style="background: var(--surface-white); border: 1.5px solid var(--accent-lime); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <input type="radio" name="objSim" value="saude_solo" checked> Melhorar a saúde do solo e palhada
+                  <input type="radio" name="objSim" value="saude_solo" onchange="selecionarObjetivo(this.value)" checked> Melhorar a saúde do solo e palhada
                 </label>
                 <label style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <input type="radio" name="objSim" value="renda"> Diversificar renda familiar
+                  <input type="radio" name="objSim" value="renda" onchange="selecionarObjetivo(this.value)"> Diversificar renda familiar
                 </label>
                 <label style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 10px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                  <input type="radio" name="objSim" value="clima"> Reduzir riscos climáticos e seca
+                  <input type="radio" name="objSim" value="clima" onchange="selecionarObjetivo(this.value)"> Reduzir riscos climáticos e seca
                 </label>
               </div>
             </div>
@@ -1564,12 +1502,11 @@
     let etapaAtual = 1;
     let mapaEtapa4 = null;
     let hubMap = null;
+    let perimetroCar = null;
+    let diagnosticoAtual = null;
+    const camadasCar = new WeakMap();
     let dadosPropriedade = {
-      nome: "",
-      local: "",
-      municipio: "",
       cod_car: "",
-      area_ha: 0,
       talhoes: {
         "T1": { nome: "Talhão 1", area: 6.2, culturas: ["mandioca", "milho", "feijao_caupi"], historico: "Mandioca há 10 meses; antes, pousio." },
         "T2": { nome: "Talhão 2", area: 5.0, culturas: ["milho"], historico: "Pousio 4 meses; antes, feijão." },
@@ -1680,7 +1617,7 @@
       const html = `
         <div class="form-group">
           <label class="form-label">Código do CAR Oficial:</label>
-          <input type="text" class="form-input" id="modCarInput" value="${dadosPropriedade.cod_car || ''}" placeholder="Ex: RR-1400175-3772D7A9BD394DA195CD145D10183419">
+          <input type="text" class="form-input" id="modCarInput" value="${dadosPropriedade.cod_car || ''}" autocomplete="off" spellcheck="false" placeholder="UF + código do município + identificador">
         </div>
         <p style="font-size:11.5px; color:var(--text-muted); line-height:1.4;">
           O sistema consultará a geometria oficial no banco do SICAR / Incra para traçar o polígono da gleba rural.
@@ -1695,24 +1632,27 @@
         onConfirmar: async () => {
           const car = document.getElementById('modCarInput').value.trim();
           try {
-            const resp = await fetch(`/api/demarcation?car=${encodeURIComponent(car)}`);
+            const resp = await enviarJson("/api/demarcation", {car});
             const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || "Consulta CAR indisponível.");
             if (data.cod_imovel) {
+              perimetroCar = data.geojson;
+              [mapaEtapa4, hubMap].filter(Boolean).forEach(exibirPerimetroCar);
               dadosPropriedade.cod_car = data.cod_imovel;
-              dadosPropriedade.municipio = `${data.municipio}, Roraima`;
-              dadosPropriedade.area_ha = data.area_total_ha;
-              document.getElementById('inputMunicipio').value = `${data.municipio}, Roraima`;
-              document.getElementById('inputArea').value = data.area_consolidada_ha;
+              document.getElementById('inputMunicipio').value = data.municipio || "";
+              if (data.area_consolidada_ha != null) {
+                document.getElementById('inputArea').value = data.area_consolidada_ha;
+              }
               setTimeout(() => {
                 abrirModal({
                   titulo: "✓ Imóvel Localizado!",
                   subtitulo: "SICAR - Cadastro Ambiental Rural",
                   htmlConteudo: `
                     <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:12px; color:#166534;">
-                      Município: <strong>${data.municipio} - RR</strong><br>
-                      Área Total: <strong>${data.area_total_ha} ha</strong><br>
-                      Área Consolidada: <strong>${data.area_consolidada_ha} ha</strong><br>
-                      Reserva Legal: <strong>${data.area_reserva_legal_ha} ha</strong>
+
+                      Área Total: <strong>${data.area_total_ha == null ? "Não informada" : data.area_total_ha + " ha"}</strong><br>
+                      Área Consolidada: <strong>${data.area_consolidada_ha == null ? "Não informada" : data.area_consolidada_ha + " ha"}</strong><br>
+                      Reserva Legal: <strong>${data.area_reserva_legal_ha == null ? "Não informada" : data.area_reserva_legal_ha + " ha"}</strong>
                     </div>
                   `,
                   textoBotao: "Continuar"
@@ -1720,7 +1660,7 @@
               }, 200);
             }
           } catch(e) {
-            alert("Gleba mantida com dados padrão.");
+            alert(e.message);
           }
         }
       });
@@ -1728,195 +1668,72 @@
 
     // Modal: Notificações e Alertas dos Cards
     function abrirModalNotificacao(tipo) {
-      let titulo = "Diagnóstico Ambiental";
-      let subtitulo = "Detalhes dos sensores orbitais";
-      let corpo = "";
-
-      if (tipo === 'calor') {
-        titulo = "Atenção ao Calor: Temperatura";
-        subtitulo = "NASA POWER Agroclimatology (28,4 °C / picos de 33,4 °C)";
-        corpo = `
-          <div style="background:#FFFBEB; border:1px solid #FDE68A; padding:10px; border-radius:12px; font-size:11.5px; color:#92400E; margin-bottom:12px;">
-            ⚠️ <strong>Estresse Térmico Superficial:</strong> Em Roraima, o calor intenso entre março e maio aquece os primeiros 5cm do solo, acelerando a perda de umidade e prejudicando sementes.
-          </div>
-          <div class="form-group">
-            <label class="form-label">Ação Recomendada:</label>
-            <select class="form-input" id="modAcaoCalor">
-              <option value="Manter palhada de cobertura para sombrear o solo" selected>Manter palhada de cobertura para sombrear o solo</option>
-              <option value="Ajustar semeadura para início da manhã">Ajustar semeadura para início da manhã</option>
-              <option value="Usar consórcio milho + braquiária">Usar consórcio milho + braquiária</option>
-            </select>
-          </div>
-        `;
-      } else if (tipo === 'chuva') {
-        titulo = "Precipitação Recente";
-        subtitulo = "NASA POWER / GPM (142 mm acumulados no ciclo)";
-        corpo = `
-          <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:10px; border-radius:12px; font-size:11.5px; color:#1E40AF; margin-bottom:12px;">
-            🌧️ <strong>Janela de Chuvas em Roraima:</strong> O período chuvoso ocorre entre abril e setembro. O corte brusco das chuvas se dá em outubro.
-          </div>
-          <p style="font-size:11.5px; color:var(--text-muted);">
-            O plantio do feijão-caupi deve ser feito no início de agosto para fechar o ciclo de 65-70 dias com solo úmido.
-          </p>
-        `;
-      } else if (tipo === 'solo') {
-        titulo = "Umidade e Saturação do Solo";
-        subtitulo = "NASA GMAO MERRA-2 Catchment Model (64% saturação relativa)";
-        corpo = `
-          <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:11.5px; color:#166534; margin-bottom:12px;">
-            💧 <strong>Saturação Adequada no Perfil:</strong> O modelo Catchment indica grau de saturação de 0,64 na camada radicular (0-100cm), garantindo sustentação hídrica.
-          </div>
-        `;
-      } else if (tipo === 'vigor') {
-        titulo = "Cobertura Vegetal e Vigor";
-        subtitulo = "Copernicus Sentinel-2 L2A (10 metros)";
-        corpo = `
-          <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:11.5px; color:#166534; margin-bottom:12px;">
-            🌿 <strong>Vigor Fotossintético:</strong> NDVI médio de 0,64 no talhão indica dossel verde bem estabelecido. Para palhada seca (resíduo), o monitoramento deve priorizar bandas SWIR.
-          </div>
-        `;
-      } else {
-        titulo = "Score Geral de Aptidão";
-        subtitulo = "78 de 100 - Condição Favorável";
-        corpo = `
-          <p style="font-size:12px; color:var(--text-muted); line-height:1.45;">
-            Calculado combinando a saturação hídrica MERRA-2, a precipitação recente NASA POWER, a declividade suave SRTM e o vigor Sentinel-2.
-          </p>
-        `;
-      }
-
+      const keys = {
+        calor: "temperatura", chuva: "chuva_recente", solo: "umidade_solo",
+        vigor: "cobertura_vegetal", relevo: "relevo", condicao_solo: "condicao_solo"
+      };
+      const card = diagnosticoAtual?.cards?.[keys[tipo]];
       abrirModal({
-        titulo: titulo,
-        subtitulo: subtitulo,
-        htmlConteudo: corpo,
+        titulo: card?.titulo || "Diagnóstico ambiental",
+        subtitulo: card ? [card.valor, card.status, card.fonte].filter(Boolean).join(" · ") : "",
+        htmlConteudo: "",
         textoBotao: "Entendido"
       });
+      document.getElementById('modalBody').textContent = diagnosticoAtual?.leitura_simples
+        || "Localize a propriedade pelo CAR para consultar as fontes de dados.";
     }
 
-    // Modal: Salvar Plano & Lembretes (Campos limpos para preenchimento)
+    function enviarJson(path, data) {
+      return fetch(path, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      });
+    }
+
+    let planoAtual = null;
+
     function abrirModalSalvarPlano() {
-      const glebaNome = dadosPropriedade.nome || "Propriedade Rural";
-      const carInfo = dadosPropriedade.cod_car ? ` (CAR: ${dadosPropriedade.cod_car})` : " (CAR pendente)";
-      const html = `
-        <div class="form-group">
-          <label class="form-label">Nome do Produtor:</label>
-          <input type="text" class="form-input" id="modNomeProd" value="" placeholder="Ex: Digite seu nome ou da família">
-        </div>
-        <div class="form-group">
-          <label class="form-label">WhatsApp para Notificações e Lembretes:</label>
-          <input type="tel" class="form-input" id="modTelProd" value="" placeholder="Ex: (95) 99999-0000">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Gleba Rural Vinculada:</label>
-          <input type="text" class="form-input" value="${glebaNome}${carInfo}" readonly style="background:#F9FAFB;">
-        </div>
-      `;
-
+      const plano = planoAtual;
       abrirModal({
-        titulo: "Salvar Plano & Lembretes",
-        subtitulo: "Armazenamento no banco espacial da plataforma",
-        htmlConteudo: html,
-        textoBotao: "Confirmar Gravação",
-        onConfirmar: async () => {
-          const nomeInput = document.getElementById('modNomeProd');
-          const telInput = document.getElementById('modTelProd');
-          const nome = nomeInput ? nomeInput.value.trim() : "";
-          const tel = telInput ? telInput.value.trim() : "";
+        titulo: "Salvar plano",
+        subtitulo: plano ? "Cultura, objetivo, horizonte e estratégia" : "Gere uma simulação para salvar o plano.",
+        htmlConteudo: "",
+        textoBotao: plano ? "Salvar plano" : "Entendido",
+        onConfirmar: plano ? async () => {
           try {
-            await fetch('/api/cadastrar-produtor', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                nome: nome || "Produtor Rural",
-                telefone: tel,
-                cod_car: dadosPropriedade.cod_car || "CAR-PENDENTE"
-              })
-            });
-            setTimeout(() => {
-              abrirModal({
-                titulo: "✓ Plano Salvo com Sucesso!",
-                subtitulo: "Lembretes fenoclimáticos ativados",
-                htmlConteudo: "<p style='font-size:12px; color:var(--text-muted);'>Seu plano foi salvo no sistema. Avisos sobre janelas de chuva e manejo serão enviados para seu WhatsApp.</p>",
-                textoBotao: "Concluir"
-              });
-            }, 200);
-          } catch(e) {}
-        }
+            const resp = await enviarJson("/api/planos", plano.parametros);
+            const data = await resp.json();
+            if (!resp.ok || !data.sucesso) throw new Error(data.error || "Gravação indisponível.");
+            alert("Plano salvo no Supabase.");
+          } catch (e) {
+            alert(e.message || "Não foi possível salvar o plano.");
+          }
+        } : null
       });
     }
 
-    // Modal: Lembrete Personalizado da Agenda de Manejo
-    function abrirModalLembrete(cultura, etapa, dataEstimada, orientacao) {
-      const html = `
-        <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:10px 12px; border-radius:12px; font-size:11.5px; color:#1E40AF; margin-bottom:12px;">
-          📅 <strong>${cultura} - ${etapa}</strong><br>
-          <span style="font-size:11px; color:#3B82F6;">Data estimada: ${dataEstimada}</span><br>
-          <span style="font-size:11px; color:#1E3A8A; line-height:1.4; display:block; margin-top:4px;">${orientacao}</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Data do Lembrete:</label>
-          <input type="text" class="form-input" id="modDataLembrete" value="${dataEstimada}" placeholder="Ex: 15/04/2026">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Anotação ou Ação do Produtor:</label>
-          <textarea class="form-input" id="modAnotacaoLembrete" rows="2" placeholder="Ex: Verificar umidade do solo e preparar maquinário"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">WhatsApp para Notificação:</label>
-          <input type="tel" class="form-input" id="modTelLembrete" value="" placeholder="Ex: (95) 99999-0000">
-        </div>
-      `;
-
+    function abrirModalLembrete(cultura, etapa, momento, orientacao) {
       abrirModal({
-        titulo: "Configurar Lembrete de Manejo",
-        subtitulo: "Aviso programado no calendário fenoclimático",
-        htmlConteudo: html,
-        textoBotao: "Salvar Lembrete",
-        onConfirmar: () => {
-          setTimeout(() => {
-            abrirModal({
-              titulo: "✓ Lembrete Ativado!",
-              subtitulo: "Agendamento concluído",
-              htmlConteudo: `<p style='font-size:12px; color:var(--text-muted);'>Você receberá um alerta automático antes da data estimada (${dataEstimada}) para planejar a operação.</p>`,
-              textoBotao: "Concluir"
-            });
-          }, 200);
-        }
+        titulo: cultura,
+        subtitulo: [momento, etapa].join(" · "),
+        htmlConteudo: "",
+        textoBotao: "Entendido"
       });
+      document.getElementById("modalBody").textContent = orientacao;
     }
 
-    // Modal: Compartilhar Dossiê
     function abrirModalCompartilhar() {
-      const html = `
-        <div class="form-group">
-          <label class="form-label">Nome do Técnico / Extensionista:</label>
-          <input type="text" class="form-input" id="modNomeTecnico" value="" placeholder="Ex: Eng. Agrônomo / Técnico AATER">
-        </div>
-        <div class="form-group">
-          <label class="form-label">WhatsApp / E-mail de Envio:</label>
-          <input type="text" class="form-input" id="modContatoTecnico" value="" placeholder="Ex: (95) 99999-0000 ou email@exemplo.com">
-        </div>
-        <p style="font-size:11.5px; color:var(--text-muted);">
-          Serão enviados o comparativo das 3 estratégias de rotação, os dados ambientais NASA e a agenda de semeadura.
-        </p>
-      `;
-
+      const plano = planoAtual;
       abrirModal({
-        titulo: "Compartilhar com Assistência Técnica",
-        subtitulo: "Envio para Embrapa / AATER Roraima",
-        htmlConteudo: html,
-        textoBotao: "Enviar Relatório",
-        onConfirmar: () => {
-          setTimeout(() => {
-            abrirModal({
-              titulo: "✓ Dossiê Enviado!",
-              subtitulo: "Compartilhamento concluído",
-              htmlConteudo: "<p style='font-size:12px; color:var(--text-muted);'>O relatório e os mapas foram despachados para a assistência técnica local.</p>",
-              textoBotao: "Concluir"
-            });
-          }, 200);
-        }
+        titulo: "Resumo da rotação",
+        subtitulo: plano ? "Copie o resumo para compartilhar." : "Gere uma simulação para obter um resumo.",
+        htmlConteudo: plano ? '<textarea class="form-input" id="resumoCompartilhar" rows="7" readonly></textarea>' : "",
+        textoBotao: "Fechar"
       });
+      if (plano) {
+        document.getElementById("resumoCompartilhar").value = plano.resumo;
+      }
     }
 
     // Modal: Sobre a Plataforma
@@ -1929,8 +1746,7 @@
           <ul style="padding-left:18px; margin:6px 0 10px;">
             <li>NASA POWER Agroclimatology (30 anos e NRT)</li>
             <li>NASA GMAO MERRA-2 (Catchment Land Surface Model)</li>
-            <li>ESA Copernicus Sentinel-2 L2A (10m)</li>
-            <li>NASA SRTM (Topografia e Relevo 30m)</li>
+            <li>ESA Copernicus Sentinel-2 L2A</li>
           </ul>
           🌾 <strong>Validação Agronômica:</strong> Calibrado com os boletins técnicos da Embrapa Roraima.
         </div>
@@ -1941,30 +1757,6 @@
         subtitulo: "Tecnologia e bases de dados científicos",
         htmlConteudo: html,
         textoBotao: "Fechar"
-      });
-    }
-
-    // Modal: Configuração de Camada do Mapa
-    function abrirModalFiltroCamada(tipo, nome) {
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
-      const html = `
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Camada ativa: <strong>${nome}</strong></p>
-        <div class="form-group">
-          <label class="form-label">Data da Imagem de Satélite:</label>
-          <input type="date" class="form-input" value="2026-11-14">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Opacidade da Camada:</label>
-          <input type="range" min="10" max="100" value="80" style="width:100%;">
-        </div>
-      `;
-
-      abrirModal({
-        titulo: "Camada Espacial",
-        subtitulo: "Ajuste visual no mapa",
-        htmlConteudo: html,
-        textoBotao: "Aplicar no Mapa"
       });
     }
 
@@ -2057,16 +1849,16 @@
         return;
       }
       mapaEtapa4 = L.map('mapEtapa4', { zoomControl: false }).setView([1.8984, -60.6906], 14);
-      L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 19 }).addTo(mapaEtapa4);
 
-      // Polígonos dos 3 talhões
-      const t1 = L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(mapaEtapa4);
-      const t2 = L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(mapaEtapa4);
-      const t3 = L.polygon([[1.894, -60.693], [1.888, -60.682], [1.885, -60.686], [1.890, -60.696]], { color: '#004d40', fillColor: '#4db6ac', fillOpacity: 0.5 }).addTo(mapaEtapa4);
+      exibirPerimetroCar(mapaEtapa4);
+    }
 
-      t1.bindPopup("<strong>Talhão 1 (T1)</strong><br>6,2 ha");
-      t2.bindPopup("<strong>Talhão 2 (T2)</strong><br>5,0 ha");
-      t3.bindPopup("<strong>Talhão 3 (T3)</strong><br>5,8 ha");
+    function exibirPerimetroCar(map) {
+      if (!perimetroCar) return;
+      if (camadasCar.has(map)) map.removeLayer(camadasCar.get(map));
+      const layer = L.geoJSON(perimetroCar, { style: { color: '#15803d', fillOpacity: 0.15 } }).addTo(map);
+      camadasCar.set(map, layer);
+      map.fitBounds(layer.getBounds(), { padding: [18, 18], maxZoom: 17 });
     }
 
     const NOMES_CULTURAS = {
@@ -2188,17 +1980,6 @@
     }
 
     function continuarEtapa3Para4() {
-      const nome = document.getElementById('inputNomeProp').value.trim();
-      const loc = document.getElementById('inputLocalizacao').value.trim();
-      const mun = document.getElementById('inputMunicipio').value.trim();
-      const area = parseFloat(document.getElementById('inputArea').value);
-
-      dadosPropriedade.nome = nome || "Sítio Boa Esperança";
-      dadosPropriedade.local = loc || "Região do Murupu";
-      dadosPropriedade.municipio = mun || "Boa Vista, Roraima";
-      if (!isNaN(area) && area > 0) {
-        dadosPropriedade.area_ha = area;
-      }
       irParaEtapa(4);
     }
 
@@ -2413,7 +2194,7 @@
       }
       document.getElementById('progressBarBox').style.display = 'none';
       document.getElementById('screenHub').style.display = 'flex';
-      document.getElementById('topHeaderTitle').innerText = "Gleba: " + (dadosPropriedade.nome || "Sítio Boa Esperança");
+      document.getElementById('topHeaderTitle').innerText = "Hub do produtor";
 
       setTimeout(initHubMap, 150);
       carregarDiagnostico();
@@ -2427,24 +2208,8 @@
         return;
       }
       hubMap = L.map('hubMap', { zoomControl: false }).setView([1.8984, -60.6906], 14);
-      L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 19 }).addTo(hubMap);
 
-      L.polygon([
-        [1.90254, -60.69588],
-        [1.89921, -60.68929],
-        [1.89000, -60.67660],
-        [1.88600, -60.68200],
-        [1.89918, -60.69704]
-      ], {
-        color: '#15803d',
-        weight: 3,
-        dashArray: '4, 4',
-        fillColor: '#22c55e',
-        fillOpacity: 0.15
-      }).addTo(hubMap).bindPopup("<strong>" + (dadosPropriedade.nome || "Sítio Boa Esperança") + "</strong><br>CAR: " + (dadosPropriedade.cod_car || "RR-1400175") + "<br>" + (dadosPropriedade.area_ha || 87.1) + " ha demarcados");
-
-      L.polygon([[1.902, -60.695], [1.899, -60.689], [1.894, -60.693], [1.898, -60.697]], { color: '#2e7d32', fillColor: '#81c784', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 1 (" + (dadosPropriedade.talhoes.T1 ? dadosPropriedade.talhoes.T1.area : 6.2) + " ha)");
-      L.polygon([[1.899, -60.689], [1.892, -60.678], [1.888, -60.682], [1.894, -60.693]], { color: '#f57f17', fillColor: '#fff176', fillOpacity: 0.5 }).addTo(hubMap).bindPopup("Talhão 2 (" + (dadosPropriedade.talhoes.T2 ? dadosPropriedade.talhoes.T2.area : 5.0) + " ha)");
+      exibirPerimetroCar(hubMap);
     }
 
     let sheetExpanded = false;
@@ -2474,22 +2239,35 @@
 
     // Carregamento de Dados da API
     async function carregarDiagnostico() {
-      try {
-        const resp = await fetch('/api/condicoes-completas?lat=1.8984&lon=-60.6906');
-        const data = await resp.json();
-        if (data.cards) {
-          const c = data.cards;
-          if (document.getElementById('diagValChuva')) document.getElementById('diagValChuva').innerText = c.chuva_recente.valor;
-          if (document.getElementById('diagValTemp')) document.getElementById('diagValTemp').innerText = c.temperatura.valor;
-          if (document.getElementById('diagValSolo')) document.getElementById('diagValSolo').innerText = c.umidade_solo.valor;
-          if (document.getElementById('diagValVigor')) document.getElementById('diagValVigor').innerText = c.cobertura_vegetal.valor;
+      const car = dadosPropriedade.cod_car;
+      const messages = document.querySelectorAll('[data-diagnostico]');
+      let message = "Localize a propriedade pelo CAR para consultar os dados.";
+      diagnosticoAtual = null;
+      messages.forEach(el => el.textContent = car ? "Consultando dados…" : message);
+      const values = document.querySelectorAll('[data-medicao]');
+      values.forEach(el => {
+        el.textContent = "—";
+        el.nextElementSibling.textContent = "";
+      });
 
-          if (document.getElementById('hubValChuva')) document.getElementById('hubValChuva').innerText = c.chuva_recente.valor;
-          if (document.getElementById('hubValTemp')) document.getElementById('hubValTemp').innerText = c.temperatura.valor;
-          if (document.getElementById('hubValSolo')) document.getElementById('hubValSolo').innerText = c.umidade_solo.valor;
-          if (document.getElementById('hubValVigor')) document.getElementById('hubValVigor').innerText = c.cobertura_vegetal.valor;
+      if (car) {
+        try {
+          const resp = await enviarJson("/api/condicoes-completas", {car});
+          const data = await resp.json();
+          if (car !== dadosPropriedade.cod_car) return;
+          if (!resp.ok) throw new Error(data.error);
+          diagnosticoAtual = data;
+          message = data.condicao_geral;
+          values.forEach(el => {
+            const card = data.cards[el.dataset.medicao];
+            el.textContent = card.valor;
+            el.nextElementSibling.textContent = card.status;
+          });
+        } catch (e) {
+          message = e.message || "Diagnóstico indisponível.";
         }
-      } catch (e) {}
+      }
+      if (car === dadosPropriedade.cod_car) messages.forEach(el => el.textContent = message);
     }
 
     async function carregarAgenda() {
@@ -2501,17 +2279,33 @@
           container.innerHTML = "";
           data.eventos_chave.forEach(ev => {
             container.innerHTML += `
-              <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalLembrete('${ev.cultura}', '${ev.etapa}', '${ev.data_estimada}', '${(ev.orientacao || '').replace(/'/g, "\\'")}')">
+              <div class="agenda-row" style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalLembrete('${ev.cultura}', '${ev.etapa}', '${ev.data_estimada}', '${(ev.orientacao || '').replace(/'/g, "\\'")}')">
                 <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
                 <div>
-                  <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa} 🔔</h4>
+                  <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa}</h4>
                   <p style="font-size:11px; color:var(--text-muted); line-height:1.35;">${ev.orientacao}</p>
                 </div>
               </div>
             `;
           });
+          for (const aviso of data.avisos_agronomicos || []) {
+            const note = document.createElement('p');
+            note.textContent = aviso;
+            container.append(note);
+          }
+          for (const fonte of data.fontes || []) {
+            const link = document.createElement('a');
+            link.href = fonte.url;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = fonte.nome;
+            link.style.display = "block";
+            container.append(link);
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        document.getElementById('agendaLista').textContent = "Agenda indisponível.";
+      }
     }
 
     let culturaPrimariaSelecionada = "milho";
@@ -2527,29 +2321,31 @@
 
     // Executar Simulação da Etapa 8 (Rotação recomendada dinâmica)
     async function executarSimulacaoEtapa8() {
+      planoAtual = null;
       const t = dadosPropriedade.talhoes[simulacaoConfig.talhaoId] || { nome: "Talhão 1", area: 6.2 };
       
       const sub = document.getElementById('screen8Subheading');
-      if (sub) sub.innerText = `Sugestão adaptada para o ${t.nome} (${t.area} ha) com base climática NASA.`;
+      if (sub) sub.innerText = `Sugestão adaptada para o ${t.nome} (${t.area} ha) com base em critérios agronômicos gerais.`;
 
       try {
-        const resp = await fetch('/api/simular-rotacao', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            talhao_id: simulacaoConfig.talhaoId,
-            cultura_atual: simulacaoConfig.culturaPartida,
-            periodo_anos: simulacaoConfig.periodo,
-            objetivo: simulacaoConfig.objetivo
-          })
-        });
+        const parametros = {
+          cultura_atual: simulacaoConfig.culturaPartida,
+          periodo_anos: simulacaoConfig.periodo,
+          objetivo: simulacaoConfig.objetivo
+        };
+        const resp = await enviarJson("/api/simular-rotacao", {...parametros, talhao_id: simulacaoConfig.talhaoId});
         const data = await resp.json();
         
         // Estratégia recomendada prioritária
-        const strat = data.estrategias ? (data.estrategias[1] || data.estrategias[0]) : null;
+        if (!resp.ok) throw new Error(data.error || "Simulação indisponível.");
+        const strat = data.estrategias.find(s => s.id === data.recomendacao_prioritaria.estrategia_destaque_id);
         if (strat) {
+          planoAtual = {
+            parametros: {...parametros, estrategia_id: strat.id},
+            resumo: [strat.nome, ...strat.sequencia.map(fase => fase.tempo + " · " + fase.cultura)].join("\n")
+          };
           const scoreEl = document.getElementById('screen8ScoreSub');
-          if (scoreEl) scoreEl.innerText = `${strat.compatibilidade_score}% adequada às condições da área (${simulacaoConfig.periodo} anos)`;
+          if (scoreEl) scoreEl.innerText = `Sugestão qualitativa para o objetivo selecionado`;
           
           const timelineEl = document.getElementById('screen8Timeline');
           if (timelineEl && strat.sequencia) {
@@ -2593,7 +2389,8 @@
           if (pEl) pEl.innerText = `Preparar o ${t.nome} para ${prox}`;
           
           if (strat.sequencia) {
-            const cultList = strat.sequencia.map(s => s.cultura.split(' ')[0]).join(', ');
+            const cultList = strat.sequencia.map(s => s.cultura).join(" → ");
+            document.getElementById("screen9ScorePotencial").textContent = strat.nome;
             const lEl = document.getElementById('screen9ListaCulturas');
             if (lEl) lEl.innerText = cultList;
           }
@@ -2622,7 +2419,7 @@
               <div style="border-radius:16px; padding:14px; margin-bottom:12px; cursor:pointer; ${isSelected}" onclick="abrirModalNotificacao('calor')">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:${badgeBg}; color:${badgeTxt};">${s.tipo}</span>
-                  <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${s.compatibilidade_score}% compatível</span>
+                  <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${s.tipo}</span>
                 </div>
                 <strong style="font-size:13px; display:block; margin-bottom:8px;">${s.nome}</strong>
                 <div style="display:flex; gap:6px; margin-bottom:10px;">${stepsHtml}</div>
@@ -2636,13 +2433,17 @@
           });
         }
       } catch (err) {
-        console.error("Erro na simulação:", err);
+        document.getElementById('screen8ScoreSub').textContent = err.message;
+        for (const id of ['screen8Timeline', 'screen8Justificativa', 'screen8Riscos', 'cardsEstrategiasContainer']) {
+          document.getElementById(id).textContent = "";
+        }
       }
     }
 
     // Executar Comparativo Triplo de Rotação (NASA Space Apps 2026)
     async function executarComparativoTriplo() {
       await executarSimulacaoEtapa8();
+      navegarHubTab('comp', document.querySelectorAll('.tab-btn')[2]);
     }
 
     let periodoComparacaoAnos = 3;
