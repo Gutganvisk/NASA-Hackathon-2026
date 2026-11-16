@@ -85,6 +85,7 @@ def area_diagnosis(lat, lon, geometry):
             "fonte": "NASA POWER / " + variable,
         }
 
+    ndvi_value = ndvi.get("ndvi_medio_estimado") if ndvi.get("sucesso") else None
     cards = {
         "chuva_recente": power_card("Chuva acumulada nos dias disponíveis", "PRECTOTCORR", "mm", sum),
         "temperatura": power_card("Temperatura média", "T2M", "°C", mean),
@@ -94,14 +95,15 @@ def area_diagnosis(lat, lon, geometry):
         "saturacao_superficial": power_card("Saturação relativa do solo (0–5 cm)", "GWETTOP", "%", mean, 100),
         "cobertura_vegetal": {
             "titulo": "Vigor da vegetação (NDVI)",
-            "valor": str(ndvi["ndvi_medio_estimado"]) if ndvi.get("sucesso") else "Indisponível",
+            "valor": str(ndvi_value) if ndvi_value is not None else "Indisponível",
+            "medicao": ndvi_value,
             "status": ndvi.get("periodo_analisado") or ndvi.get("aviso") or "Informe um contorno ou CAR",
             "fonte": "Copernicus Sentinel-2 L2A",
         },
         "relevo": {"titulo": "Relevo", "valor": "Indisponível", "status": "Declividade não medida"},
         "condicao_solo": {"titulo": "Condição do solo", "valor": "Indisponível", "status": "Requer análise de campo"},
     }
-    has_data = any(card.get("medicao") is not None for card in cards.values()) or ndvi.get("sucesso")
+    has_data = any(card.get("medicao") is not None for card in cards.values())
     return {
         "status": "partial" if has_data else "unavailable",
         "condicao_geral": "Diagnóstico parcial" if has_data else "Dados indisponíveis",
