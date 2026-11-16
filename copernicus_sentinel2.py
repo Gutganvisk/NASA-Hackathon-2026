@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from math import asinh, isfinite, radians, tan
+from math import asinh, ceil, cos, isfinite, radians, tan
 from typing import Any, Dict
 
 from http_transport import urlopen
@@ -137,7 +137,9 @@ def fetch_satellite_image(bounds, utc_day):
     with urlopen(request, timeout=15) as response:
         if response.headers.get_content_type() != "image/png":
             raise OSError("Imagem Sentinel-2 inválida")
-        return response.read()
+        scale = cos(radians((south + north) / 2))
+        resolution = max(10, ceil(max(width_m / width, height_m / height) * scale))
+        return response.read(), resolution
 
 
 def calculate_ndvi_analysis(geometry: Dict[str, Any], date_from=None, date_to=None):

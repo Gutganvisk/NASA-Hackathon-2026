@@ -395,6 +395,17 @@
       pointer-events: none;
     }
 
+    .map-google-link {
+      display: block;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--primary-dark);
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
     .map-fab-btn {
       position: absolute;
       bottom: 12px;
@@ -1966,6 +1977,12 @@
         map = L.map(id, {zoomControl: false, attributionControl: false, minZoom: 4, maxZoom: 21}).setView([2.82, -60.67], 10);
         L.control.attribution({position: 'topright', prefix: false}).addTo(map);
         L.control.zoom({position: 'topright'}).addTo(map);
+        adicionarAtalhoGoogleMaps(map);
+        let detalheTimer;
+        map.on('moveend', () => {
+          clearTimeout(detalheTimer);
+          detalheTimer = setTimeout(() => atualizarDetalheMapa(map), 250);
+        });
       }
       map.invalidateSize();
       atualizarMapa(map);
@@ -1993,6 +2010,73 @@
       return request.promise;
     }
 
+    function adicionarAtalhoGoogleMaps(map) {
+      const control = L.control({position: 'topright'});
+      control.onAdd = () => {
+        const link = L.DomUtil.create('a', 'map-google-link');
+        link.textContent = 'Google Maps';
+        link.title = 'Abrir a vista de satélite no Google Maps em outra aba';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        L.DomEvent.disableClickPropagation(link);
+        const atualizarLink = () => {
+          const center = map.getCenter().wrap();
+          const params = new URLSearchParams({
+            api: '1', map_action: 'map', basemap: 'satellite',
+            center: center.lat.toFixed(4) + ',' + center.lng.toFixed(4),
+            zoom: Math.round(Math.min(21, map.getZoom()))
+          });
+          link.href = 'https://www.google.com/maps/@?' + params;
+        };
+        map.on('moveend', atualizarLink);
+        atualizarLink();
+        return link;
+      };
+      control.addTo(map);
+    }
+
+    async function atualizarDetalheMapa(map) {
+      const container = map.getContainer();
+      const layers = camadasMapa.get(map);
+      if (!layers || !container.clientWidth) return;
+      const status = document.getElementById(container.id + 'Status');
+      const visible = map.getBounds();
+      if (map.getZoom() < 14 || (layers.resolution <= 11 && layers.image.getBounds().contains(visible))) {
+        if (layers.detail) map.removeLayer(layers.detail);
+        layers.detail = null;
+        layers.pendingDetail = null;
+        if (layers.baseStatus) status.textContent = layers.baseStatus;
+        return;
+      }
+      if (layers.detail?.getBounds().contains(visible) || layers.pendingDetail?.contains(visible)) return;
+
+      const padded = visible.pad(0.25);
+      const west = Math.max(-66, Math.floor(padded.getWest() * 1000) / 1000);
+      const south = Math.max(-3, Math.floor(padded.getSouth() * 1000) / 1000);
+      const east = Math.min(-58, Math.ceil(padded.getEast() * 1000) / 1000);
+      const north = Math.min(6, Math.ceil(padded.getNorth() * 1000) / 1000);
+      if (east <= west || north <= south || east - west > 0.25 || north - south > 0.25) return;
+      const requested = L.latLngBounds([south, west], [north, east]);
+      layers.pendingDetail = requested;
+      try {
+        const response = await enviarJson('/api/mapa-satelite', {recorte: [west, south, east, north]});
+        if (!response.ok) return;
+        const result = await response.json();
+        if (camadasMapa.get(map) !== layers || layers.pendingDetail !== requested || map.getZoom() < 14
+            || !requested.intersects(map.getBounds())) return;
+        if (layers.detail) map.removeLayer(layers.detail);
+        layers.detail = L.imageOverlay(result.image, result.bounds, {
+          pane: 'tilePane', zIndex: 2, attribution: 'Copernicus Sentinel-2',
+          alt: 'Recorte Sentinel-2 da área aproximada'
+        }).addTo(map);
+        status.textContent = 'Sentinel‑2 · aprox. ' + result.resolucao_m + ' m/pixel';
+      } catch (error) {
+        // A imagem de base e os contornos seguem disponíveis quando o recorte falha.
+      } finally {
+        if (layers.pendingDetail === requested) layers.pendingDetail = null;
+      }
+    }
+
     async function atualizarMapa(map) {
       const container = map.getContainer();
       // O segundo mapa pode estar oculto quando um novo CAR é informado.
@@ -2002,6 +2086,7 @@
       if (previous?.car === car) return;
       if (previous?.outline) map.removeLayer(previous.outline);
       if (previous?.image) map.removeLayer(previous.image);
+      if (previous?.detail) map.removeLayer(previous.detail);
 
       const status = document.getElementById(container.id + 'Status');
       const layers = {car};
@@ -2018,16 +2103,21 @@
         const result = await consultarImagemMapa(car);
         if (camadasMapa.get(map) !== layers) return;
         layers.image = L.imageOverlay(result.image, result.bounds, {
+          pane: 'tilePane',
           attribution: 'Copernicus Sentinel-2',
           alt: car ? 'Imagem de satélite da área do CAR' : 'Imagem de satélite de Boa Vista'
         }).addTo(map);
-        if (!layers.outline && !Object.keys(desenhosTalhoes).length && container.clientWidth) {
-          map.fitBounds(result.bounds, {padding: [8, 8]});
+        layers.resolution = result.resolucao_m;
+        if (!layers.outline && !Object.keys(desenhosTalhoes).length && container.clientWidth && map.getZoom() === 10) {
+          map.fitBounds(result.bounds, {padding: [8, 8], animate: false});
         }
-        status.textContent = car ? "Perímetro do CAR" : "Boa Vista · visão regional";
+        layers.baseStatus = car ? "Perímetro do CAR" : "Boa Vista · visão regional";
+        if (!layers.detail) status.textContent = layers.baseStatus;
+        atualizarDetalheMapa(map);
       } catch (error) {
         if (camadasMapa.get(map) !== layers) return;
-        status.textContent = layers.outline ? "Perímetro CAR · imagem indisponível" : error.message;
+        layers.baseStatus = layers.outline ? "Perímetro CAR · imagem indisponível" : error.message;
+        if (!layers.detail) status.textContent = layers.baseStatus;
         // Permite tentar de novo ao reabrir a tela do mapa.
         layers.car = null;
       }

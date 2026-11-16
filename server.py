@@ -271,7 +271,7 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(400, {"error": "CAR e UF devem ser textos."})
             return
         if path == "/api/mapa-satelite":
-            self._satellite_map(params.get("car"))
+            self._satellite_map(params.get("car"), params.get("recorte"))
             return
         # 2. Endpoint: /api/demarcation (Busca por CAR ou Coordenada)
         if path == "/api/demarcation":
@@ -322,11 +322,22 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(200, area_diagnosis(lat, lon, geometry))
             return
 
-    def _satellite_map(self, car):
+    def _satellite_map(self, car, recorte):
         # Vista pública de Boa Vista enquanto o usuário não informa um CAR.
         bounds = (-60.9, 2.6, -60.44, 3.04)
         try:
-            if car:
+            if recorte is not None:
+                if not isinstance(recorte, list) or len(recorte) != 4 or any(
+                    type(value) not in (int, float) for value in recorte
+                ):
+                    raise ValueError("Recorte inválido.")
+                west, south, east, north = recorte
+                # Limita as consultas de detalhe à região atendida no norte do Brasil.
+                if not (-66 <= west < east <= -58 and -3 <= south < north <= 6
+                        and east - west <= .25 and north - south <= .25):
+                    raise ValueError("O recorte está fora da região ou do nível de zoom atendido.")
+                bounds = tuple(round(value, 4) for value in recorte)
+            elif car:
                 geometry = query_land_demarcation(car)["geojson"]["geometry"]
                 x, y = zip(*[(point[0], point[1]) for point in exterior_points(geometry)])
                 padding = max(max(x) - min(x), max(y) - min(y), 0.002) * 0.3
@@ -334,7 +345,7 @@ class AgroHandler(BaseHTTPRequestHandler):
             west, south, east, north = bounds
             if not (-180 <= west < east <= 180 and -85 <= south < north <= 85):
                 raise ValueError("Limites inválidos para gerar a imagem.")
-            image = fetch_satellite_image(bounds, datetime.now(timezone.utc).date())
+            image, resolution = fetch_satellite_image(bounds, datetime.now(timezone.utc).date())
         except ValueError as exc:
             self._json(400, {"error": str(exc)})
         except LookupError:
@@ -345,6 +356,7 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(200, {
                 "bounds": [[south, west], [north, east]],
                 "image": "data:image/png;base64," + base64.b64encode(image).decode("ascii"),
+                "resolucao_m": resolution,
             })
 
     def do_POST(self):
