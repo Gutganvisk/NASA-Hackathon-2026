@@ -1272,7 +1272,7 @@
               <span style="font-size: 11px; color: var(--text-muted);">Aumentar matéria orgânica, palhada e reduzir desgaste</span>
             </div>
           </div>
-          <div style="width: 20px; height: 20px; border-radius: 50%; background: #65A30D; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
+          <div class="objetivo-indicador" style="width: 20px; height: 20px; border-radius: 50%; background: #65A30D; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
         </div>
 
         <!-- Opção 2 -->
@@ -1286,7 +1286,7 @@
               <span style="font-size: 11px; color: var(--text-muted);">Alternar grãos e raízes com boas janelas de mercado</span>
             </div>
           </div>
-          <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></div>
+          <div class="objetivo-indicador" style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1; display: flex; align-items: center; justify-content: center;"></div>
         </div>
 
         <!-- Opção 3 -->
@@ -1300,7 +1300,7 @@
               <span style="font-size: 11px; color: var(--text-muted);">Tolerância à seca e corte precoce de chuvas</span>
             </div>
           </div>
-          <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1;"></div>
+          <div class="objetivo-indicador" style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #CBD5E1; display: flex; align-items: center; justify-content: center;"></div>
         </div>
       </div>
 
@@ -2587,11 +2587,11 @@
         if (el) {
           el.style.border = '1px solid var(--border-soft)';
           el.style.background = 'var(--surface-white)';
-          const last = el.querySelector('div:last-child');
-          if (last) {
-            last.innerHTML = '';
-            last.style.border = '1.5px solid #CBD5E1';
-            last.style.background = 'transparent';
+          const indicator = el.querySelector('.objetivo-indicador');
+          if (indicator) {
+            indicator.innerHTML = '';
+            indicator.style.border = '1.5px solid #CBD5E1';
+            indicator.style.background = 'transparent';
           }
         }
       });
@@ -2601,7 +2601,7 @@
       if (sel) {
         sel.style.border = '2px solid var(--accent-lime)';
         sel.style.background = '#F7FEE7';
-        const indicator = sel.querySelector('div:last-child');
+        const indicator = sel.querySelector('.objetivo-indicador');
         if (indicator) {
           indicator.innerHTML = iconeInterface('check');
           indicator.style.border = 'none';
