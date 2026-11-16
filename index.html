@@ -8,8 +8,8 @@
 
 
   <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/assets/leaflet-1.9.4/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" />
+  <script src="/assets/leaflet-1.9.4/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="></script>
 
   <style>
     :root {
@@ -1890,6 +1890,7 @@
     const camadasMapa = new WeakMap();
     let imagemMapa = null;
     let imagemRegional = null;
+    const limitesImagemRegional = [[2.6, -60.9], [3.04, -60.44]];
     const dadosPropriedade = {cod_car: "", talhoes: {}};
     const coresTalhoes = {T1: '#d9f99d', T2: '#fde047', T3: '#5eead4'};
     const culturasSimulaveis = ['mandioca', 'milho', 'feijao_caupi'];
@@ -2350,19 +2351,54 @@
       return map;
     }
 
+    async function requisitarImagem(url, options, read) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(url, {...options, signal: controller.signal});
+        if (!response.ok) throw new Error();
+        return await read(response);
+      } catch {
+        throw new Error("Imagem de satélite indisponível.");
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function validarImagem(src) {
+      if (!src) throw new Error("Imagem de satélite indisponível.");
+      const image = new Image();
+      image.src = src;
+      try {
+        await image.decode();
+      } catch {
+        throw new Error("Imagem de satélite indisponível.");
+      }
+    }
+
     async function solicitarImagemMapa(payload) {
-      const response = await enviarJson('/api/mapa-satelite', {...payload, formato: 'jpeg'});
-      if (!response.ok) throw new Error("Imagem de satélite indisponível.");
-      return response.json();
+      const result = await requisitarImagem('/api/mapa-satelite', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({...payload, formato: 'jpeg'})
+      }, response => response.json());
+      await validarImagem(result.image);
+      return result;
     }
 
     function consultarImagemMapa(car) {
       if (!car) {
-        imagemRegional ??= fetch('/assets/boa-vista-20261116.jpg').then(async response => {
-          if (!response.ok) throw new Error("Imagem regional indisponível.");
+        imagemRegional ??= requisitarImagem('/assets/boa-vista-20261116.jpg', {}, response => response.blob()).then(async blob => {
+          const src = URL.createObjectURL(blob);
+          try {
+            await validarImagem(src);
+          } catch (error) {
+            URL.revokeObjectURL(src);
+            throw error;
+          }
           return {
-            image: URL.createObjectURL(await response.blob()),
-            bounds: [[2.6, -60.9], [3.04, -60.44]],
+            image: src,
+            bounds: limitesImagemRegional,
             resolucao_m: 80,
             referencia: true
           };
@@ -2453,17 +2489,20 @@
       if (!container.clientWidth) return;
       const car = dadosPropriedade.cod_car;
       const previous = camadasMapa.get(map);
-      const mesmaPropriedade = previous?.car === car;
+      const mesmaPropriedade = previous && previous.car === car;
       if (mesmaPropriedade && !previous.imageFailed) return;
       if (!mesmaPropriedade && previous?.outline) map.removeLayer(previous.outline);
-      if (previous?.image) map.removeLayer(previous.image);
+      const regional = car ? previous?.regional ?? (!previous?.car ? previous?.image : null) : null;
+      if (previous?.image && previous.image !== regional) map.removeLayer(previous.image);
+      if (previous?.regional && previous.regional !== regional) map.removeLayer(previous.regional);
       if (previous?.detail) map.removeLayer(previous.detail);
 
       const status = document.getElementById(container.id + 'Status');
       const retry = document.getElementById(container.id === 'mapEtapa4' ? 'retryWorkspaceImage' : 'retryHubImage');
       if (retry) retry.hidden = true;
-      const layers = {car, outline: mesmaPropriedade ? previous.outline : null};
+      const layers = {car, regional, outline: mesmaPropriedade ? previous.outline : null};
       camadasMapa.set(map, layers);
+      regional?.setZIndex(0);
 
       if (perimetroCar && !layers.outline) {
         layers.outline = L.geoJSON(perimetroCar, {
@@ -2472,16 +2511,17 @@
         map.fitBounds(layers.outline.getBounds(), {padding: [24, 24], maxZoom: 17, animate: false});
       }
       status.textContent = "Carregando imagem de satélite…";
+      if (car && !regional && layers.outline?.getBounds().intersects(L.latLngBounds(limitesImagemRegional))) {
+        consultarImagemMapa(null).then(result => {
+          if (camadasMapa.get(map) !== layers) return;
+          layers.regional = adicionarImagemMapa(map, result, false, 0);
+          if (layers.imageFailed) status.textContent = "Perímetro CAR · imagem regional";
+        }).catch(() => {});
+      }
       try {
         const result = await consultarImagemMapa(car);
         if (camadasMapa.get(map) !== layers) return;
-        layers.image = L.imageOverlay(result.image, result.bounds, {
-          pane: 'tilePane',
-          attribution: result.referencia
-            ? '<abbr title="Contains modified Copernicus Sentinel data 2026">Copernicus Sentinel-2 (2026)</abbr>'
-            : 'Copernicus Sentinel-2',
-          alt: car ? 'Imagem de satélite da área do CAR' : 'Imagem de satélite de Boa Vista'
-        }).addTo(map);
+        layers.image = adicionarImagemMapa(map, result, car, 1);
         layers.resolution = result.resolucao_m;
         if (!layers.outline && !Object.keys(desenhosTalhoes).length && container.clientWidth && map.getZoom() === 10) {
           map.fitBounds(result.bounds, {padding: [8, 8], animate: false});
@@ -2491,11 +2531,24 @@
         atualizarDetalheMapa(map);
       } catch (error) {
         if (camadasMapa.get(map) !== layers) return;
-        layers.baseStatus = layers.outline ? "Perímetro CAR · imagem indisponível" : error.message;
-        if (!layers.detail) status.textContent = layers.baseStatus;
         layers.imageFailed = true;
+        if (!layers.detail) {
+          status.textContent = layers.outline
+            ? layers.regional ? "Perímetro CAR · imagem regional" : "Perímetro CAR · imagem indisponível"
+            : error.message;
+        }
         if (retry) retry.hidden = false;
       }
+    }
+
+    function adicionarImagemMapa(map, result, car, zIndex) {
+      return L.imageOverlay(result.image, result.bounds, {
+        pane: 'tilePane', zIndex,
+        attribution: result.referencia
+          ? '<abbr title="Contains modified Copernicus Sentinel data 2026">Copernicus Sentinel-2 (2026)</abbr>'
+          : 'Copernicus Sentinel-2',
+        alt: car ? 'Imagem de satélite da área do CAR' : 'Imagem de satélite de Boa Vista'
+      }).addTo(map);
     }
 
     function formatarHectares(area) {

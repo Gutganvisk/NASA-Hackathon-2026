@@ -40,6 +40,12 @@ STATIC_ASSETS = {
     "/assets/crop-rotation-icon.png": "image/png",
     "/assets/ui-icons.svg": "image/svg+xml",
     "/assets/boa-vista-20261116.jpg": "image/jpeg",
+    "/assets/leaflet-1.9.4/leaflet.js": "text/javascript; charset=utf-8",
+    "/assets/leaflet-1.9.4/leaflet.css": "text/css; charset=utf-8",
+    "/assets/leaflet-1.9.4/LICENSE": "text/plain; charset=utf-8",
+    **{f"/assets/leaflet-1.9.4/images/{name}.png": "image/png" for name in (
+        "layers", "layers-2x", "marker-icon", "marker-icon-2x", "marker-shadow",
+    )},
 }
 
 def coordinates(lat, lon):
@@ -237,7 +243,8 @@ class AgroHandler(BaseHTTPRequestHandler):
             except FileNotFoundError:
                 self._json(404, {"error": "Imagem indisponível."})
                 return
-            policy = "public, max-age=604800, immutable" if path == "/assets/boa-vista-20261116.jpg" else "no-store"
+            versioned = path == "/assets/boa-vista-20261116.jpg" or path.startswith("/assets/leaflet-1.9.4/")
+            policy = "public, max-age=604800, immutable" if versioned else "no-store"
             self._set_headers(200, STATIC_ASSETS[path], policy)
             self.wfile.write(content)
             return
