@@ -392,7 +392,15 @@ class AgroHandler(BaseHTTPRequestHandler):
             west, south, east, north = bounds
             if not (-180 <= west < east <= 180 and -85 <= south < north <= 85):
                 raise ValueError("Limites inválidos para gerar a imagem.")
-            image, resolution = fetch_satellite_image(bounds, datetime.now(timezone.utc).date(), image_type)
+            utc_day = datetime.now(timezone.utc).date()
+            try:
+                image, resolution = fetch_satellite_image(bounds, utc_day, image_type)
+            except OSError as exc:
+                if image_type != "image/jpeg":
+                    raise
+                print(f"[sentinel-map] JPEG fallback: {type(exc).__name__} ({getattr(exc, 'code', '-')})", flush=True)
+                image_type = "image/png"
+                image, resolution = fetch_satellite_image(bounds, utc_day, image_type)
         except ValueError as exc:
             self._json(400, {"error": str(exc)})
         except LookupError:
