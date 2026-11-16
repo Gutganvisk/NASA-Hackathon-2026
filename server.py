@@ -31,6 +31,7 @@ from rotation_planner import (
 )
 
 from supabase_client import is_supabase_configured, salvar_plano
+from talhao_geometry import validate_plot
 
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -346,8 +347,11 @@ class AgroHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         content_length = int(self.headers.get("Content-Length", 0))
-        body_str = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
+        if path == "/api/validar-talhao" and content_length > 65536:
+            self._json(413, {"error": "Contorno grande demais."})
+            return
         try:
+            body_str = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
             body_data = json.loads(body_str)
         except ValueError:
             self._json(400, {"error": "JSON inválido."})
@@ -355,6 +359,26 @@ class AgroHandler(BaseHTTPRequestHandler):
 
         if not isinstance(body_data, dict):
             self._json(400, {"error": "Envie um objeto JSON."})
+            return
+        if path == "/api/validar-talhao":
+            car = body_data.get("car", "")
+            plot = body_data.get("talhao_id")
+            others = body_data.get("outros", {})
+            if (not isinstance(car, str) or plot not in ("T1", "T2", "T3") or not isinstance(others, dict)
+                    or any(key not in ("T1", "T2", "T3") or key == plot for key in others)):
+                self._json(400, {"error": "Parâmetros inválidos para o talhão."})
+                return
+            try:
+                geometry = query_land_demarcation(car)["geojson"]["geometry"] if car else None
+                result = validate_plot(body_data.get("contorno"), geometry, others)
+            except ValueError as exc:
+                self._json(400, {"error": str(exc)})
+            except LookupError:
+                self._json(404, {"error": "CAR não localizado."})
+            except OSError:
+                self._json(503, {"error": "Não foi possível validar o perímetro do CAR."})
+            else:
+                self._json(200, result)
             return
         if path in ("/api/demarcation", "/api/condicoes-completas", "/api/mapa-satelite"):
             self._area_request(path, body_data)
@@ -365,17 +389,21 @@ class AgroHandler(BaseHTTPRequestHandler):
             cultura = body_data.get("cultura_atual", "mandioca")
             objetivo = body_data.get("objetivo", "saude_solo")
             horizonte = body_data.get("periodo_anos", 3)
+            area = body_data.get("area_ha")
             if cultura not in ("mandioca", "milho", "feijao_caupi"):
                 self._json(400, {"error": "Selecione mandioca, milho ou feijão-caupi para simular."})
                 return
             if objetivo not in ("saude_solo", "renda", "clima") or horizonte not in (2, 3, 4, "2", "3", "4"):
                 self._json(400, {"error": "Selecione um objetivo válido e um horizonte de 2 a 4 anos."})
                 return
+            if area is not None and (type(area) not in (int, float) or not 0 <= area < float("inf")):
+                self._json(400, {"error": "Área do talhão inválida."})
+                return
 
             res = compare_three_rotation_strategies(
                 current_crop=cultura, objective=objetivo, horizon_years=int(horizonte)
             )
-            self._json(200, {"talhao_id": body_data.get("talhao_id"), **res})
+            self._json(200, {"talhao_id": body_data.get("talhao_id"), "area_ha": area, **res})
             return
 
         if path in ("/api/planos", "/api/cadastrar-produtor"):

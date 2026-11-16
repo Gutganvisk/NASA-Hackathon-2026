@@ -319,6 +319,34 @@
       position: relative;
     }
 
+    .plot-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .plot-controls button, .plot-controls select {
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      background: white;
+      color: var(--primary-dark);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px;
+      min-height: 40px;
+    }
+
+    .plot-controls button:disabled { opacity: .5; }
+    .plot-controls[hidden], .plot-controls [hidden], #plotReturnHub[hidden] { display: none; }
+    .plot-controls .plot-confirm { background: var(--primary-dark); color: white; }
+    .plot-vertex { background: white; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 2px #153a24; }
+    .plot-vertex-start { background: #84cc16; }
+    #plotStatus { font-size: 12px; margin-bottom: 10px; }
+    #plotStatus[data-error="true"] { color: #991b1b; }
+
     .map-status {
       position: absolute;
       top: 10px;
@@ -933,8 +961,18 @@
     <!-- ETAPA 4: ÁREA NO MAPA (IMAGE 1)                          -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen4" style="display: none;">
-      <h2 class="screen-heading">Confira sua área no mapa</h2>
-      <p class="screen-subheading">Busque pelo código CAR para visualizar o perímetro cadastrado.</p>
+      <h2 class="screen-heading">Desenhe seus talhões</h2>
+      <p class="screen-subheading">Escolha um talhão, aproxime a área e toque no mapa para traçar o contorno. Use o CAR para conferir os limites da propriedade.</p>
+
+      <div class="plot-controls">
+        <label for="plotSelector">Talhão</label>
+        <select id="plotSelector" onchange="selecionarTalhaoNoMapa(this.value)">
+          <option value="T1">T1</option>
+          <option value="T2">T2</option>
+          <option value="T3">T3</option>
+        </select>
+        <button type="button" id="plotStart" onclick="iniciarDesenhoTalhao()">Desenhar talhão</button>
+      </div>
 
       <div class="map-frame-box" id="mapFrameBoxEtapa4">
         <div id="mapEtapa4" style="width: 100%; height: 100%;"></div>
@@ -944,12 +982,20 @@
         </button>
       </div>
 
+      <div class="plot-controls" id="plotEditControls" hidden>
+        <button type="button" id="plotClose" onclick="fecharContornoTalhao()">Fechar contorno</button>
+        <button type="button" id="plotUndo" onclick="desfazerDesenhoTalhao()">Desfazer</button>
+        <button type="button" id="plotReset" onclick="recomecarDesenhoTalhao()">Recomeçar</button>
+        <button type="button" onclick="encerrarDesenhoTalhao()">Cancelar</button>
+        <button type="button" id="plotSave" class="plot-confirm" onclick="salvarDesenhoTalhao()">Salvar talhão</button>
+      </div>
+      <p id="plotStatus" role="status" aria-live="polite">Os desenhos ficam nesta aba.</p>
       <button class="btn-secondary" onclick="abrirModalBuscarCar()">Buscar perímetro pelo CAR</button>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div>
           <strong style="font-size: 13.5px; color: var(--text-main); display: block;">Delimitação dos talhões</strong>
-          <span style="font-size: 11px; color: var(--text-muted);">3 áreas dentro da propriedade</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Áreas usadas na simulação</span>
         </div>
         <span style="font-size: 12px; font-weight: 700; color: #15803D; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="abrirModalAjustarTalhoes()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -975,7 +1021,8 @@
         </div>
       </div>
 
-      <button class="btn-primary" onclick="irParaEtapa(5)">Usar delimitação sugerida →</button>
+      <button class="btn-primary" id="plotContinue" onclick="irParaEtapa(5)">Continuar para culturas →</button>
+      <button type="button" class="btn-secondary" id="plotReturnHub" onclick="encerrarDesenhoTalhao(); concluirCadastroEAbrirHub()" hidden>Voltar ao Hub</button>
     </section>
 
     <!-- ======================================================== -->
@@ -1396,6 +1443,8 @@
               </div>
             </div>
 
+            <p id="hubPlotSelection" style="font-size: 12px; margin-bottom: 8px;"></p>
+            <button class="btn-secondary" onclick="abrirEditorPeloHub()">Desenhar ou editar talhões</button>
             <button class="btn-primary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Simular Rotações →</button>
           </div>
 
@@ -1518,6 +1567,13 @@
       }
     };
     let talhaoSelecionado = 'T1';
+    const coresTalhoes = {T1: '#d9f99d', T2: '#fde047', T3: '#5eead4'};
+    const areasManuais = Object.fromEntries(Object.entries(dadosPropriedade.talhoes).map(([id, plot]) => [id, plot.area]));
+    const desenhosDaSessao = new Map();
+    const camadasTalhoes = new WeakMap();
+    let desenhosTalhoes = recuperarDesenhosTalhoes("");
+    let rascunhoTalhao = null;
+    let camadaRascunho = null;
 
     // ========================================================
     // GERENCIADOR CENTRAL DE MODAIS INTERATIVOS
@@ -1581,15 +1637,15 @@
       const html = `
         <div class="form-group">
           <label class="form-label">Área do Talhão 1 (ha):</label>
-          <input type="number" step="0.1" class="form-input" id="modAreaT1" value="${dadosPropriedade.talhoes.T1.area}">
+          <input type="number" step="0.1" class="form-input" id="modAreaT1" value="${dadosPropriedade.talhoes.T1.area}" ${desenhosTalhoes.T1 ? "readonly" : ""}>
         </div>
         <div class="form-group">
           <label class="form-label">Área do Talhão 2 (ha):</label>
-          <input type="number" step="0.1" class="form-input" id="modAreaT2" value="${dadosPropriedade.talhoes.T2.area}">
+          <input type="number" step="0.1" class="form-input" id="modAreaT2" value="${dadosPropriedade.talhoes.T2.area}" ${desenhosTalhoes.T2 ? "readonly" : ""}>
         </div>
         <div class="form-group">
           <label class="form-label">Área do Talhão 3 (ha):</label>
-          <input type="number" step="0.1" class="form-input" id="modAreaT3" value="${dadosPropriedade.talhoes.T3.area}">
+          <input type="number" step="0.1" class="form-input" id="modAreaT3" value="${dadosPropriedade.talhoes.T3.area}" ${desenhosTalhoes.T3 ? "readonly" : ""}>
         </div>
         <p style="font-size:11px; color:var(--text-muted);">Área consolidada total: <strong>${(dadosPropriedade.talhoes.T1.area + dadosPropriedade.talhoes.T2.area + dadosPropriedade.talhoes.T3.area).toFixed(1)} ha</strong></p>
       `;
@@ -1600,18 +1656,11 @@
         htmlConteudo: html,
         textoBotao: "Salvar Delimitação",
         onConfirmar: () => {
-          const a1 = parseFloat(document.getElementById('modAreaT1').value) || 6.2;
-          const a2 = parseFloat(document.getElementById('modAreaT2').value) || 5.0;
-          const a3 = parseFloat(document.getElementById('modAreaT3').value) || 5.8;
-
-          dadosPropriedade.talhoes.T1.area = a1;
-          dadosPropriedade.talhoes.T2.area = a2;
-          dadosPropriedade.talhoes.T3.area = a3;
-
-          document.getElementById('areaT1Visual').innerText = `${a1} ha`;
-          document.getElementById('areaT2Visual').innerText = `${a2} ha`;
-          document.getElementById('areaT3Visual').innerText = `${a3} ha`;
-          if (talhaoSelecionado === 'T1') document.getElementById('inputAreaTalhao').value = a1;
+          for (const id of Object.keys(dadosPropriedade.talhoes)) {
+            const area = document.getElementById('modArea' + id).valueAsNumber;
+            if (!desenhosTalhoes[id] && Number.isFinite(area) && area >= 0) areasManuais[id] = area;
+          }
+          sincronizarAreasDesenhadas();
         }
       });
     }
@@ -1640,8 +1689,13 @@
             const data = await resp.json();
             if (!resp.ok) throw new Error(data.error || "Consulta CAR indisponível.");
             if (data.cod_imovel) {
+              if (dadosPropriedade.cod_car !== data.cod_imovel) {
+                encerrarDesenhoTalhao();
+                desenhosTalhoes = recuperarDesenhosTalhoes(data.cod_imovel);
+              }
               perimetroCar = data.geojson;
               dadosPropriedade.cod_car = data.cod_imovel;
+              sincronizarAreasDesenhadas();
               [mapaEtapa4, hubMap].filter(Boolean).forEach(atualizarMapa);
               document.getElementById('inputMunicipio').value = data.municipio || "";
               if (data.area_consolidada_ha != null) {
@@ -1768,6 +1822,7 @@
     // NAVEGAÇÃO DE ETAPAS (1 A 9)
     // ========================================================
     function irParaEtapa(numero) {
+      if (numero !== 4 && rascunhoTalhao) encerrarDesenhoTalhao();
       etapaAtual = numero;
 
       // Oculta todas as telas normais e hub
@@ -1848,7 +1903,19 @@
 
     // Inicialização do Mapa na Etapa 4
     function initMapEtapa4() {
+      const existia = Boolean(mapaEtapa4);
       mapaEtapa4 = inicializarMapa('mapEtapa4', mapaEtapa4);
+      if (!existia && mapaEtapa4) {
+        mapaEtapa4.on('click', event => {
+          if (!rascunhoTalhao || rascunhoTalhao.fechado || rascunhoTalhao.validando) return;
+          if (rascunhoTalhao.pontos.length >= 128) {
+            avisoDesenho("Limite de 128 pontos. Feche o contorno para continuar.", true);
+            return;
+          }
+          alterarDesenho([...rascunhoTalhao.pontos, [event.latlng.lng, event.latlng.lat]], false);
+        });
+      }
+      atualizarControlesDesenho();
     }
 
     function inicializarMapa(id, map) {
@@ -1856,13 +1923,21 @@
         document.getElementById(id + 'Status').textContent = "Mapa indisponível. Recarregue a página.";
         return null;
       }
-      if (!map) {
-        map = L.map(id, {zoomControl: false, attributionControl: false}).setView([2.82, -60.67], 10);
+      const novo = !map;
+      if (novo) {
+        map = L.map(id, {zoomControl: false, attributionControl: false, minZoom: 4, maxZoom: 21}).setView([2.82, -60.67], 10);
         L.control.attribution({position: 'topright', prefix: false}).addTo(map);
         L.control.zoom({position: 'topright'}).addTo(map);
       }
       map.invalidateSize();
       atualizarMapa(map);
+      renderizarTalhoesNoMapa(map);
+      const bounds = camadasTalhoes.get(map).getBounds();
+      if (novo && bounds.isValid() && (id === 'hubMap' || !perimetroCar)) {
+        const sheet = document.getElementById('bottomSheet');
+        const bottomPadding = id === 'hubMap' ? Math.min(sheet.offsetHeight + 16, map.getSize().y * 0.7) : 24;
+        map.fitBounds(bounds, {paddingTopLeft: [24, 48], paddingBottomRight: [24, bottomPadding], maxZoom: 18});
+      }
       return map;
     }
 
@@ -1908,7 +1983,7 @@
           attribution: 'Copernicus Sentinel-2',
           alt: car ? 'Imagem de satélite da área do CAR' : 'Imagem de satélite de Boa Vista'
         }).addTo(map);
-        if (!layers.outline && container.clientWidth) {
+        if (!layers.outline && !Object.keys(desenhosTalhoes).length && container.clientWidth) {
           map.fitBounds(result.bounds, {padding: [8, 8]});
         }
         status.textContent = car ? "Perímetro do CAR" : "Boa Vista · visão regional";
@@ -1917,6 +1992,234 @@
         status.textContent = layers.outline ? "Perímetro CAR · imagem indisponível" : error.message;
         // Permite tentar de novo ao reabrir a tela do mapa.
         layers.car = null;
+      }
+    }
+
+    function formatarHectares(area) {
+      return area.toLocaleString('pt-BR', {maximumFractionDigits: 4}) + " ha";
+    }
+
+    function recuperarDesenhosTalhoes(car) {
+      if (desenhosDaSessao.has(car)) return desenhosDaSessao.get(car);
+      let desenhos = {};
+      try {
+        desenhos = JSON.parse(sessionStorage.getItem("crop-rotation:talhoes:" + car) || "{}");
+      } catch (error) {
+        // A edição continua disponível enquanto a página estiver aberta.
+      }
+      desenhosDaSessao.set(car, desenhos);
+      return desenhos;
+    }
+
+    function sincronizarAreasDesenhadas() {
+      for (const [id, plot] of Object.entries(dadosPropriedade.talhoes)) {
+        plot.area = desenhosTalhoes[id]?.area_ha ?? areasManuais[id];
+        document.getElementById('area' + id + 'Visual').textContent = formatarHectares(plot.area);
+      }
+      sincronizarUiTalhao(talhaoSelecionado);
+      atualizarControlesDesenho();
+      [mapaEtapa4, hubMap].filter(Boolean).forEach(renderizarTalhoesNoMapa);
+    }
+
+    function selecionarTalhaoNoMapa(id, map) {
+      if (rascunhoTalhao) return;
+      talhaoSelecionado = id;
+      document.getElementById('plotSelector').value = id;
+      sincronizarUiTalhao(id);
+      sincronizarTelaSimulacao();
+      atualizarControlesDesenho();
+      [mapaEtapa4, hubMap].filter(Boolean).forEach(renderizarTalhoesNoMapa);
+      if (map === hubMap && desenhosTalhoes[id]) {
+        document.getElementById('hubPlotSelection').textContent =
+          dadosPropriedade.talhoes[id].nome + " selecionado · " + formatarHectares(desenhosTalhoes[id].area_ha);
+        navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1]);
+      }
+    }
+
+    function renderizarTalhoesNoMapa(map) {
+      if (camadasTalhoes.has(map)) map.removeLayer(camadasTalhoes.get(map));
+      const group = L.featureGroup().addTo(map);
+      camadasTalhoes.set(map, group);
+      for (const [id, plot] of Object.entries(desenhosTalhoes)) {
+        if (map === mapaEtapa4 && rascunhoTalhao?.id === id) continue;
+        const active = id === talhaoSelecionado;
+        L.polygon(plot.contorno.map(([lon, lat]) => [lat, lon]), {
+          color: coresTalhoes[id], weight: active ? 4 : 2, fillOpacity: active ? 0.42 : 0.24,
+          interactive: map !== mapaEtapa4 || !rascunhoTalhao
+        }).bindTooltip(id + " · " + formatarHectares(plot.area_ha))
+          .on('click', () => selecionarTalhaoNoMapa(id, map)).addTo(group);
+      }
+    }
+
+    function abrirEditorPeloHub() {
+      document.getElementById('plotReturnHub').hidden = false;
+      irParaEtapa(4);
+    }
+
+    function avisoDesenho(message, erro = false) {
+      const status = document.getElementById('plotStatus');
+      status.textContent = message;
+      status.dataset.error = erro;
+    }
+
+    function atualizarControlesDesenho() {
+      const draft = rascunhoTalhao;
+      document.getElementById('plotContinue').disabled = Boolean(draft);
+      document.getElementById('plotSelector').value = talhaoSelecionado;
+      document.getElementById('plotSelector').disabled = Boolean(draft);
+      const start = document.getElementById('plotStart');
+      start.disabled = !mapaEtapa4;
+      start.hidden = Boolean(draft);
+      start.textContent = desenhosTalhoes[talhaoSelecionado] ? "Editar talhão" : "Desenhar talhão";
+      const controls = document.getElementById('plotEditControls');
+      controls.hidden = !draft;
+      const close = document.getElementById('plotClose');
+      close.hidden = !draft || draft.fechado;
+      close.disabled = !draft || draft.pontos.length < 3;
+      document.getElementById('plotUndo').disabled = !draft?.historico.length || draft.validando;
+      document.getElementById('plotReset').disabled = !draft?.pontos.length || draft.validando;
+      const save = document.getElementById('plotSave');
+      save.disabled = !draft?.fechado || draft.validando;
+      save.textContent = draft?.sobreposicao ? "Salvar com sobreposição" : "Salvar talhão";
+    }
+
+    function iniciarDesenhoTalhao() {
+      if (!mapaEtapa4 || rascunhoTalhao) return;
+      const desenho = desenhosTalhoes[talhaoSelecionado];
+      rascunhoTalhao = {
+        id: talhaoSelecionado, pontos: desenho?.contorno.slice(0, -1) || [],
+        fechado: Boolean(desenho), historico: [], validando: false
+      };
+      if (desenho) {
+        mapaEtapa4.fitBounds(desenho.contorno.map(([lon, lat]) => [lat, lon]), {padding: [24, 24], maxZoom: 17});
+      }
+      renderizarTalhoesNoMapa(mapaEtapa4);
+      desenharRascunho();
+    }
+
+    function alterarDesenho(pontos, fechado) {
+      const draft = rascunhoTalhao;
+      draft.historico.push({pontos: draft.pontos, fechado: draft.fechado});
+      if (draft.historico.length > 30) draft.historico.shift();
+      draft.pontos = pontos;
+      draft.fechado = fechado;
+      draft.sobreposicao = null;
+      desenharRascunho();
+    }
+
+    function fecharContornoTalhao() {
+      if (rascunhoTalhao?.pontos.length >= 3 && !rascunhoTalhao.fechado) {
+        alterarDesenho(rascunhoTalhao.pontos, true);
+      }
+    }
+
+    function desfazerDesenhoTalhao() {
+      const prior = rascunhoTalhao?.historico.pop();
+      if (!prior) return;
+      Object.assign(rascunhoTalhao, prior, {sobreposicao: null});
+      desenharRascunho();
+    }
+
+    function recomecarDesenhoTalhao() {
+      if (rascunhoTalhao?.pontos.length) alterarDesenho([], false);
+    }
+
+    function encerrarDesenhoTalhao() {
+      rascunhoTalhao = null;
+      if (camadaRascunho) {
+        camadaRascunho.remove();
+        camadaRascunho = null;
+      }
+      atualizarControlesDesenho();
+      if (mapaEtapa4) renderizarTalhoesNoMapa(mapaEtapa4);
+      avisoDesenho("Os desenhos ficam nesta aba.");
+    }
+
+    function areaPreviaTalhao(points) {
+      const rad = Math.PI / 180;
+      const sum = points.reduce((total, [lon, lat], index) => {
+        const [nextLon, nextLat] = points[(index + 1) % points.length];
+        return total + (nextLon - lon) * rad * (Math.sin(lat * rad) + Math.sin(nextLat * rad));
+      }, 0);
+      return Math.abs(sum) * 6371008.8 ** 2 / 20000;
+    }
+
+    function desenharRascunho() {
+      if (camadaRascunho) camadaRascunho.remove();
+      camadaRascunho = L.featureGroup().addTo(mapaEtapa4);
+      const draft = rascunhoTalhao;
+      const positions = draft.pontos.map(([lon, lat]) => [lat, lon]);
+      const shapeOptions = {color: '#fff', weight: 3, dashArray: '5 5', fillOpacity: 0.18, interactive: false};
+      (draft.fechado ? L.polygon(positions, shapeOptions) : L.polyline(positions, shapeOptions)).addTo(camadaRascunho);
+      positions.forEach((position, index) => {
+        const icon = L.divIcon({className: 'plot-vertex' + (index === 0 ? ' plot-vertex-start' : ''), iconSize: [24, 24]});
+        const marker = L.marker(position, {icon, draggable: !draft.validando, title: 'Ponto ' + (index + 1)});
+        marker.on('dragend', () => {
+          const {lat, lng} = marker.getLatLng();
+          const points = draft.pontos.map((point, i) => i === index ? [lng, lat] : point);
+          alterarDesenho(points, draft.fechado);
+        });
+        if (index === 0) marker.on('click', fecharContornoTalhao);
+        marker.addTo(camadaRascunho);
+      });
+      atualizarControlesDesenho();
+      if (draft.fechado) {
+        avisoDesenho("Área estimada: " + formatarHectares(areaPreviaTalhao(draft.pontos)) + " · Arraste os pontos para ajustar.");
+      } else {
+        avisoDesenho(draft.pontos.length >= 3
+          ? "Toque no primeiro ponto ou em Fechar contorno."
+          : "Toque no mapa para adicionar pontos ao contorno.");
+      }
+    }
+
+    function confirmarDesenhoTalhao(draft, contorno, area) {
+      desenhosTalhoes[draft.id] = {contorno, area_ha: area};
+      try {
+        sessionStorage.setItem("crop-rotation:talhoes:" + dadosPropriedade.cod_car, JSON.stringify(desenhosTalhoes));
+      } catch (error) {
+        // A versão em memória continua utilizável.
+      }
+      encerrarDesenhoTalhao();
+      sincronizarAreasDesenhadas();
+      avisoDesenho(draft.id + " salvo nesta aba · " + formatarHectares(area));
+    }
+
+    async function salvarDesenhoTalhao() {
+      const draft = rascunhoTalhao;
+      if (!draft?.fechado || draft.validando) return;
+      const contorno = [...draft.pontos, draft.pontos[0]];
+      if (draft.sobreposicao) {
+        confirmarDesenhoTalhao(draft, contorno, draft.sobreposicao.area_ha);
+        return;
+      }
+      const outros = Object.fromEntries(Object.entries(desenhosTalhoes)
+        .filter(([id]) => id !== draft.id).map(([id, plot]) => [id, plot.contorno]));
+      draft.validando = true;
+      desenharRascunho();
+      avisoDesenho("Validando contorno…");
+      let message, erro = false;
+      try {
+        const resp = await enviarJson('/api/validar-talhao', {
+          car: dadosPropriedade.cod_car, talhao_id: draft.id, contorno, outros
+        });
+        const result = await resp.json();
+        if (rascunhoTalhao !== draft) return;
+        if (!resp.ok) throw new Error(result.error || "Falha na validação.");
+        if (!result.sobreposicoes.length) {
+          confirmarDesenhoTalhao(draft, contorno, result.area_ha);
+          return;
+        }
+        draft.sobreposicao = result;
+        message = "Este contorno se sobrepõe a " + result.sobreposicoes.join(", ") + ". Ajuste os pontos ou confirme a sobreposição.";
+      } catch (error) {
+        message = error.message;
+        erro = true;
+      } finally {
+        if (rascunhoTalhao === draft) {
+          draft.validando = false;
+          desenharRascunho();
+          avisoDesenho(message, erro);
+        }
       }
     }
 
@@ -2019,23 +2322,11 @@
     }
 
     function atualizarAreaTalhaoInput(val) {
-      const a = parseFloat(val) || 0;
-      const t = dadosPropriedade.talhoes[talhaoSelecionado];
-      if (t) {
-        t.area = a;
-        if (talhaoSelecionado === 'T1') {
-          const v = document.getElementById('areaT1Visual');
-          if (v) v.innerText = `${a} ha`;
-        }
-        if (talhaoSelecionado === 'T2') {
-          const v = document.getElementById('areaT2Visual');
-          if (v) v.innerText = `${a} ha`;
-        }
-        if (talhaoSelecionado === 'T3') {
-          const v = document.getElementById('areaT3Visual');
-          if (v) v.innerText = `${a} ha`;
-        }
-      }
+      if (desenhosTalhoes[talhaoSelecionado]) return;
+      const area = Math.max(0, parseFloat(val) || 0);
+      areasManuais[talhaoSelecionado] = area;
+      dadosPropriedade.talhoes[talhaoSelecionado].area = area;
+      document.getElementById('area' + talhaoSelecionado + 'Visual').textContent = formatarHectares(area);
     }
 
     function continuarEtapa3Para4() {
@@ -2375,10 +2666,11 @@
     // Executar Simulação da Etapa 8 (Rotação recomendada dinâmica)
     async function executarSimulacaoEtapa8() {
       planoAtual = null;
-      const t = dadosPropriedade.talhoes[simulacaoConfig.talhaoId] || { nome: "Talhão 1", area: 6.2 };
+      const talhaoId = simulacaoConfig.talhaoId;
+      const t = dadosPropriedade.talhoes[talhaoId];
       
       const sub = document.getElementById('screen8Subheading');
-      if (sub) sub.innerText = `Sugestão adaptada para o ${t.nome} (${t.area} ha) com base em critérios agronômicos gerais.`;
+      if (sub) sub.innerText = `Simulando a rotação para o ${t.nome}…`;
 
       try {
         const parametros = {
@@ -2386,11 +2678,15 @@
           periodo_anos: simulacaoConfig.periodo,
           objetivo: simulacaoConfig.objetivo
         };
-        const resp = await enviarJson("/api/simular-rotacao", {...parametros, talhao_id: simulacaoConfig.talhaoId});
+        const resp = await enviarJson("/api/simular-rotacao", {
+          ...parametros, talhao_id: talhaoId, area_ha: t.area
+        });
         const data = await resp.json();
+        if (talhaoId !== simulacaoConfig.talhaoId) return;
         
         // Estratégia recomendada prioritária
         if (!resp.ok) throw new Error(data.error || "Simulação indisponível.");
+        if (sub) sub.innerText = `${t.nome} · ${formatarHectares(data.area_ha)} · Comparação agronômica`;
         const strat = data.estrategias.find(s => s.id === data.recomendacao_prioritaria.estrategia_destaque_id);
         if (strat) {
           planoAtual = {
@@ -2498,6 +2794,8 @@
       await executarSimulacaoEtapa8();
       navegarHubTab('comp', document.querySelectorAll('.tab-btn')[2]);
     }
+
+    sincronizarAreasDesenhadas();
 
     let periodoComparacaoAnos = 3;
 
