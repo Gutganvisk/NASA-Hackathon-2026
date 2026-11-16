@@ -253,6 +253,40 @@
     }
 
     /* Botões */
+    .ui-icon {
+      display: inline-block;
+      width: 1.1em;
+      height: 1.1em;
+      vertical-align: -0.18em;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .crop-choice {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 40px;
+      padding: 6px 4px;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      background: var(--surface-white);
+      color: var(--primary-dark);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .crop-choice.active {
+      border-color: var(--primary-dark);
+      background: var(--primary-dark);
+      color: #fff;
+    }
+
+    .crop-choice .ui-icon { width: 16px; height: 16px; }
+
     .btn-primary {
       background-color: var(--primary-dark);
       color: #ffffff;
@@ -951,7 +985,7 @@
           <span style="font-size: 11px; font-weight: 700; color: var(--primary-dark); display: block;">Possui Código CAR?</span>
           <span style="font-size: 10px; color: var(--text-muted);">Buscar demarcação oficial no SICAR</span>
         </div>
-        <span style="font-size: 12px; background: var(--accent-lime-light); color: var(--primary-dark); font-weight: 700; padding: 4px 10px; border-radius: 999px;">🔍 Buscar</span>
+        <span style="font-size: 12px; background: var(--accent-lime-light); color: var(--primary-dark); font-weight: 700; padding: 4px 10px; border-radius: 999px;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#search"></use></svg> Buscar</span>
       </div>
 
       <button class="btn-primary" onclick="continuarEtapa3Para4()">Continuar para o mapa →</button>
@@ -1042,32 +1076,32 @@
       <!-- Grid de 6 Culturas -->
       <div class="crop-grid" id="cropGridEtapa5">
         <div class="crop-badge-card" data-crop="mandioca" onclick="alternarCulturaBadge('mandioca')">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
           <div class="crop-circle" style="background: #CA8A04;">MA</div>
           <span class="crop-name">Mandioca</span>
         </div>
         <div class="crop-badge-card" data-crop="milho" onclick="alternarCulturaBadge('milho')">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
           <div class="crop-circle" style="background: #EAB308;">MI</div>
           <span class="crop-name">Milho</span>
         </div>
         <div class="crop-badge-card" data-crop="feijao_caupi" onclick="alternarCulturaBadge('feijao_caupi')">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
           <div class="crop-circle" style="background: #B45309;">FC</div>
           <span class="crop-name">Feijão-caupi</span>
         </div>
         <div class="crop-badge-card" data-crop="banana" onclick="alternarCulturaBadge('banana')">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
           <div class="crop-circle" style="background: #16A34A;">BA</div>
           <span class="crop-name">Banana</span>
         </div>
         <div class="crop-badge-card" data-crop="arroz" onclick="alternarCulturaBadge('arroz')">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
           <div class="crop-circle" style="background: #65A30D;">AR</div>
           <span class="crop-name">Arroz</span>
         </div>
         <div class="crop-badge-card" data-crop="hortalicas" onclick="alternarCulturaBadge('hortalicas')">
-          <div class="check-icon">✓</div>
+          <div class="check-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
           <div class="crop-circle" style="background: #15803D;">HO</div>
           <span class="crop-name">Hortaliças</span>
         </div>
@@ -1085,12 +1119,12 @@
         <label class="form-label">Histórico do talhão</label>
         <div class="form-input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="abrirModalHistorico()">
           <span id="labelHistoricoTalhao">Mandioca há 10 meses; antes, pousio.</span>
-          <span style="color: var(--accent-lime); font-weight: 700;">✏️</span>
+          <span style="color: var(--accent-lime); font-weight: 700;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#pencil"></use></svg></span>
         </div>
       </div>
 
       <div style="font-size: 11.5px; color: var(--primary-dark); font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-        <span>✓</span> <span id="labelContagemCulturas">3 culturas selecionadas para o Talhão 1</span>
+        <span><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></span> <span id="labelContagemCulturas">3 culturas selecionadas para o Talhão 1</span>
       </div>
 
       <button class="btn-primary" onclick="irParaEtapa(6)">Analisar condições da área →</button>
@@ -1177,9 +1211,9 @@
       <div style="margin-bottom: 16px; font-size: 10.5px; color: var(--text-muted);">
         <span style="display: block; margin-bottom: 6px;">Fontes dos dados:</span>
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()">🔗 NASA POWER</span>
-          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()">🔗 ESA Sentinel</span>
-          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()">🔗 Embrapa</span>
+          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#link-2"></use></svg> NASA POWER</span>
+          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#link-2"></use></svg> ESA Sentinel</span>
+          <span style="background: var(--surface-white); border: 1px solid var(--border-soft); padding: 3px 8px; border-radius: 999px; cursor: pointer;" onclick="abrirModalInfo()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#link-2"></use></svg> Embrapa</span>
         </div>
       </div>
 
@@ -1207,9 +1241,9 @@
       <div class="form-group">
         <label class="form-label">Cultura de partida (safra atual deste talhão):</label>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="simCulturaPartidaGrid">
-          <button type="button" class="pill-btn active" id="btnSimCropMandioca" onclick="selecionarCulturaPartidaSim('mandioca')">🥔 Mandioca</button>
-          <button type="button" class="pill-btn" id="btnSimCropMilho" onclick="selecionarCulturaPartidaSim('milho')">🌽 Milho</button>
-          <button type="button" class="pill-btn" id="btnSimCropCaupi" onclick="selecionarCulturaPartidaSim('feijao_caupi')">🫘 Caupi</button>
+          <button type="button" class="pill-btn crop-choice active" aria-pressed="true" data-crop-choice="mandioca" id="btnSimCropMandioca" onclick="selecionarCulturaPartidaSim('mandioca')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#sprout"></use></svg> Mandioca</button>
+          <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="milho" id="btnSimCropMilho" onclick="selecionarCulturaPartidaSim('milho')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#corn"></use></svg> Milho</button>
+          <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="feijao_caupi" id="btnSimCropCaupi" onclick="selecionarCulturaPartidaSim('feijao_caupi')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#bean"></use></svg> Caupi</button>
         </div>
       </div>
 
@@ -1227,7 +1261,7 @@
               <span style="font-size: 11px; color: var(--text-muted);">Aumentar matéria orgânica, palhada e reduzir desgaste</span>
             </div>
           </div>
-          <div style="width: 20px; height: 20px; border-radius: 50%; background: #65A30D; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;">✓</div>
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #65A30D; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
         </div>
 
         <!-- Opção 2 -->
@@ -1290,7 +1324,7 @@
         </div>
       </div>
 
-      <button class="btn-primary" onclick="irParaEtapa(8)">Gerar recomendação 🔄</button>
+      <button class="btn-primary" onclick="irParaEtapa(8)">Gerar recomendação <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#refresh-cw"></use></svg></button>
     </section>
 
     <!-- ======================================================== -->
@@ -1300,7 +1334,7 @@
 
       <!-- Banner de Compatibilidade -->
       <div style="background: #ECFCCB; border: 1.5px solid #BEF264; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-        <div style="background: #15803D; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">✓</div>
+        <div style="background: #15803D; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></div>
         <div>
           <strong style="font-size: 13px; color: #15803D; display: block;" id="screen8ScoreTitulo">Comparação agronômica</strong>
           <span style="font-size: 11px; color: #166534;" id="screen8ScoreSub">Calculando estratégias…</span>
@@ -1356,8 +1390,8 @@
       <div class="warm-card" style="margin-bottom: 12px;">
         <strong style="font-size: 13px; color: #92400E; display: block; margin-bottom: 6px;">Pontos de atenção</strong>
         <div style="font-size: 11.5px; color: #78350F; line-height: 1.45;">
-          <div style="margin-bottom: 6px;">☀️ <strong>Calor entre março e maio:</strong> Evite deixar o solo descoberto nesse período.</div>
-          <div>🌧️ <strong>Chuva irregular:</strong> Consulte o ZARC e confirme a umidade no campo antes do plantio.</div>
+          <div style="margin-bottom: 6px;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#sun"></use></svg> <strong>Calor entre março e maio:</strong> Evite deixar o solo descoberto nesse período.</div>
+          <div><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#cloud-rain"></use></svg> <strong>Chuva irregular:</strong> Consulte o ZARC e confirme a umidade no campo antes do plantio.</div>
         </div>
       </div>
 
@@ -1382,11 +1416,11 @@
       <button class="btn-secondary" onclick="abrirModalCompartilhar()">→ Compartilhar resultado</button>
 
       <button class="btn-link-action" onclick="concluirCadastroEAbrirHub()" style="color: #15803D; font-weight: 700;">
-        🗺️ Abrir Mapa & Comparativo Completo (Hub)
+        <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#map"></use></svg> Abrir Mapa & Comparativo Completo (Hub)
       </button>
 
       <button class="btn-link-action" onclick="irParaEtapa(7)">
-        🔄 Criar uma nova simulação
+        <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#refresh-cw"></use></svg> Criar uma nova simulação
       </button>
 
       <button class="btn-link-action" style="color: var(--text-muted); font-size: 12px; margin-top: 6px;" onclick="irParaEtapa(1)">
@@ -1408,11 +1442,11 @@
 
         <!-- Abas de Navegação das Ações -->
         <div class="sheet-header-tabs">
-          <button class="tab-btn active" onclick="navegarHubTab('diag', this)">📊 Diagnóstico</button>
-          <button class="tab-btn" onclick="navegarHubTab('sim', this)">🎯 Simulação</button>
-          <button class="tab-btn" onclick="navegarHubTab('comp', this)">⚖️ 3 Estratégias</button>
-          <button class="tab-btn" onclick="navegarHubTab('agenda', this)">📅 Agenda</button>
-          <button class="tab-btn" onclick="navegarHubTab('dossie', this)">📋 Plano</button>
+          <button class="tab-btn active" onclick="navegarHubTab('diag', this)"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#chart-no-axes-column"></use></svg> Diagnóstico</button>
+          <button class="tab-btn" onclick="navegarHubTab('sim', this)"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#target"></use></svg> Simulação</button>
+          <button class="tab-btn" onclick="navegarHubTab('comp', this)"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#scale"></use></svg> 3 Estratégias</button>
+          <button class="tab-btn" onclick="navegarHubTab('agenda', this)"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#calendar-days"></use></svg> Agenda</button>
+          <button class="tab-btn" onclick="navegarHubTab('dossie', this)"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#clipboard-list"></use></svg> Plano</button>
         </div>
 
         <div class="sheet-body">
@@ -1456,9 +1490,9 @@
             <div class="form-group">
               <label class="form-label">Cultura Principal da sua Terra (Cultura X):</label>
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="gridCulturaX">
-                <button type="button" class="pill-btn active" onclick="selecionarCulturaPrimaria('milho', this)">🌽 Milho</button>
-                <button type="button" class="pill-btn" onclick="selecionarCulturaPrimaria('mandioca', this)">🥔 Mandioca</button>
-                <button type="button" class="pill-btn" onclick="selecionarCulturaPrimaria('feijao_caupi', this)">🫘 Caupi</button>
+                <button type="button" class="pill-btn crop-choice active" aria-pressed="true" data-crop-choice="milho" onclick="selecionarCulturaPrimaria('milho')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#corn"></use></svg> Milho</button>
+                <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="mandioca" onclick="selecionarCulturaPrimaria('mandioca')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#sprout"></use></svg> Mandioca</button>
+                <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="feijao_caupi" onclick="selecionarCulturaPrimaria('feijao_caupi')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#bean"></use></svg> Caupi</button>
               </div>
             </div>
 
@@ -1486,7 +1520,7 @@
               </div>
             </div>
 
-            <button class="btn-primary" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo de Estratégias ⚖️</button>
+            <button class="btn-primary" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo de Estratégias <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#scale"></use></svg></button>
           </div>
 
           <!-- 3. COMPARATIVO TRIPLO (NASA SPACE APPS 2026) -->
@@ -1518,8 +1552,8 @@
               <h2 style="font-size: 24px; font-weight: 800; color: #fff; margin: 2px 0 6px;">Alto</h2>
               <p style="font-size: 11.5px; color: #BBF7D0;">A rotação sugerida pode proteger o solo e distribuir riscos.</p>
             </div>
-            <button class="btn-primary" onclick="abrirModalSalvarPlano()">💾 Salvar este Plano no Banco</button>
-            <button class="btn-secondary" onclick="abrirModalCompartilhar()">📤 Compartilhar com Assistência</button>
+            <button class="btn-primary" onclick="abrirModalSalvarPlano()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#save"></use></svg> Salvar este Plano no Banco</button>
+            <button class="btn-secondary" onclick="abrirModalCompartilhar()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#upload"></use></svg> Compartilhar com Assistência</button>
             <button class="btn-secondary" onclick="irParaEtapa(1)">Voltar ao Início</button>
           </div>
         </div>
@@ -1536,7 +1570,7 @@
             <h3 class="modal-title" id="modalTitle">Título do Modal</h3>
             <p class="modal-subtitle" id="modalSubtitle">Subtítulo e instruções</p>
           </div>
-          <button class="modal-close-btn" onclick="fecharModal()">✕</button>
+          <button class="modal-close-btn" onclick="fecharModal()" aria-label="Fechar"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#x"></use></svg></button>
         </div>
         <div class="modal-body" id="modalBody">
           <!-- Conteúdo inserido dinamicamente -->
@@ -1550,6 +1584,10 @@
   </div>
 
   <script>
+    function iconeInterface(name) {
+      return `<svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#${name}"></use></svg>`;
+    }
+
     // Estado Global da Aplicação
     let etapaAtual = 1;
     let mapaEtapa4 = null;
@@ -1703,7 +1741,7 @@
               }
               setTimeout(() => {
                 abrirModal({
-                  titulo: "✓ Imóvel Localizado!",
+                  titulo: "Imóvel localizado",
                   subtitulo: "SICAR - Cadastro Ambiental Rural",
                   htmlConteudo: `
                     <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:12px; color:#166534;">
@@ -1800,13 +1838,13 @@
         <div style="font-size:12px; line-height:1.5; color:var(--text-muted);">
           <strong style="color:var(--primary-dark);">Crop Rotation (NASA Space Apps 2026)</strong><br>
           Adapting Farms with NASA Data.<br><br>
-          🛰️ <strong>Bases de Dados Orbitais:</strong>
+          <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#satellite"></use></svg> <strong>Bases de Dados Orbitais:</strong>
           <ul style="padding-left:18px; margin:6px 0 10px;">
             <li>NASA POWER Agroclimatology (30 anos e NRT)</li>
             <li>NASA GMAO MERRA-2 (Catchment Land Surface Model)</li>
             <li>ESA Copernicus Sentinel-2 L2A</li>
           </ul>
-          🌾 <strong>Validação Agronômica:</strong> Calibrado com os boletins técnicos da Embrapa Roraima.
+          <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#wheat"></use></svg> <strong>Validação Agronômica:</strong> Calibrado com os boletins técnicos da Embrapa Roraima.
         </div>
       `;
 
@@ -2384,39 +2422,10 @@
     }
 
     function sincronizarBotoesCulturaPartida(crop) {
-      const mapa = {
-        'mandioca': 'btnSimCropMandioca',
-        'milho': 'btnSimCropMilho',
-        'feijao_caupi': 'btnSimCropCaupi'
-      };
-      Object.keys(mapa).forEach(k => {
-        const btn = document.getElementById(mapa[k]);
-        if (btn) {
-          if (k === crop) {
-            btn.classList.add('active');
-            btn.style.background = 'var(--primary-dark)';
-            btn.style.color = '#fff';
-            btn.style.borderColor = 'var(--primary-dark)';
-          } else {
-            btn.classList.remove('active');
-            btn.style.background = 'var(--surface-white)';
-            btn.style.color = 'var(--text-main)';
-            btn.style.borderColor = 'var(--border-soft)';
-          }
-        }
-      });
-
-      culturaPrimariaSelecionada = crop;
-      const hubBtns = document.querySelectorAll('#gridCulturaX .pill-btn');
-      hubBtns.forEach(b => {
-        const txt = b.innerText.toLowerCase();
-        if ((crop === 'milho' && txt.includes('milho')) ||
-            (crop === 'mandioca' && txt.includes('mandioca')) ||
-            (crop === 'feijao_caupi' && (txt.includes('caupi') || txt.includes('feijao')))) {
-          b.classList.add('active');
-        } else {
-          b.classList.remove('active');
-        }
+      document.querySelectorAll('.crop-choice').forEach(button => {
+        const selected = button.dataset.cropChoice === crop;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-pressed', selected);
       });
     }
 
@@ -2459,7 +2468,7 @@
                 <span style="font-size: 10.5px; color: var(--text-muted);">${c.funcao}</span>
               </div>
             </div>
-            <span style="color: ${isChecked ? '#15803D' : '#94A3B8'}; font-weight: 700; font-size: 14px;">${isChecked ? '✓' : '○'}</span>
+            <span style="color: ${isChecked ? '#15803D' : '#94A3B8'}; font-weight: 700; font-size: 14px;">${iconeInterface(isChecked ? 'check' : 'circle')}</span>
           </div>
         `;
       });
@@ -2504,7 +2513,7 @@
         sel.style.background = '#F7FEE7';
         const indicator = sel.querySelector('div:last-child');
         if (indicator) {
-          indicator.innerHTML = '✓';
+          indicator.innerHTML = iconeInterface('check');
           indicator.style.border = 'none';
           indicator.style.background = '#65A30D';
           indicator.style.color = '#fff';
@@ -2652,13 +2661,8 @@
       }
     }
 
-    let culturaPrimariaSelecionada = "milho";
-
-    function selecionarCulturaPrimaria(cultura, btn) {
-      culturaPrimariaSelecionada = cultura;
+    function selecionarCulturaPrimaria(cultura) {
       simulacaoConfig.culturaPartida = cultura;
-      document.querySelectorAll('#gridCulturaX .pill-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
       sincronizarBotoesCulturaPartida(cultura);
       atualizarResumoSimulacao();
     }
@@ -2725,11 +2729,11 @@
 
           const justEl = document.getElementById('screen8Justificativa');
           if (justEl && strat.evidencias_cientificas) {
-            justEl.innerHTML = strat.evidencias_cientificas.map(e => `<div style="margin-bottom: 4px;">✓ ${e}</div>`).join('');
+            justEl.innerHTML = strat.evidencias_cientificas.map(e => `<div style="margin-bottom: 4px;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg> ${e}</div>`).join('');
           }
           const riscoEl = document.getElementById('screen8Riscos');
           if (riscoEl && strat.riscos_climaticos_e_operacionais) {
-            riscoEl.innerHTML = strat.riscos_climaticos_e_operacionais.map(r => `<div style="margin-bottom: 4px;">⚠️ ${r}</div>`).join('');
+            riscoEl.innerHTML = strat.riscos_climaticos_e_operacionais.map(r => `<div style="margin-bottom: 4px;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#triangle-alert"></use></svg> ${r}</div>`).join('');
           }
 
           // Atualiza Screen 9 (Resultado Final)
@@ -2773,9 +2777,9 @@
                 <strong style="font-size:13px; display:block; margin-bottom:8px;">${s.nome}</strong>
                 <div style="display:flex; gap:6px; margin-bottom:10px;">${stepsHtml}</div>
                 <div style="font-size:11px; line-height:1.4; color:var(--text-muted); background:#F8FAF6; padding:8px 10px; border-radius:8px;">
-                  <strong>🔬 Evidências:</strong> ${s.evidencias_cientificas[0]}<br>
-                  <strong>⚠️ Riscos:</strong> ${s.riscos_climaticos_e_operacionais[0]}<br>
-                  <strong>❓ Incerteza:</strong> ${s.incertezas_biofisicas[0]}
+                  <strong><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#flask-conical"></use></svg> Evidências:</strong> ${s.evidencias_cientificas[0]}<br>
+                  <strong><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#triangle-alert"></use></svg> Riscos:</strong> ${s.riscos_climaticos_e_operacionais[0]}<br>
+                  <strong><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#circle-help"></use></svg> Incerteza:</strong> ${s.incertezas_biofisicas[0]}
                 </div>
               </div>
             `;

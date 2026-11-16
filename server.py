@@ -35,7 +35,11 @@ from talhao_geometry import validate_plot
 
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BRAND_ASSETS = {"/assets/crop-rotation-logo.png", "/assets/crop-rotation-icon.png"}
+STATIC_ASSETS = {
+    "/assets/crop-rotation-logo.png": "image/png",
+    "/assets/crop-rotation-icon.png": "image/png",
+    "/assets/ui-icons.svg": "image/svg+xml",
+}
 
 def coordinates(lat, lon):
     try:
@@ -192,14 +196,14 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(200, {"status": "ok"})
             return
 
-        if path in BRAND_ASSETS:
+        if path in STATIC_ASSETS:
             try:
                 with open(os.path.join(BASE_DIR, path.lstrip("/")), "rb") as asset:
                     content = asset.read()
             except FileNotFoundError:
                 self._json(404, {"error": "Imagem indisponível."})
                 return
-            self._set_headers(200, "image/png")
+            self._set_headers(200, STATIC_ASSETS[path])
             self.wfile.write(content)
             return
 
