@@ -776,11 +776,52 @@
       flex-direction: column;
     }
 
-    #hubMap {
-      width: 100%;
-      height: 100%;
-      z-index: 1;
+    .hub-heading { display: none; }
+    .hub-layout { position: relative; flex: 1; min-height: 0; }
+    .hub-map-frame { position: absolute; inset: 0; background: #dce4d6; overflow: hidden; }
+    #hubMap { width: 100%; height: 100%; z-index: 1; background: #dce4d6; }
+
+    .hub-context {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 16px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary-dark);
     }
+
+    .hub-context .form-input { width: auto; max-width: 50%; padding: 6px 8px; font-size: 12px; }
+    .bottom-sheet:has(.sheet-body[hidden]) .hub-context { display: none; }
+
+    .hub-entry-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 14px;
+      padding: 14px;
+      text-align: left;
+      border: 0;
+      border-radius: 16px;
+      background: var(--primary-dark);
+      color: white;
+      cursor: pointer;
+    }
+
+    .hub-entry-card:hover { background: var(--primary-hover); }
+    .hub-entry-card strong { display: block; font-size: 14px; }
+    .hub-entry-card small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.4; color: #e1eddd; }
+    .hub-entry-card > .ui-icon { width: 20px; height: 20px; }
+    .hub-entry-card:focus-visible, .bottom-sheet :focus-visible { outline: 2px solid #507811; outline-offset: 3px; }
+
+    .hub-empty { padding: 12px 0; font-size: 13px; color: var(--text-muted); line-height: 1.45; }
+    #cardsEstrategiasContainer[hidden], [data-hub-result][hidden], [data-hub-empty][hidden], #plotOpenHub[hidden] { display: none; }
+    .hub-strategy-sequence { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .hub-strategy-step { flex: 1 1 74px; text-align: center; border: 1px solid var(--border-soft); border-radius: 8px; padding: 6px 4px; }
+    .hub-strategy-step strong { display: block; font-size: 11px; overflow-wrap: anywhere; color: var(--primary-dark); }
 
     .hub-floating-controls {
       position: absolute;
@@ -929,7 +970,7 @@
     .workspace-car-status:not(:empty) { margin-top: 8px; }
     .workspace-car-status[data-error="true"] { color: #991b1b; }
     .workspace-car-details { margin-top: 8px; }
-    .workspace-pane [hidden], .workspace-map [hidden] { display: none; }
+    .workspace-pane [hidden], .workspace-map [hidden], .hub-map-frame [hidden] { display: none; }
 
     .workspace-retry {
       position: absolute;
@@ -967,7 +1008,42 @@
     @media (min-width: 768px) {
       .mobile-wrapper { max-width: 1440px; }
       .mobile-wrapper > .screen-content:not(#screen4) { width: min(100%, 560px); align-self: center; }
-      .mobile-wrapper > #screenHub { width: min(100%, 560px); align-self: center; }
+      .mobile-wrapper > #screenHub {
+        --hub-pane-height: clamp(470px, 72dvh, 735px);
+        width: 100%;
+        height: auto;
+        flex: 1;
+        padding: 24px clamp(20px, 3vw, 44px) 32px;
+        overflow: visible;
+      }
+      .hub-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+      .hub-heading .btn-secondary { width: auto; margin-top: 0; padding-block: 8px; }
+      .hub-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(340px, 1fr);
+        align-items: start;
+        gap: clamp(16px, 2vw, 28px);
+      }
+      .hub-map-frame {
+        position: relative;
+        height: var(--hub-pane-height);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+      }
+      #screenHub .bottom-sheet {
+        position: static;
+        min-width: 0;
+        height: var(--hub-pane-height);
+        max-height: none;
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        box-shadow: var(--shadow-soft);
+      }
+      #hubSheetToggle, .hub-inline-editor { display: none; }
+      .hub-context { padding: 14px 16px 10px; }
+      .sheet-header-tabs { flex-wrap: wrap; gap: 4px; overflow: visible; }
+      .sheet-header-tabs .tab-btn { padding: 6px 8px; }
+      .sheet-body { padding-top: 14px; }
       .progress-bar-container { width: min(100%, 560px); align-self: center; }
       .progress-bar-container.workspace-progress { display: none !important; }
       .workspace-nav { display: flex; gap: 4px; }
@@ -1010,6 +1086,18 @@
       .workspace-actions .btn-secondary { padding-block: 9px; }
     }
 
+    @media (min-width: 1280px) {
+      #screenHub[data-hub-tab="comp"] .hub-layout {
+        grid-template-columns: minmax(280px, .8fr) minmax(0, 2fr);
+      }
+      #cardsEstrategiasContainer:not([hidden]) {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .hub-strategy-sequence { display: grid; grid-template-columns: minmax(0, 1fr); }
+    }
+
     @media (max-width: 359px) {
       .screen-content { padding-inline: 12px; }
       .crop-grid, .metric-triad, .diag-grid-6 { gap: 6px; }
@@ -1039,6 +1127,7 @@
       <nav class="workspace-nav" aria-label="Navegação do planejamento">
         <button type="button" id="navWorkspace" onclick="irParaEtapa(4)">Propriedade e talhões</button>
         <button type="button" id="navSimulation" onclick="irParaEtapa(7)" disabled>Simulação</button>
+        <button type="button" id="navHub" onclick="concluirCadastroEAbrirHub()" disabled>Hub do produtor</button>
       </nav>
       <button class="header-btn" onclick="abrirModalInfo()" aria-label="Sobre o Crop Rotation">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -1214,6 +1303,7 @@
             <button type="button" class="btn-primary desktop-only" id="plotGoSimulation" onclick="irParaEtapa(7)">Ir para simulação →</button>
             <button type="button" class="btn-primary mobile-only" id="plotContinue" onclick="irParaEtapa(5)">Continuar para culturas →</button>
             <button type="button" class="btn-secondary desktop-only" id="plotGuidedFlow" onclick="irParaEtapa(5)">Ver culturas e diagnóstico</button>
+            <button type="button" class="btn-secondary" id="plotOpenHub" onclick="concluirCadastroEAbrirHub()" hidden>Abrir Hub do produtor</button>
             <button type="button" class="btn-secondary" id="plotReturnHub" onclick="confirmarSaidaDoEditor(concluirCadastroEAbrirHub)" hidden>Voltar ao Hub</button>
           </div>
         </aside>
@@ -1575,12 +1665,17 @@
         As estratégias são propostas de manejo. Valide a janela local de plantio com a assistência técnica.
       </p>
 
-      <button class="btn-primary" onclick="abrirModalSalvarPlano()">+ Salvar este plano</button>
-      <button class="btn-secondary" onclick="abrirModalCompartilhar()">→ Compartilhar resultado</button>
-
-      <button class="btn-link-action" onclick="concluirCadastroEAbrirHub()" style="color: #15803D; font-weight: 700;">
-        <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#map"></use></svg> Abrir Mapa & Comparativo Completo (Hub)
+      <button type="button" class="hub-entry-card" id="openHubFromResults" onclick="concluirCadastroEAbrirHub()">
+        <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#map"></use></svg>
+        <span>
+          <strong>Abrir Hub do produtor</strong>
+          <small>Veja o mapa, os alertas, as estratégias e a agenda do seu talhão.</small>
+        </span>
+        <span aria-hidden="true">→</span>
       </button>
+
+      <button class="btn-secondary" onclick="abrirModalSalvarPlano()">Salvar este plano</button>
+      <button class="btn-link-action" onclick="abrirModalCompartilhar()">Compartilhar resultado</button>
 
       <button class="btn-link-action" onclick="irParaEtapa(7)">
         <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#refresh-cw"></use></svg> Criar uma nova simulação
@@ -1593,15 +1688,29 @@
 
     <!-- ======================================================== -->
     <section id="screenHub" style="display: none;">
-      <!-- Mapa Tela Cheia -->
-      <div id="hubMap"></div>
-      <div class="map-status" id="hubMapStatus" role="status">Carregando mapa…</div>
+      <div class="hub-heading">
+        <div>
+          <h2 class="screen-heading">Hub do produtor</h2>
+          <p class="screen-subheading">Acompanhe as condições do talhão e planeje a próxima rotação.</p>
+        </div>
+        <button type="button" class="btn-secondary" onclick="abrirEditorPeloHub()">Editar talhões</button>
+      </div>
+      <div class="hub-layout">
+        <div class="hub-map-frame">
+          <div id="hubMap" aria-label="Mapa dos talhões no Hub"></div>
+          <div class="map-status" id="hubMapStatus" role="status">Carregando mapa…</div>
+          <button type="button" class="workspace-retry" id="retryHubImage" onclick="atualizarMapa(hubMap)" hidden>Tentar carregar imagem</button>
+        </div>
 
-      <!-- Bottom Sheet Deslizante -->
       <div class="bottom-sheet" id="bottomSheet">
         <button type="button" class="sheet-handle-area" id="hubSheetToggle" aria-label="Recolher painel" aria-expanded="true" aria-controls="hubSheetBody" onclick="toggleBottomSheet()">
           <span class="sheet-handle"></span>
         </button>
+
+        <div class="hub-context">
+          <p id="hubPlotSelection"></p>
+          <select class="form-input" data-talhao-diagnostico aria-label="Selecionar talhão no Hub" onchange="selecionarTalhaoNoMapa(this.value)" hidden></select>
+        </div>
 
         <!-- Abas de Navegação das Ações -->
         <div class="sheet-header-tabs">
@@ -1615,7 +1724,6 @@
         <div class="sheet-body" id="hubSheetBody">
           <!-- 1. DIAGNÓSTICO -->
           <div id="tabContentDiag">
-            <select class="form-input" data-talhao-diagnostico aria-label="Talhão para diagnóstico" onchange="selecionarTalhaoNoMapa(this.value)" hidden></select>
             <div class="hero-metric-card" role="status" data-diagnostico>Consultando dados…</div>
 
             <aside id="hubWaterAlert" class="hub-water-alert" role="status" hidden>
@@ -1660,8 +1768,7 @@
               </div>
             </div>
 
-            <p id="hubPlotSelection" style="font-size: 12px; margin-bottom: 8px;"></p>
-            <button class="btn-secondary" onclick="abrirEditorPeloHub()">Desenhar ou editar talhões</button>
+            <button class="btn-secondary hub-inline-editor" onclick="abrirEditorPeloHub()">Desenhar ou editar talhões</button>
             <button class="btn-primary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Simular Rotações →</button>
           </div>
 
@@ -1708,20 +1815,19 @@
 
           <!-- 3. COMPARATIVO TRIPLO (NASA SPACE APPS 2026) -->
           <div id="tabContentComp" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark);">3 Estratégias Comparadas</h3>
-              <span style="font-size: 10.5px; background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 999px; font-weight: 700;">NASA Space Apps</span>
+            <h3 class="screen-heading" style="font-size: 17px;">Comparar estratégias</h3>
+            <div data-hub-empty>
+              <p class="hub-empty" id="hubComparisonMessage">Gere uma simulação para comparar as três estratégias do talhão selecionado.</p>
+              <button class="btn-secondary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Abrir simulação</button>
             </div>
-            <div id="cardsEstrategiasContainer">
-              <!-- Renderizado via /api/simular-rotacao -->
-            </div>
+            <div id="cardsEstrategiasContainer" data-hub-result hidden></div>
             <button class="btn-primary" onclick="navegarHubTab('agenda', document.querySelectorAll('.tab-btn')[3])">Ver Agenda Fenoclimática →</button>
           </div>
 
           <!-- 4. AGENDA FENOCLIMÁTICA -->
           <div id="tabContentAgenda" style="display: none;">
             <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin-bottom: 4px;">Agenda de Manejo em Roraima</h3>
-            <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Toque em qualquer evento para configurar lembretes ou ações.</p>
+            <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Abra um item da agenda para ver a orientação.</p>
             <div id="agendaLista">
               <!-- Renderizado via /api/agenda-manejo -->
             </div>
@@ -1730,16 +1836,20 @@
 
           <!-- 5. PLANO OPERACIONAL -->
           <div id="tabContentDossie" style="display: none;">
-            <div class="card" style="background: var(--primary-card); color: #fff; padding: 14px 18px; margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 700; color: #86EFAC;">POTENCIAL DE MELHORIA</span>
-              <h2 style="font-size: 24px; font-weight: 800; color: #fff; margin: 2px 0 6px;">Alto</h2>
-              <p style="font-size: 11.5px; color: #BBF7D0;">A rotação sugerida pode proteger o solo e distribuir riscos.</p>
+            <h3 class="screen-heading" style="font-size: 17px;">Plano de rotação</h3>
+            <div data-hub-empty>
+              <p class="hub-empty">Gere uma simulação para salvar ou compartilhar o plano do talhão selecionado.</p>
+              <button class="btn-secondary" onclick="navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1])">Abrir simulação</button>
             </div>
-            <button class="btn-primary" onclick="abrirModalSalvarPlano()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#save"></use></svg> Salvar este Plano no Banco</button>
-            <button class="btn-secondary" onclick="abrirModalCompartilhar()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#upload"></use></svg> Compartilhar com Assistência</button>
+            <div data-hub-result hidden>
+              <p class="hub-empty" id="hubPlanTitle"></p>
+              <button class="btn-primary" onclick="abrirModalSalvarPlano()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#save"></use></svg> Salvar plano</button>
+              <button class="btn-secondary" onclick="abrirModalCompartilhar()"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#upload"></use></svg> Compartilhar resumo</button>
+            </div>
             <button class="btn-secondary" onclick="irParaEtapa(1)">Voltar ao Início</button>
           </div>
         </div>
+      </div>
       </div>
     </section>
 
@@ -1988,6 +2098,8 @@
     }
 
     let planoAtual = null;
+    let requisicaoSimulacao = 0;
+    let etapaAntesDoHub = 4;
 
     function abrirModalSalvarPlano() {
       const plano = planoAtual;
@@ -2085,8 +2197,9 @@
     }
 
     function atualizarNavegacaoWorkspace() {
-      const selected = etapaAtual === 4 ? 'navWorkspace' : etapaAtual >= 7 && etapaAtual <= 9 ? 'navSimulation' : '';
-      for (const id of ['navWorkspace', 'navSimulation']) {
+      const selected = etapaAtual === 10 ? 'navHub'
+        : etapaAtual === 4 ? 'navWorkspace' : etapaAtual >= 7 && etapaAtual <= 9 ? 'navSimulation' : '';
+      for (const id of ['navWorkspace', 'navSimulation', 'navHub']) {
         const button = document.getElementById(id);
         if (id === selected) button.setAttribute('aria-current', 'page');
         else button.removeAttribute('aria-current');
@@ -2180,7 +2293,7 @@
       else if (etapaAtual === 5) irParaEtapa(4);
       else if (etapaAtual === 4) irParaEtapa(layoutDesktop.matches ? 1 : 3);
       else if (etapaAtual === 3) irParaEtapa(1);
-      else if (etapaAtual === 10) irParaEtapa(9);
+      else if (etapaAtual === 10) irParaEtapa(etapaAntesDoHub);
     }
 
     // Inicialização do Mapa na Etapa 4
@@ -2212,7 +2325,7 @@
         L.control.attribution({position: 'topright', prefix: false}).addTo(map);
         L.control.zoom({position: 'topright'}).addTo(map);
         adicionarAtalhoGoogleMaps(map);
-        if (id === 'mapEtapa4' && typeof ResizeObserver !== 'undefined') {
+        if (typeof ResizeObserver !== 'undefined') {
           new ResizeObserver(([entry]) => {
             if (entry.contentRect.width && entry.contentRect.height) {
               map.invalidateSize({debounceMoveend: true});
@@ -2230,7 +2343,7 @@
       renderizarTalhoesNoMapa(map);
       const bounds = camadasTalhoes.get(map).getBounds();
       if (novo && bounds.isValid() && (id === 'hubMap' || !perimetroCar)) {
-        const bottomPadding = id === 'hubMap' ? Math.min(map.getSize().y * 0.64, 560) + 16 : 24;
+        const bottomPadding = id === 'hubMap' && !layoutDesktop.matches ? Math.min(map.getSize().y * 0.64, 560) + 16 : 24;
         map.fitBounds(bounds, {paddingTopLeft: [24, 48], paddingBottomRight: [24, bottomPadding], maxZoom: 18, animate: false});
       }
       return map;
@@ -2330,8 +2443,7 @@
       if (previous?.detail) map.removeLayer(previous.detail);
 
       const status = document.getElementById(container.id + 'Status');
-      const retry = map === mapaEtapa4 || container.id === 'mapEtapa4'
-        ? document.getElementById('retryWorkspaceImage') : null;
+      const retry = document.getElementById(container.id === 'mapEtapa4' ? 'retryWorkspaceImage' : 'retryHubImage');
       if (retry) retry.hidden = true;
       const layers = {car, outline: mesmaPropriedade ? previous.outline : null};
       camadasMapa.set(map, layers);
@@ -2498,7 +2610,8 @@
       const draft = rascunhoTalhao;
       document.getElementById('mapFrameBoxEtapa4').classList.toggle('is-drawing', Boolean(draft));
       const temTalhao = Object.keys(desenhosTalhoes).length > 0;
-      for (const id of ['plotContinue', 'plotGoSimulation', 'plotGuidedFlow', 'navSimulation']) {
+      document.getElementById('plotOpenHub').hidden = !temTalhao || !document.getElementById('plotReturnHub').hidden;
+      for (const id of ['plotContinue', 'plotGoSimulation', 'plotGuidedFlow', 'navSimulation', 'navHub']) {
         document.getElementById(id).disabled = !temTalhao;
       }
       document.querySelectorAll('#savedPlots button').forEach(button => { button.disabled = Boolean(draft); });
@@ -2739,7 +2852,8 @@
       renderizarCulturasComparacao();
       atualizarResumoSimulacao();
       document.getElementById('hubPlotSelection').textContent =
-        plot ? plot.nome + ' selecionado · ' + formatarHectares(plot.area) : '';
+        plot ? plot.nome + ' · ' + formatarHectares(plot.area) : '';
+      atualizarResultadoHub();
     }
 
     function sincronizarBotoesCulturaPartida(crop) {
@@ -2870,6 +2984,18 @@
 
     // Abertura do Hub Principal (Mapa Completo com Bottom Sheet)
     function concluirCadastroEAbrirHub() {
+      if (rascunhoTalhao) {
+        confirmarSaidaDoEditor(concluirCadastroEAbrirHub);
+        return;
+      }
+      if (etapaAtual === 10) {
+        navegarHubTab('diag', document.querySelector('.tab-btn'));
+        return;
+      }
+      const voltar = document.getElementById('plotReturnHub');
+      if (etapaAtual !== 4 || voltar.hidden) etapaAntesDoHub = etapaAtual;
+      voltar.hidden = true;
+      atualizarControlesDesenho();
       garantirTalhaoSelecionado();
       if (!talhaoSelecionado) {
         irParaEtapa(4);
@@ -2905,10 +3031,31 @@
     }
 
     function toggleBottomSheet() {
+      if (layoutDesktop.matches) return;
       definirPainelHub(document.getElementById('hubSheetBody').hidden);
     }
 
+    layoutDesktop.addEventListener('change', () => {
+      if (etapaAtual === 10) definirPainelHub(true);
+    });
+
+    function resultadoPertenceAoTalhao() {
+      const plan = planoAtual;
+      return Boolean(plan && plan.talhao === desenhosTalhoes[talhaoSelecionado]
+        && plan.parametros.cultura_atual === simulacaoConfig.culturaPartida
+        && plan.parametros.objetivo === simulacaoConfig.objetivo
+        && plan.parametros.periodo_anos === simulacaoConfig.periodo);
+    }
+
+    function atualizarResultadoHub() {
+      const disponivel = resultadoPertenceAoTalhao();
+      document.querySelectorAll('[data-hub-result]').forEach(el => { el.hidden = !disponivel; });
+      document.querySelectorAll('[data-hub-empty]').forEach(el => { el.hidden = disponivel; });
+      document.getElementById('hubPlanTitle').textContent = disponivel ? planoAtual.titulo : '';
+    }
+
     function navegarHubTab(tabId, btn) {
+      document.getElementById('screenHub').dataset.hubTab = tabId;
       document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button === btn));
 
       const tabs = ['diag', 'sim', 'comp', 'agenda', 'dossie'];
@@ -2921,6 +3068,7 @@
       document.getElementById('hubSheetBody').scrollTop = 0;
       if (tabId === 'diag') carregarDiagnostico();
       if (tabId === 'sim') sincronizarTelaSimulacao();
+      if (tabId === 'comp' || tabId === 'dossie') atualizarResultadoHub();
       if (tabId === 'agenda') {
         consultaAgenda ??= carregarAgenda().catch(() => {
           document.getElementById('agendaLista').textContent = "Agenda indisponível.";
@@ -3042,25 +3190,31 @@
 
     // Executar Simulação da Etapa 8 (Rotação recomendada dinâmica)
     async function executarSimulacaoEtapa8() {
+      const request = ++requisicaoSimulacao;
       planoAtual = null;
+      atualizarResultadoHub();
       const talhaoId = simulacaoConfig.talhaoId;
+      const plot = desenhosTalhoes[talhaoId];
       const t = dadosPropriedade.talhoes[talhaoId];
       if (!t || !simulacaoConfig.culturaPartida) return;
       
       const sub = document.getElementById('screen8Subheading');
       if (sub) sub.innerText = `Simulando a rotação para o ${t.nome}…`;
+      const parametros = {
+        cultura_atual: simulacaoConfig.culturaPartida,
+        periodo_anos: simulacaoConfig.periodo,
+        objetivo: simulacaoConfig.objetivo
+      };
+      const consultaAtual = () => request === requisicaoSimulacao && talhaoId === simulacaoConfig.talhaoId
+        && plot === desenhosTalhoes[talhaoId] && parametros.cultura_atual === simulacaoConfig.culturaPartida
+        && parametros.objetivo === simulacaoConfig.objetivo && parametros.periodo_anos === simulacaoConfig.periodo;
 
       try {
-        const parametros = {
-          cultura_atual: simulacaoConfig.culturaPartida,
-          periodo_anos: simulacaoConfig.periodo,
-          objetivo: simulacaoConfig.objetivo
-        };
         const resp = await enviarJson("/api/simular-rotacao", {
           ...parametros, talhao_id: talhaoId, area_ha: t.area
         });
         const data = await resp.json();
-        if (talhaoId !== simulacaoConfig.talhaoId) return;
+        if (!consultaAtual()) return;
         
         // Estratégia recomendada prioritária
         if (!resp.ok) throw new Error(data.error || "Simulação indisponível.");
@@ -3068,6 +3222,8 @@
         const strat = data.estrategias.find(s => s.id === data.recomendacao_prioritaria.estrategia_destaque_id);
         if (strat) {
           planoAtual = {
+            talhao: plot,
+            titulo: strat.nome,
             parametros: {...parametros, estrategia_id: strat.id},
             resumo: [strat.nome, ...strat.sequencia.map(fase => fase.tempo + " · " + fase.cultura)].join("\n")
           };
@@ -3135,31 +3291,34 @@
             let stepsHtml = "";
             s.sequencia.forEach(st => {
               stepsHtml += `
-                <div style="flex:1; text-align:center; background:#fff; border:1px solid var(--border-soft); border-radius:10px; padding:6px 4px;">
+                <div class="hub-strategy-step">
                   <div style="font-size:9.5px; font-weight:700; color:var(--text-muted);">${st.tempo}</div>
-                  <div style="font-size:11px; font-weight:800; color:var(--primary-dark);">${st.cultura}</div>
+                  <strong>${st.cultura}</strong>
                 </div>
               `;
             });
 
             container.innerHTML += `
-              <div style="border-radius:16px; padding:14px; margin-bottom:12px; cursor:pointer; ${isSelected}" onclick="abrirModalNotificacao('calor')">
+              <article style="min-width:0; border-radius:16px; padding:12px; margin-bottom:12px; ${isSelected}">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                   <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:${badgeBg}; color:${badgeTxt};">${s.tipo}</span>
-                  <span style="font-size:11px; font-weight:800; color:var(--primary-dark);">${s.tipo}</span>
                 </div>
                 <strong style="font-size:13px; display:block; margin-bottom:8px;">${s.nome}</strong>
-                <div style="display:flex; gap:6px; margin-bottom:10px;">${stepsHtml}</div>
+                <div class="hub-strategy-sequence">${stepsHtml}</div>
                 <div style="font-size:11px; line-height:1.4; color:var(--text-muted); background:#F8FAF6; padding:8px 10px; border-radius:8px;">
                   <strong><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#flask-conical"></use></svg> Evidências:</strong> ${s.evidencias_cientificas[0]}<br>
                   <strong><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#triangle-alert"></use></svg> Riscos:</strong> ${s.riscos_climaticos_e_operacionais[0]}<br>
                   <strong><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#circle-help"></use></svg> Incerteza:</strong> ${s.incertezas_biofisicas[0]}
                 </div>
-              </div>
+              </article>
             `;
           });
         }
+        document.getElementById('hubComparisonMessage').textContent = "Gere uma simulação para comparar as três estratégias do talhão selecionado.";
+        atualizarResultadoHub();
       } catch (err) {
+        if (!consultaAtual()) return;
+        document.getElementById('hubComparisonMessage').textContent = err.message;
         document.getElementById('screen8ScoreSub').textContent = err.message;
         for (const id of ['screen8Timeline', 'screen8Justificativa', 'screen8Riscos', 'cardsEstrategiasContainer']) {
           document.getElementById(id).textContent = "";
@@ -3170,7 +3329,9 @@
     // Executar Comparativo Triplo de Rotação (NASA Space Apps 2026)
     async function executarComparativoTriplo() {
       await executarSimulacaoEtapa8();
-      navegarHubTab('comp', document.querySelectorAll('.tab-btn')[2]);
+      if (etapaAtual === 10 && document.getElementById('screenHub').dataset.hubTab === 'sim') {
+        navegarHubTab('comp', document.querySelectorAll('.tab-btn')[2]);
+      }
     }
 
     sincronizarAreasDesenhadas();
