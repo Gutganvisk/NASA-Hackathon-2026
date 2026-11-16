@@ -10,7 +10,7 @@ Plataforma unificada para planejamento sincronizado de rotação de culturas, se
 
 - **NASA POWER (AG)** fornece chuva acumulada, temperatura, radiação e saturação relativa do solo. O diagnóstico solicita os últimos 14 dias UTC completos e informa quantos dias tinham dados em cada variável.
 - **Copernicus Sentinel-2 L2A** fornece NDVI médio sobre o perímetro CAR, para o dia mais recente com pixels terrestres válidos nos últimos 30 dias. O NDVI indica vigor da vegetação verde. A declividade e a análise de solo exigem fontes adicionais.
-- **CAR** usa o perímetro do Supabase, uma cópia local quando disponível ou a consulta WFS. Área consolidada e reserva legal exigem camadas próprias. O mapa exibe a geometria cadastrada.
+- **CAR** usa o perímetro do Supabase, uma cópia local quando disponível ou a consulta WFS. Área consolidada e reserva legal exigem camadas próprias. O mapa exibe a geometria cadastrada sobre uma imagem Sentinel-2 solicitada pelo backend. A imagem regional cobre Boa Vista até que o usuário consulte um CAR.
 - **Agenda** aponta para o [ZARC vigente de Roraima](https://www.gov.br/agricultura/pt-br/assuntos/riscos-seguro/programa-nacional-de-zoneamento-agricola-de-risco-climatico/portarias/safra-vigente/roraima/roraima-rr) e para as orientações da Embrapa. Confira município, solo, grupo de cultivar e nível de risco para definir a janela de plantio. A simulação compara estratégias qualitativas de manejo.
 
 ## Supabase e Cloud Run

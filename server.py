@@ -3,6 +3,7 @@ Servidor HTTP REST para a Plataforma de Prescrição Agroclimática e Rotação 
 Padrão Mobile-First e conformidade com o desafio NASA Space Apps 2026.
 """
 
+import base64
 import json
 import os
 import sys
@@ -19,8 +20,8 @@ if sys.stdout.encoding != "utf-8":
     except Exception:
         pass
 
-from copernicus_sentinel2 import calculate_ndvi_analysis
-from land_demarcation import query_land_by_point, query_land_demarcation
+from copernicus_sentinel2 import calculate_ndvi_analysis, fetch_satellite_image
+from land_demarcation import exterior_points, query_land_by_point, query_land_demarcation
 from nasa_power import fetch_recent_weather, fetch_weather_data
 from passaporte_biologico import MATRIZ_PASSAPORTE
 from rotation_planner import (
@@ -264,6 +265,9 @@ class AgroHandler(BaseHTTPRequestHandler):
         if any(key in params and not isinstance(params[key], str) for key in ("car", "uf")):
             self._json(400, {"error": "CAR e UF devem ser textos."})
             return
+        if path == "/api/mapa-satelite":
+            self._satellite_map(params.get("car"))
+            return
         # 2. Endpoint: /api/demarcation (Busca por CAR ou Coordenada)
         if path == "/api/demarcation":
             car_code = params.get("car", None)
@@ -313,6 +317,31 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(200, area_diagnosis(lat, lon, geometry))
             return
 
+    def _satellite_map(self, car):
+        # Vista pública de Boa Vista enquanto o usuário não informa um CAR.
+        bounds = (-60.9, 2.6, -60.44, 3.04)
+        try:
+            if car:
+                geometry = query_land_demarcation(car)["geojson"]["geometry"]
+                x, y = zip(*[(point[0], point[1]) for point in exterior_points(geometry)])
+                padding = max(max(x) - min(x), max(y) - min(y), 0.002) * 0.3
+                bounds = (min(x) - padding, min(y) - padding, max(x) + padding, max(y) + padding)
+            west, south, east, north = bounds
+            if not (-180 <= west < east <= 180 and -85 <= south < north <= 85):
+                raise ValueError("Limites inválidos para gerar a imagem.")
+            image = fetch_satellite_image(bounds, datetime.now(timezone.utc).date())
+        except ValueError as exc:
+            self._json(400, {"error": str(exc)})
+        except LookupError:
+            self._json(404, {"error": "Imóvel CAR não localizado."})
+        except OSError:
+            self._json(503, {"error": "Imagem de satélite indisponível."})
+        else:
+            self._json(200, {
+                "bounds": [[south, west], [north, east]],
+                "image": "data:image/png;base64," + base64.b64encode(image).decode("ascii"),
+            })
+
     def do_POST(self):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
@@ -327,7 +356,7 @@ class AgroHandler(BaseHTTPRequestHandler):
         if not isinstance(body_data, dict):
             self._json(400, {"error": "Envie um objeto JSON."})
             return
-        if path in ("/api/demarcation", "/api/condicoes-completas"):
+        if path in ("/api/demarcation", "/api/condicoes-completas", "/api/mapa-satelite"):
             self._area_request(path, body_data)
             return
 

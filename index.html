@@ -319,6 +319,20 @@
       position: relative;
     }
 
+    .map-status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 450;
+      max-width: calc(100% - 120px);
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--primary-dark);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
     .map-fab-btn {
       position: absolute;
       bottom: 12px;
@@ -843,7 +857,7 @@
           </div>
           <div>
             <strong style="font-size: 13.5px; color: var(--text-main);">Mapeie seus talhões</strong>
-            <p style="font-size: 11.5px; color: var(--text-muted);">Desenhe cada área de plantio</p>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Confira o perímetro cadastrado pelo CAR</p>
           </div>
         </div>
 
@@ -919,27 +933,18 @@
     <!-- ETAPA 4: ÁREA NO MAPA (IMAGE 1)                          -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen4" style="display: none;">
-      <h2 class="screen-heading">Marque sua área no mapa</h2>
-      <p class="screen-subheading">Toque nos pontos do limite da propriedade. Ajuste se precisar.</p>
+      <h2 class="screen-heading">Confira sua área no mapa</h2>
+      <p class="screen-subheading">Busque pelo código CAR para visualizar o perímetro cadastrado.</p>
 
       <div class="map-frame-box" id="mapFrameBoxEtapa4">
         <div id="mapEtapa4" style="width: 100%; height: 100%;"></div>
-        <button class="map-fab-btn" onclick="abrirModalAjustarTalhoes()" title="Ajustar Mapa">
+        <div class="map-status" id="mapEtapa4Status" role="status">Carregando mapa…</div>
+        <button class="map-fab-btn" onclick="abrirModalAjustarTalhoes()" title="Ajustar áreas dos talhões">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#153A24" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
         </button>
       </div>
 
-      <div class="card" style="padding: 14px 16px; margin-bottom: 14px;">
-        <span style="font-size: 10.5px; color: var(--text-muted); font-weight: 600;">Área selecionada</span>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2px 0 6px;">
-          <strong style="font-size: 16px; color: var(--primary-dark);">Toque no mapa</strong>
-          <span style="font-size: 12px; font-weight: 700; color: #15803D; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">+ Marcar área</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted);">
-          <span style="background: #F1F5F9; padding: 2px 8px; border-radius: 999px;">🔗 Imagem de satélite ESA</span>
-          <span>Atualização: 3 dias</span>
-        </div>
-      </div>
+      <button class="btn-secondary" onclick="abrirModalBuscarCar()">Buscar perímetro pelo CAR</button>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div>
@@ -1346,6 +1351,7 @@
     <section id="screenHub" style="display: none;">
       <!-- Mapa Tela Cheia -->
       <div id="hubMap"></div>
+      <div class="map-status" id="hubMapStatus" role="status">Carregando mapa…</div>
 
       <!-- Bottom Sheet Deslizante -->
       <div class="bottom-sheet" id="bottomSheet">
@@ -1501,7 +1507,8 @@
     let hubMap = null;
     let perimetroCar = null;
     let diagnosticoAtual = null;
-    const camadasCar = new WeakMap();
+    const camadasMapa = new WeakMap();
+    let imagemMapa = null;
     let dadosPropriedade = {
       cod_car: "",
       talhoes: {
@@ -1634,8 +1641,8 @@
             if (!resp.ok) throw new Error(data.error || "Consulta CAR indisponível.");
             if (data.cod_imovel) {
               perimetroCar = data.geojson;
-              [mapaEtapa4, hubMap].filter(Boolean).forEach(exibirPerimetroCar);
               dadosPropriedade.cod_car = data.cod_imovel;
+              [mapaEtapa4, hubMap].filter(Boolean).forEach(atualizarMapa);
               document.getElementById('inputMunicipio').value = data.municipio || "";
               if (data.area_consolidada_ha != null) {
                 document.getElementById('inputArea').value = data.area_consolidada_ha;
@@ -1841,21 +1848,76 @@
 
     // Inicialização do Mapa na Etapa 4
     function initMapEtapa4() {
-      if (mapaEtapa4) {
-        mapaEtapa4.invalidateSize();
-        return;
-      }
-      mapaEtapa4 = L.map('mapEtapa4', { zoomControl: false }).setView([1.8984, -60.6906], 14);
-
-      exibirPerimetroCar(mapaEtapa4);
+      mapaEtapa4 = inicializarMapa('mapEtapa4', mapaEtapa4);
     }
 
-    function exibirPerimetroCar(map) {
-      if (!perimetroCar) return;
-      if (camadasCar.has(map)) map.removeLayer(camadasCar.get(map));
-      const layer = L.geoJSON(perimetroCar, { style: { color: '#15803d', fillOpacity: 0.15 } }).addTo(map);
-      camadasCar.set(map, layer);
-      map.fitBounds(layer.getBounds(), { padding: [18, 18], maxZoom: 17 });
+    function inicializarMapa(id, map) {
+      if (!window.L) {
+        document.getElementById(id + 'Status').textContent = "Mapa indisponível. Recarregue a página.";
+        return null;
+      }
+      if (!map) {
+        map = L.map(id, {zoomControl: false, attributionControl: false}).setView([2.82, -60.67], 10);
+        L.control.attribution({position: 'topright', prefix: false}).addTo(map);
+        L.control.zoom({position: 'topright'}).addTo(map);
+      }
+      map.invalidateSize();
+      atualizarMapa(map);
+      return map;
+    }
+
+    function consultarImagemMapa(car) {
+      if (imagemMapa && imagemMapa.car === car) return imagemMapa.promise;
+      const request = {car};
+      request.promise = enviarJson('/api/mapa-satelite', car ? {car} : {}).then(async response => {
+        if (!response.ok) throw new Error("Imagem de satélite indisponível.");
+        return response.json();
+      }).catch(error => {
+        if (imagemMapa === request) imagemMapa = null;
+        throw error;
+      });
+      imagemMapa = request;
+      return request.promise;
+    }
+
+    async function atualizarMapa(map) {
+      const container = map.getContainer();
+      // O segundo mapa pode estar oculto quando um novo CAR é informado.
+      if (!container.clientWidth) return;
+      const car = dadosPropriedade.cod_car;
+      const previous = camadasMapa.get(map);
+      if (previous?.car === car) return;
+      if (previous?.outline) map.removeLayer(previous.outline);
+      if (previous?.image) map.removeLayer(previous.image);
+
+      const status = document.getElementById(container.id + 'Status');
+      const layers = {car};
+      camadasMapa.set(map, layers);
+
+      if (perimetroCar) {
+        layers.outline = L.geoJSON(perimetroCar, {
+          style: {color: '#e5fe74', weight: 3, fillColor: '#166534', fillOpacity: 0.22}
+        }).addTo(map);
+        map.fitBounds(layers.outline.getBounds(), {padding: [24, 24], maxZoom: 17});
+      }
+      status.textContent = "Carregando imagem de satélite…";
+      try {
+        const result = await consultarImagemMapa(car);
+        if (camadasMapa.get(map) !== layers) return;
+        layers.image = L.imageOverlay(result.image, result.bounds, {
+          attribution: 'Copernicus Sentinel-2',
+          alt: car ? 'Imagem de satélite da área do CAR' : 'Imagem de satélite de Boa Vista'
+        }).addTo(map);
+        if (!layers.outline && container.clientWidth) {
+          map.fitBounds(result.bounds, {padding: [8, 8]});
+        }
+        status.textContent = car ? "Perímetro do CAR" : "Boa Vista · visão regional";
+      } catch (error) {
+        if (camadasMapa.get(map) !== layers) return;
+        status.textContent = layers.outline ? "Perímetro CAR · imagem indisponível" : error.message;
+        // Permite tentar de novo ao reabrir a tela do mapa.
+        layers.car = null;
+      }
     }
 
     const NOMES_CULTURAS = {
@@ -2200,13 +2262,7 @@
     }
 
     function initHubMap() {
-      if (hubMap) {
-        hubMap.invalidateSize();
-        return;
-      }
-      hubMap = L.map('hubMap', { zoomControl: false }).setView([1.8984, -60.6906], 14);
-
-      exibirPerimetroCar(hubMap);
+      hubMap = inicializarMapa('hubMap', hubMap);
     }
 
     let sheetExpanded = false;

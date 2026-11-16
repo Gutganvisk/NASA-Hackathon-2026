@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from math import isfinite
+from math import asinh, isfinite, radians, tan
 from typing import Any, Dict
 
 from http_transport import urlopen
@@ -35,6 +35,7 @@ CLIENT_ID = os.environ.get("CDSE_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("CDSE_CLIENT_SECRET", "")
 TOKEN_URL = os.environ.get("CDSE_TOKEN_URL", "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token")
 STATISTICS_URL = os.environ.get("CDSE_STATISTICS_URL", "https://sh.dataspace.copernicus.eu/statistics/v1")
+PROCESS_URL = os.environ.get("CDSE_PROCESS_URL", "https://sh.dataspace.copernicus.eu/process/v1")
 
 # Cache em memória do token OAuth2
 _TOKEN_CACHE: Dict[str, Any] = {"token": None, "expires_at": 0}
@@ -90,6 +91,53 @@ function evaluatePixel(sample) {
   };
 }
 """
+
+
+TRUE_COLOR_EVALSCRIPT = """//VERSION=3
+function setup() {
+  return {input: ["B04", "B03", "B02", "dataMask"], output: {bands: 4}};
+}
+function evaluatePixel(sample) {
+  return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02, sample.dataMask];
+}
+"""
+
+
+@lru_cache(maxsize=24)
+def fetch_satellite_image(bounds, utc_day):
+    """Solicita uma imagem na projeção utilizada pelo mapa Leaflet."""
+    if not CLIENT_ID or not CLIENT_SECRET:
+        raise OSError("Credenciais CDSE ausentes")
+    west, south, east, north = bounds
+    earth_radius = 6378137
+    bbox = [earth_radius * radians(west), earth_radius * asinh(tan(radians(south))),
+            earth_radius * radians(east), earth_radius * asinh(tan(radians(north)))]
+    width_m, height_m = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    dimension = min(640 / max(width_m, height_m), 0.1)
+    width, height = max(1, round(width_m * dimension)), max(1, round(height_m * dimension))
+    payload = {
+        "input": {
+            "bounds": {"bbox": bbox, "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/3857"}},
+            "data": [{"type": "sentinel-2-l2a", "dataFilter": {
+                "mosaickingOrder": "leastCC",
+                "timeRange": {
+                    "from": f"{utc_day - timedelta(days=60)}T00:00:00Z",
+                    "to": f"{utc_day}T00:00:00Z",
+                },
+            }}],
+        },
+        "output": {"width": width, "height": height,
+                   "responses": [{"identifier": "default", "format": {"type": "image/png"}}]},
+        "evalscript": TRUE_COLOR_EVALSCRIPT,
+    }
+    request = urllib.request.Request(
+        PROCESS_URL, data=json.dumps(payload).encode("utf-8"),
+        headers={"Authorization": f"Bearer {get_access_token()}", "Content-Type": "application/json"},
+    )
+    with urlopen(request, timeout=15) as response:
+        if response.headers.get_content_type() != "image/png":
+            raise OSError("Imagem Sentinel-2 inválida")
+        return response.read()
 
 
 def calculate_ndvi_analysis(geometry: Dict[str, Any], date_from=None, date_to=None):

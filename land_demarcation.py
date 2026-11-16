@@ -36,14 +36,19 @@ def load_local_imoveis_cache() -> Dict[str, Dict[str, Any]]:
     return _LOCAL_IMOVEIS_CACHE
 
 
-def perimeter_reference(geometry):
-    """Ponto representativo para a consulta regional à NASA POWER."""
+def exterior_points(geometry):
     polygons = geometry["coordinates"]
     if geometry["type"] == "Polygon":
         polygons = [polygons]
     points = [point for polygon in polygons for point in polygon[0][:-1]]
     if not points:
         raise ValueError("Perímetro sem coordenadas.")
+    return points
+
+
+def perimeter_reference(geometry):
+    """Ponto representativo para a consulta regional à NASA POWER."""
+    points = exterior_points(geometry)
     return {
         "latitude": round(sum(point[1] for point in points) / len(points), 6),
         "longitude": round(sum(point[0] for point in points) / len(points), 6),
