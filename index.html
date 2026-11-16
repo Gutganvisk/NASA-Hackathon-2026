@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crop Rotation</title>
   <link rel="icon" type="image/png" href="/assets/crop-rotation-icon.png">
 
@@ -381,6 +381,7 @@
     .plot-vertex { background: white; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 2px #153a24; }
     .plot-vertex-start { background: #84cc16; }
     #plotStatus { font-size: 12px; margin-bottom: 10px; }
+    #plotStatus:empty { margin-bottom: 0; }
     #plotStatus[data-error="true"] { color: #991b1b; }
 
     .map-status {
@@ -890,6 +891,125 @@
     .hub-water-alert[hidden], .sheet-body[hidden] { display: none; }
     .hub-water-alert p { margin-top: 3px; }
 
+    .workspace-nav, .desktop-only, .btn-primary.desktop-only, .btn-secondary.desktop-only { display: none; }
+    .workspace-layout, .workspace-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .workspace-pane { min-width: 0; }
+    .workspace-pane h3 { font-size: 14px; color: var(--primary-dark); margin-bottom: 8px; }
+    .workspace-editor { order: -1; }
+    .workspace-car .btn-secondary { margin-top: 0; }
+    .workspace-actions > button { width: 100%; }
+    .workspace-map .map-frame-box { margin: 0; background: #dce4d6; }
+    .workspace-map .leaflet-container { background: #dce4d6; }
+    .workspace-map .is-drawing .leaflet-container { cursor: crosshair; }
+    .workspace-map .is-drawing .map-google-link { display: none; }
+    .workspace-list .plot-controls { margin-bottom: 0; }
+
+    .workspace-list .plot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .workspace-list .plot-row.active {
+      background: #f1f8e9;
+      border-color: var(--primary-dark);
+    }
+
+    .workspace-list .plot-row span:last-child { flex-shrink: 0; }
+    .workspace-note { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .workspace-car-status:not(:empty) { margin-top: 8px; }
+    .workspace-car-status[data-error="true"] { color: #991b1b; }
+    .workspace-car-details { margin-top: 8px; }
+    .workspace-pane [hidden], .workspace-map [hidden] { display: none; }
+
+    .workspace-retry {
+      position: absolute;
+      z-index: 450;
+      bottom: 14px;
+      left: 12px;
+      background: #fff;
+      color: var(--primary-dark);
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .workspace-layout :focus-visible, .workspace-nav :focus-visible, .workspace-dialog :focus-visible {
+      outline: 2px solid #3f6212;
+      outline-offset: 3px;
+    }
+
+    .workspace-nav :focus-visible { outline-color: #bef264; }
+    .workspace-dialog {
+      width: min(420px, calc(100% - 32px));
+      margin: auto;
+      padding: 20px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-card);
+      color: var(--text-main);
+    }
+    .workspace-dialog::backdrop { background: rgba(14, 32, 23, .55); }
+    .workspace-dialog h2 { font-size: 18px; margin-bottom: 8px; }
+    .workspace-dialog form { margin-top: 14px; }
+    .workspace-dialog button + button { margin-top: 8px; }
+
+    @media (min-width: 768px) {
+      .mobile-wrapper { max-width: 1440px; }
+      .mobile-wrapper > .screen-content:not(#screen4) { width: min(100%, 560px); align-self: center; }
+      .mobile-wrapper > #screenHub { width: min(100%, 560px); align-self: center; }
+      .progress-bar-container { width: min(100%, 560px); align-self: center; }
+      .progress-bar-container.workspace-progress { display: none !important; }
+      .workspace-nav { display: flex; gap: 4px; }
+      .workspace-nav button {
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #fff;
+        padding: 9px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .workspace-nav button[aria-current="page"] { background: rgba(255, 255, 255, .16); }
+      .workspace-nav button:disabled { opacity: .55; cursor: default; }
+      .desktop-only { display: block; }
+      .mobile-only { display: none; }
+      #screen4 { padding: 26px clamp(20px, 3vw, 44px) 36px; }
+      #screen4 .screen-heading { font-size: 28px; }
+      .workspace-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(290px, 29vw, 360px);
+        gap: clamp(16px, 2vw, 28px);
+        align-items: start;
+      }
+      .workspace-map { position: sticky; top: 76px; }
+      .workspace-map .map-frame-box { height: clamp(430px, 70dvh, 740px); }
+      .workspace-editor { order: 0; }
+      .workspace-pane {
+        border: 1px solid var(--border-soft);
+        border-radius: 16px;
+        background: #fff;
+        padding: 14px;
+      }
+      .workspace-car label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; }
+      .workspace-car .btn-secondary { margin-top: 8px; padding-block: 9px; }
+      .workspace-actions #plotContinue { display: none; }
+      .workspace-actions #plotGuidedFlow { display: flex; }
+      .workspace-actions #plotGoSimulation { display: flex; }
+      .workspace-actions .btn-secondary { padding-block: 9px; }
+    }
+
     @media (max-width: 359px) {
       .screen-content { padding-inline: 12px; }
       .crop-grid, .metric-triad, .diag-grid-6 { gap: 6px; }
@@ -909,14 +1029,18 @@
 
     <!-- Header Fixo Superior -->
     <header class="app-header">
-      <button class="header-btn" id="headerBackBtn" onclick="voltarEtapa()">
+      <button class="header-btn" id="headerBackBtn" onclick="voltarEtapa()" aria-label="Voltar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
       <div class="header-title-box">
         <img id="headerLogoIcon" class="brand-icon" src="/assets/crop-rotation-icon.png" width="28" height="21" alt="">
         <div class="header-title" id="topHeaderTitle">Crop Rotation</div>
       </div>
-      <button class="header-btn" onclick="abrirModalInfo()">
+      <nav class="workspace-nav" aria-label="Navegação do planejamento">
+        <button type="button" id="navWorkspace" onclick="irParaEtapa(4)">Propriedade e talhões</button>
+        <button type="button" id="navSimulation" onclick="irParaEtapa(7)" disabled>Simulação</button>
+      </nav>
+      <button class="header-btn" onclick="abrirModalInfo()" aria-label="Sobre o Crop Rotation">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
       </button>
     </header>
@@ -980,7 +1104,7 @@
         </div>
       </div>
 
-      <button class="btn-primary" onclick="irParaEtapa(3)">Começar →</button>
+      <button class="btn-primary" onclick="iniciarPlanejamento()">Começar →</button>
       <p style="font-size: 10.5px; color: var(--text-light); text-align: center; margin-top: 12px;">A ferramenta apoia sua decisão. Consulte também a assistência técnica local.</p>
     </section>
 
@@ -1031,39 +1155,79 @@
     <!-- ETAPA 4: ÁREA NO MAPA (IMAGE 1)                          -->
     <!-- ======================================================== -->
     <section class="screen-content" id="screen4" style="display: none;">
-      <h2 class="screen-heading">Desenhe seus talhões</h2>
-      <p class="screen-subheading">Escolha um talhão, aproxime a área e toque no mapa para traçar o contorno. Use o CAR para conferir os limites da propriedade.</p>
+      <h2 class="screen-heading"><span class="desktop-only">Propriedade e talhões</span><span class="mobile-only">Desenhe seus talhões</span></h2>
+      <p class="screen-subheading">Use o CAR para localizar a propriedade ou desenhe um talhão diretamente no mapa.</p>
 
-      <div class="plot-controls">
-        <label for="plotSelector">Talhão</label>
-        <select id="plotSelector" onchange="selecionarTalhaoNoMapa(this.value)">
-          <option value="T1">T1</option>
-          <option value="T2">T2</option>
-          <option value="T3">T3</option>
-        </select>
-        <button type="button" id="plotStart" onclick="iniciarDesenhoTalhao()">Desenhar talhão</button>
+      <div class="workspace-layout">
+        <div class="workspace-map">
+          <div class="map-frame-box" id="mapFrameBoxEtapa4">
+            <div id="mapEtapa4" style="width: 100%; height: 100%;" aria-label="Mapa da propriedade e dos talhões"></div>
+            <div class="map-status" id="mapEtapa4Status" role="status">Carregando mapa…</div>
+            <button type="button" class="workspace-retry" id="retryWorkspaceImage" onclick="atualizarMapa(mapaEtapa4)" hidden>Tentar carregar imagem</button>
+          </div>
+        </div>
+
+        <aside class="workspace-sidebar" aria-label="Propriedade e edição de talhões">
+          <div class="workspace-pane workspace-car">
+            <form id="workspaceCarForm" class="desktop-only" onsubmit="buscarCarNoWorkspace(event)">
+              <h3>Propriedade</h3>
+              <label for="workspaceCarInput">Código do CAR</label>
+              <input type="text" class="form-input" id="workspaceCarInput" maxlength="43" autocomplete="off" spellcheck="false" placeholder="UF + código do município + identificador" required>
+              <button type="submit" class="btn-secondary" id="workspaceCarSubmit"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#search"></use></svg> Buscar CAR</button>
+              <p id="workspaceCarStatus" class="workspace-note workspace-car-status" role="status"></p>
+              <p id="workspaceCarDetails" class="workspace-note workspace-car-details" hidden></p>
+            </form>
+            <div class="mobile-only">
+              <button type="button" class="btn-secondary" onclick="abrirModalBuscarCar()">Buscar perímetro pelo CAR</button>
+            </div>
+          </div>
+
+          <div class="workspace-pane workspace-list">
+            <h3>Talhões desenhados</h3>
+            <p id="emptySavedPlots" class="workspace-note">Nenhum talhão desenhado.</p>
+            <div class="plot-controls" id="savedPlots" aria-label="Talhões desenhados"></div>
+          </div>
+
+          <div class="workspace-pane workspace-editor">
+            <h3>Editor do talhão</h3>
+            <div class="plot-controls">
+              <label for="plotSelector">Talhão</label>
+              <select id="plotSelector" onchange="selecionarTalhaoNoMapa(this.value)">
+                <option value="T1">T1</option>
+                <option value="T2">T2</option>
+                <option value="T3">T3</option>
+              </select>
+              <button type="button" id="plotStart" onclick="iniciarDesenhoTalhao()">Desenhar talhão</button>
+            </div>
+            <div class="plot-controls" id="plotEditControls" hidden>
+              <button type="button" id="plotClose" onclick="fecharContornoTalhao()">Fechar contorno</button>
+              <button type="button" id="plotUndo" onclick="desfazerDesenhoTalhao()">Desfazer</button>
+              <button type="button" id="plotReset" onclick="recomecarDesenhoTalhao()">Recomeçar</button>
+              <button type="button" onclick="confirmarSaidaDoEditor()">Cancelar</button>
+              <button type="button" id="plotSave" class="plot-confirm" onclick="salvarDesenhoTalhao()">Salvar talhão</button>
+            </div>
+            <p id="plotStatus" role="status" aria-live="polite">Desenhe e salve um talhão para continuar.</p>
+            <p class="workspace-note">Os desenhos ficam na sessão desta aba.</p>
+          </div>
+
+          <div class="workspace-actions">
+            <button type="button" class="btn-primary desktop-only" id="plotGoSimulation" onclick="irParaEtapa(7)">Ir para simulação →</button>
+            <button type="button" class="btn-primary mobile-only" id="plotContinue" onclick="irParaEtapa(5)">Continuar para culturas →</button>
+            <button type="button" class="btn-secondary desktop-only" id="plotGuidedFlow" onclick="irParaEtapa(5)">Ver culturas e diagnóstico</button>
+            <button type="button" class="btn-secondary" id="plotReturnHub" onclick="confirmarSaidaDoEditor(concluirCadastroEAbrirHub)" hidden>Voltar ao Hub</button>
+          </div>
+        </aside>
       </div>
-
-      <div class="map-frame-box" id="mapFrameBoxEtapa4">
-        <div id="mapEtapa4" style="width: 100%; height: 100%;"></div>
-        <div class="map-status" id="mapEtapa4Status" role="status">Carregando mapa…</div>
-      </div>
-
-      <div class="plot-controls" id="plotEditControls" hidden>
-        <button type="button" id="plotClose" onclick="fecharContornoTalhao()">Fechar contorno</button>
-        <button type="button" id="plotUndo" onclick="desfazerDesenhoTalhao()">Desfazer</button>
-        <button type="button" id="plotReset" onclick="recomecarDesenhoTalhao()">Recomeçar</button>
-        <button type="button" onclick="encerrarDesenhoTalhao()">Cancelar</button>
-        <button type="button" id="plotSave" class="plot-confirm" onclick="salvarDesenhoTalhao()">Salvar talhão</button>
-      </div>
-      <p id="plotStatus" role="status" aria-live="polite">Desenhe e salve um talhão para continuar.</p>
-      <button class="btn-secondary" onclick="abrirModalBuscarCar()">Buscar perímetro pelo CAR</button>
-
-      <div class="plot-controls" id="savedPlots" aria-label="Talhões desenhados"></div>
-
-      <button class="btn-primary" id="plotContinue" onclick="irParaEtapa(5)">Continuar para culturas →</button>
-      <button type="button" class="btn-secondary" id="plotReturnHub" onclick="encerrarDesenhoTalhao(); concluirCadastroEAbrirHub()" hidden>Voltar ao Hub</button>
     </section>
+
+    <dialog class="workspace-dialog" id="plotExitDialog" aria-labelledby="plotExitTitle">
+      <h2 id="plotExitTitle">Descartar alterações do talhão?</h2>
+      <p class="workspace-note">O desenho salvo será mantido. Os pontos alterados nesta edição serão descartados.</p>
+      <form method="dialog">
+        <button type="submit" class="btn-primary" value="continuar" autofocus>Continuar editando</button>
+        <button type="submit" class="btn-secondary" value="descartar">Descartar alterações</button>
+      </form>
+    </dialog>
 
     <!-- ======================================================== -->
     <!-- ETAPA 5: CULTURAS ATUAIS (IMAGE 2)                       -->
@@ -1686,64 +1850,115 @@
       document.getElementById("modHistoricoTxt").value = t.historico;
     }
 
-    // Modal: Busca no SICAR
+    let ultimaConsultaCar = 0;
+
+    async function consultarCar(codigo) {
+      const consulta = ++ultimaConsultaCar;
+      const resp = await enviarJson("/api/demarcation", {car: codigo.trim()});
+      const data = await resp.json();
+      if (consulta !== ultimaConsultaCar) return null;
+      if (!resp.ok || !data.geojson?.geometry || !data.cod_imovel) {
+        throw new Error(data.error || "Não foi possível localizar o perímetro do CAR.");
+      }
+      return data;
+    }
+
+    function detalhesCar(data) {
+      const area = Number.isFinite(data.area_total_ha) ? formatarHectares(data.area_total_ha) : null;
+      return [data.municipio, area, data.source ? "Origem do perímetro: " + data.source : null]
+        .filter(Boolean).join(" · ");
+    }
+
+    function aplicarCar(data) {
+      const mudouPropriedade = dadosPropriedade.cod_car !== data.cod_imovel;
+      if (mudouPropriedade) {
+        desenhosTalhoes = recuperarDesenhosTalhoes(data.cod_imovel);
+        dadosPropriedade.talhoes = {};
+      }
+      perimetroCar = data.geojson;
+      dadosPropriedade.cod_car = data.cod_imovel;
+      if (mudouPropriedade) sincronizarAreasDesenhadas();
+      for (const map of [mapaEtapa4, hubMap]) {
+        if (!map?.getContainer().clientWidth) continue;
+        const outline = camadasMapa.get(map)?.outline;
+        if (outline && camadasMapa.get(map).car === data.cod_imovel) {
+          map.fitBounds(outline.getBounds(), {padding: [24, 24], maxZoom: 17, animate: false});
+        }
+        atualizarMapa(map);
+      }
+      document.getElementById('inputMunicipio').value = data.municipio || "";
+      document.getElementById('inputArea').value = data.area_consolidada_ha ?? "";
+      document.getElementById('workspaceCarInput').value = data.cod_imovel;
+      const details = document.getElementById('workspaceCarDetails');
+      details.textContent = detalhesCar(data);
+      details.hidden = !details.textContent;
+    }
+
+    async function buscarCarNoWorkspace(event) {
+      event.preventDefault();
+      const button = document.getElementById('workspaceCarSubmit');
+      const status = document.getElementById('workspaceCarStatus');
+      const code = document.getElementById('workspaceCarInput').value;
+      button.disabled = true;
+      status.dataset.error = "false";
+      status.textContent = "Consultando o CAR…";
+      try {
+        const data = await consultarCar(code);
+        if (!data) return;
+        status.textContent = "";
+        const mostrar = () => {
+          aplicarCar(data);
+          status.textContent = "Perímetro localizado.";
+        };
+        if (dadosPropriedade.cod_car === data.cod_imovel) mostrar();
+        else confirmarSaidaDoEditor(mostrar);
+      } catch (error) {
+        status.dataset.error = "true";
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    // A busca do fluxo por etapas usa o mesmo estado e a mesma API da área de trabalho.
     function abrirModalBuscarCar() {
       const html = `
         <div class="form-group">
-          <label class="form-label">Código do CAR Oficial:</label>
-          <input type="text" class="form-input" id="modCarInput" value="${dadosPropriedade.cod_car || ''}" autocomplete="off" spellcheck="false" placeholder="UF + código do município + identificador">
+          <label for="modCarInput" class="form-label">Código do CAR oficial</label>
+          <input type="text" class="form-input" id="modCarInput" autocomplete="off" spellcheck="false" placeholder="UF + código do município + identificador">
         </div>
-        <p style="font-size:11.5px; color:var(--text-muted); line-height:1.4;">
-          O sistema consultará a geometria oficial no banco do SICAR / Incra para traçar o polígono da gleba rural.
-        </p>
       `;
-
       abrirModal({
-        titulo: "Localizar pelo Código CAR",
-        subtitulo: "Consulta automatizada na base oficial SICAR",
+        titulo: "Localizar pelo código CAR",
+        subtitulo: "Consulta ao perímetro cadastrado",
         htmlConteudo: html,
-        textoBotao: "Buscar Demarcação",
+        textoBotao: "Buscar demarcação",
         onConfirmar: async () => {
-          const car = document.getElementById('modCarInput').value.trim();
           try {
-            const resp = await enviarJson("/api/demarcation", {car});
-            const data = await resp.json();
-            if (!resp.ok) throw new Error(data.error || "Consulta CAR indisponível.");
-            if (data.cod_imovel) {
-              if (dadosPropriedade.cod_car !== data.cod_imovel) {
-                encerrarDesenhoTalhao();
-                desenhosTalhoes = recuperarDesenhosTalhoes(data.cod_imovel);
-                dadosPropriedade.talhoes = {};
-              }
-              perimetroCar = data.geojson;
-              dadosPropriedade.cod_car = data.cod_imovel;
-              sincronizarAreasDesenhadas();
-              [mapaEtapa4, hubMap].filter(Boolean).forEach(atualizarMapa);
-              document.getElementById('inputMunicipio').value = data.municipio || "";
-              if (data.area_consolidada_ha != null) {
-                document.getElementById('inputArea').value = data.area_consolidada_ha;
-              }
-              setTimeout(() => {
-                abrirModal({
-                  titulo: "Imóvel localizado",
-                  subtitulo: "SICAR - Cadastro Ambiental Rural",
-                  htmlConteudo: `
-                    <div style="background:#F0FDF4; border:1px solid #BBF7D0; padding:10px; border-radius:12px; font-size:12px; color:#166534;">
-
-                      Área Total: <strong>${data.area_total_ha == null ? "Não informada" : data.area_total_ha + " ha"}</strong><br>
-                      Área Consolidada: <strong>${data.area_consolidada_ha == null ? "Não informada" : data.area_consolidada_ha + " ha"}</strong><br>
-                      Reserva Legal: <strong>${data.area_reserva_legal_ha == null ? "Não informada" : data.area_reserva_legal_ha + " ha"}</strong>
-                    </div>
-                  `,
-                  textoBotao: "Continuar"
-                });
-              }, 200);
-            }
-          } catch(e) {
-            alert(e.message);
+            const data = await consultarCar(document.getElementById('modCarInput').value);
+            if (!data) return;
+            const mostrar = () => {
+              aplicarCar(data);
+              abrirModal({
+                titulo: "Imóvel localizado",
+                subtitulo: detalhesCar(data),
+                htmlConteudo: "",
+                textoBotao: "Continuar"
+              });
+            };
+            if (dadosPropriedade.cod_car === data.cod_imovel) mostrar();
+            else confirmarSaidaDoEditor(mostrar);
+          } catch (error) {
+            abrirModal({
+              titulo: "Consulta CAR indisponível",
+              subtitulo: error.message,
+              htmlConteudo: "",
+              textoBotao: "Entendido"
+            });
           }
         }
       });
+      document.getElementById('modCarInput').value = dadosPropriedade.cod_car;
     }
 
     // Modal: Notificações e Alertas dos Cards
@@ -1844,14 +2059,52 @@
     // ========================================================
     // NAVEGAÇÃO DE ETAPAS (1 A 9)
     // ========================================================
+    const layoutDesktop = window.matchMedia('(min-width: 768px)');
+
+    function iniciarPlanejamento() {
+      irParaEtapa(layoutDesktop.matches ? 4 : 3);
+    }
+
+    function confirmarSaidaDoEditor(continuar = () => {}) {
+      if (!rascunhoTalhao?.historico.length && !rascunhoTalhao?.validando) {
+        if (rascunhoTalhao) encerrarDesenhoTalhao();
+        continuar();
+        return;
+      }
+
+      const dialog = document.getElementById('plotExitDialog');
+      if (dialog.open) return;
+      dialog.returnValue = '';
+      dialog.addEventListener('close', () => {
+        if (dialog.returnValue === 'descartar') {
+          encerrarDesenhoTalhao();
+          continuar();
+        }
+      }, {once: true});
+      dialog.showModal();
+    }
+
+    function atualizarNavegacaoWorkspace() {
+      const selected = etapaAtual === 4 ? 'navWorkspace' : etapaAtual >= 7 && etapaAtual <= 9 ? 'navSimulation' : '';
+      for (const id of ['navWorkspace', 'navSimulation']) {
+        const button = document.getElementById(id);
+        if (id === selected) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
+      }
+    }
+
     function irParaEtapa(numero) {
       if (numero >= 5 && !Object.keys(desenhosTalhoes).length) {
         avisoDesenho("Desenhe e salve um talhão para continuar.", true);
         return;
       }
       if (numero >= 5) garantirTalhaoSelecionado();
-      if (numero !== 4 && rascunhoTalhao) encerrarDesenhoTalhao();
+      if (numero !== 4 && rascunhoTalhao) {
+        confirmarSaidaDoEditor(() => irParaEtapa(numero));
+        return;
+      }
       etapaAtual = numero;
+      atualizarNavegacaoWorkspace();
 
       // Oculta todas as telas normais e hub
       for (let i = 1; i <= 9; i++) {
@@ -1866,6 +2119,7 @@
 
       // Atualiza Top Header e Barra de Progresso
       const pBox = document.getElementById('progressBarBox');
+      pBox.classList.toggle('workspace-progress', numero === 4);
       const backBtn = document.getElementById('headerBackBtn');
       const logoIcon = document.getElementById('headerLogoIcon');
       const titleEl = document.getElementById('topHeaderTitle');
@@ -1900,7 +2154,7 @@
 
       // Inicializa mapas conforme necessário
       if (numero === 4) {
-        setTimeout(initMapEtapa4, 150);
+        requestAnimationFrame(() => { if (etapaAtual === 4) initMapEtapa4(); });
       }
       if (numero === 5) {
         sincronizarUiTalhao(talhaoSelecionado);
@@ -1921,10 +2175,10 @@
     function voltarEtapa() {
       if (etapaAtual === 9) irParaEtapa(8);
       else if (etapaAtual === 8) irParaEtapa(7);
-      else if (etapaAtual === 7) irParaEtapa(6);
+      else if (etapaAtual === 7) irParaEtapa(layoutDesktop.matches ? 4 : 6);
       else if (etapaAtual === 6) irParaEtapa(5);
       else if (etapaAtual === 5) irParaEtapa(4);
-      else if (etapaAtual === 4) irParaEtapa(3);
+      else if (etapaAtual === 4) irParaEtapa(layoutDesktop.matches ? 1 : 3);
       else if (etapaAtual === 3) irParaEtapa(1);
       else if (etapaAtual === 10) irParaEtapa(9);
     }
@@ -1958,6 +2212,13 @@
         L.control.attribution({position: 'topright', prefix: false}).addTo(map);
         L.control.zoom({position: 'topright'}).addTo(map);
         adicionarAtalhoGoogleMaps(map);
+        if (id === 'mapEtapa4' && typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(([entry]) => {
+            if (entry.contentRect.width && entry.contentRect.height) {
+              map.invalidateSize({debounceMoveend: true});
+            }
+          }).observe(map.getContainer());
+        }
         let detalheTimer;
         map.on('moveend', () => {
           clearTimeout(detalheTimer);
@@ -2062,20 +2323,24 @@
       if (!container.clientWidth) return;
       const car = dadosPropriedade.cod_car;
       const previous = camadasMapa.get(map);
-      if (previous?.car === car) return;
-      if (previous?.outline) map.removeLayer(previous.outline);
+      const mesmaPropriedade = previous?.car === car;
+      if (mesmaPropriedade && !previous.imageFailed) return;
+      if (!mesmaPropriedade && previous?.outline) map.removeLayer(previous.outline);
       if (previous?.image) map.removeLayer(previous.image);
       if (previous?.detail) map.removeLayer(previous.detail);
 
       const status = document.getElementById(container.id + 'Status');
-      const layers = {car};
+      const retry = map === mapaEtapa4 || container.id === 'mapEtapa4'
+        ? document.getElementById('retryWorkspaceImage') : null;
+      if (retry) retry.hidden = true;
+      const layers = {car, outline: mesmaPropriedade ? previous.outline : null};
       camadasMapa.set(map, layers);
 
-      if (perimetroCar) {
+      if (perimetroCar && !layers.outline) {
         layers.outline = L.geoJSON(perimetroCar, {
-          style: {color: '#e5fe74', weight: 3, fillColor: '#166534', fillOpacity: 0.22}
+          style: {color: '#4c7012', weight: 3, fillColor: '#a3e635', fillOpacity: 0.16}
         }).addTo(map);
-        map.fitBounds(layers.outline.getBounds(), {padding: [24, 24], maxZoom: 17});
+        map.fitBounds(layers.outline.getBounds(), {padding: [24, 24], maxZoom: 17, animate: false});
       }
       status.textContent = "Carregando imagem de satélite…";
       try {
@@ -2097,8 +2362,8 @@
         if (camadasMapa.get(map) !== layers) return;
         layers.baseStatus = layers.outline ? "Perímetro CAR · imagem indisponível" : error.message;
         if (!layers.detail) status.textContent = layers.baseStatus;
-        // Permite tentar de novo ao reabrir a tela do mapa.
-        layers.car = null;
+        layers.imageFailed = true;
+        if (retry) retry.hidden = false;
       }
     }
 
@@ -2125,19 +2390,41 @@
     }
 
     function renderizarSeletoresTalhoes() {
+      const plots = Object.entries(dadosPropriedade.talhoes).sort();
+      document.getElementById('emptySavedPlots').hidden = plots.length > 0;
       for (const id of ['savedPlots', 'culturePlotSelector', 'simTalhaoSelector']) {
         const container = document.getElementById(id);
-        container.replaceChildren();
-        for (const [tid, plot] of Object.entries(dadosPropriedade.talhoes).sort()) {
+        const focused = container.contains(document.activeElement) ? document.activeElement.dataset.plotId : null;
+        const buttons = [];
+        for (const [tid, plot] of plots) {
           const button = document.createElement('button');
           button.type = 'button';
-          button.className = 'pill-tab';
+          button.dataset.plotId = tid;
+          button.className = id === 'savedPlots' ? 'plot-row' : 'pill-tab';
           button.classList.toggle('active', tid === talhaoSelecionado);
           button.setAttribute('aria-pressed', tid === talhaoSelecionado);
-          button.textContent = id === 'culturePlotSelector' ? plot.nome : plot.nome + ' · ' + formatarHectares(plot.area);
-          button.onclick = () => selecionarTalhaoNoMapa(tid);
-          container.append(button);
+          if (id === 'savedPlots') {
+            const name = document.createElement('strong');
+            const area = document.createElement('span');
+            name.textContent = plot.nome;
+            area.textContent = formatarHectares(plot.area);
+            button.append(name, area);
+          } else {
+            button.textContent = id === 'culturePlotSelector' ? plot.nome : plot.nome + ' · ' + formatarHectares(plot.area);
+          }
+          button.onclick = () => {
+            selecionarTalhaoNoMapa(tid);
+            if (id === 'savedPlots' && mapaEtapa4 && !rascunhoTalhao) {
+              const bounds = L.latLngBounds(desenhosTalhoes[tid].contorno.map(([lon, lat]) => [lat, lon]));
+              if (!mapaEtapa4.getBounds().contains(bounds)) {
+                mapaEtapa4.fitBounds(bounds, {padding: [24, 24], maxZoom: 17, animate: false});
+              }
+            }
+          };
+          buttons.push(button);
         }
+        container.replaceChildren(...buttons);
+        if (focused) buttons.find(button => button.dataset.plotId === focused)?.focus({preventScroll: true});
       }
       document.querySelectorAll('[data-talhao-diagnostico]').forEach(select => {
         select.replaceChildren();
@@ -2188,7 +2475,8 @@
         if (map === mapaEtapa4 && rascunhoTalhao?.id === id) continue;
         const active = id === talhaoSelecionado;
         L.polygon(plot.contorno.map(([lon, lat]) => [lat, lon]), {
-          color: coresTalhoes[id], weight: active ? 4 : 2, fillOpacity: active ? 0.42 : 0.24,
+          color: active ? "#154936" : "#556a58", fillColor: coresTalhoes[id],
+          weight: active ? 4 : 2, fillOpacity: active ? 0.55 : 0.32,
           interactive: map !== mapaEtapa4 || !rascunhoTalhao
         }).bindTooltip(id + " · " + formatarHectares(plot.area_ha))
           .on('click', () => selecionarTalhaoNoMapa(id, map)).addTo(group);
@@ -2208,7 +2496,12 @@
 
     function atualizarControlesDesenho() {
       const draft = rascunhoTalhao;
-      document.getElementById('plotContinue').disabled = Boolean(draft) || !Object.keys(desenhosTalhoes).length;
+      document.getElementById('mapFrameBoxEtapa4').classList.toggle('is-drawing', Boolean(draft));
+      const temTalhao = Object.keys(desenhosTalhoes).length > 0;
+      for (const id of ['plotContinue', 'plotGoSimulation', 'plotGuidedFlow', 'navSimulation']) {
+        document.getElementById(id).disabled = !temTalhao;
+      }
+      document.querySelectorAll('#savedPlots button').forEach(button => { button.disabled = Boolean(draft); });
       document.getElementById('plotSelector').value = talhaoSelecionado || 'T1';
       document.getElementById('plotSelector').disabled = Boolean(draft);
       const start = document.getElementById('plotStart');
@@ -2235,8 +2528,9 @@
         id: talhaoSelecionado, pontos: desenho?.contorno.slice(0, -1) || [],
         fechado: Boolean(desenho), historico: [], validando: false
       };
+      mapaEtapa4.doubleClickZoom.disable();
       if (desenho) {
-        mapaEtapa4.fitBounds(desenho.contorno.map(([lon, lat]) => [lat, lon]), {padding: [24, 24], maxZoom: 17});
+        mapaEtapa4.fitBounds(desenho.contorno.map(([lon, lat]) => [lat, lon]), {padding: [24, 24], maxZoom: 17, animate: false});
       }
       renderizarTalhoesNoMapa(mapaEtapa4);
       desenharRascunho();
@@ -2270,6 +2564,7 @@
     }
 
     function encerrarDesenhoTalhao() {
+      if (rascunhoTalhao && mapaEtapa4) mapaEtapa4.doubleClickZoom.enable();
       rascunhoTalhao = null;
       if (camadaRascunho) {
         camadaRascunho.remove();
@@ -2277,7 +2572,7 @@
       }
       atualizarControlesDesenho();
       if (mapaEtapa4) renderizarTalhoesNoMapa(mapaEtapa4);
-      avisoDesenho(Object.keys(desenhosTalhoes).length ? "Os desenhos ficam nesta aba." : "Desenhe e salve um talhão para continuar.");
+      avisoDesenho(Object.keys(desenhosTalhoes).length ? "" : "Desenhe e salve um talhão para continuar.");
     }
 
     function areaPreviaTalhao(points) {
@@ -2294,7 +2589,7 @@
       camadaRascunho = L.featureGroup().addTo(mapaEtapa4);
       const draft = rascunhoTalhao;
       const positions = draft.pontos.map(([lon, lat]) => [lat, lon]);
-      const shapeOptions = {color: '#fff', weight: 3, dashArray: '5 5', fillOpacity: 0.18, interactive: false};
+      const shapeOptions = {color: '#0d422a', weight: 3, dashArray: '5 5', fillColor: '#bef264', fillOpacity: 0.35, interactive: false};
       (draft.fechado ? L.polygon(positions, shapeOptions) : L.polyline(positions, shapeOptions)).addTo(camadaRascunho);
       positions.forEach((position, index) => {
         const icon = L.divIcon({className: 'plot-vertex' + (index === 0 ? ' plot-vertex-start' : ''), iconSize: [24, 24]});
@@ -2582,6 +2877,7 @@
       }
       sincronizarTelaSimulacao();
       etapaAtual = 10;
+      atualizarNavegacaoWorkspace();
       for (let i = 1; i <= 9; i++) {
         const sc = document.getElementById(`screen${i}`);
         if (sc) sc.style.display = 'none';
