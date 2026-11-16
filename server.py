@@ -21,7 +21,7 @@ if sys.stdout.encoding != "utf-8":
         pass
 
 from copernicus_sentinel2 import calculate_ndvi_analysis, fetch_satellite_image
-from land_demarcation import exterior_points, query_land_by_point, query_land_demarcation
+from land_demarcation import exterior_points, perimeter_reference, query_land_by_point, query_land_demarcation
 from nasa_power import fetch_recent_weather, fetch_weather_data
 from passaporte_biologico import MATRIZ_PASSAPORTE
 from rotation_planner import (
@@ -31,7 +31,7 @@ from rotation_planner import (
 )
 
 from supabase_client import is_supabase_configured, salvar_plano
-from talhao_geometry import validate_plot
+from talhao_geometry import parse_ring, validate_plot
 
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -95,7 +95,7 @@ def area_diagnosis(lat, lon, geometry):
         "cobertura_vegetal": {
             "titulo": "Vigor da vegetação (NDVI)",
             "valor": str(ndvi["ndvi_medio_estimado"]) if ndvi.get("sucesso") else "Indisponível",
-            "status": ndvi.get("periodo_analisado") or ndvi.get("aviso") or "Consulte com um CAR",
+            "status": ndvi.get("periodo_analisado") or ndvi.get("aviso") or "Informe um contorno ou CAR",
             "fonte": "Copernicus Sentinel-2 L2A",
         },
         "relevo": {"titulo": "Relevo", "valor": "Indisponível", "status": "Declividade não medida"},
@@ -301,14 +301,20 @@ class AgroHandler(BaseHTTPRequestHandler):
         # 3. Endpoint: /api/condicoes-completas (Diagnóstico Agroclimático - Etapa 6)
         if path == "/api/condicoes-completas":
             try:
-                car = params.get("car", None)
-                land = query_land_demarcation(car) if car else None
-                if land:
+                car = params.get("car")
+                geometry = None
+                if "contorno" in params:
+                    ring = parse_ring(params["contorno"])
+                    geometry = {"type": "Polygon", "coordinates": [ring]}
+                    point = perimeter_reference(geometry)
+                    lat, lon = coordinates(point.get("latitude"), point.get("longitude"))
+                elif car:
+                    land = query_land_demarcation(car)
+                    geometry = (land.get("geojson") or {}).get("geometry")
                     point = land.get("centroid") or {}
                     lat, lon = coordinates(point.get("latitude"), point.get("longitude"))
                 else:
-                    lat, lon = coordinates(params.get("lat", None), params.get("lon", None))
-                geometry = (land.get("geojson") or {}).get("geometry") if land else None
+                    lat, lon = coordinates(params.get("lat"), params.get("lon"))
             except ValueError as exc:
                 self._json(400, {"error": str(exc)})
                 return
@@ -363,7 +369,7 @@ class AgroHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         content_length = int(self.headers.get("Content-Length", 0))
-        if path == "/api/validar-talhao" and content_length > 65536:
+        if path in ("/api/validar-talhao", "/api/condicoes-completas") and content_length > 65536:
             self._json(413, {"error": "Contorno grande demais."})
             return
         try:

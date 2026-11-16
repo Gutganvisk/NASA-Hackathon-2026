@@ -374,7 +374,7 @@
     }
 
     .plot-controls button:disabled { opacity: .5; }
-    .plot-controls[hidden], .plot-controls [hidden], #plotReturnHub[hidden] { display: none; }
+    [data-talhao-diagnostico][hidden], .plot-controls[hidden], .plot-controls [hidden], #plotReturnHub[hidden] { display: none; }
     .plot-controls .plot-confirm { background: var(--primary-dark); color: white; }
     .plot-vertex { background: white; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 0 2px #153a24; }
     .plot-vertex-start { background: #84cc16; }
@@ -1022,9 +1022,6 @@
       <div class="map-frame-box" id="mapFrameBoxEtapa4">
         <div id="mapEtapa4" style="width: 100%; height: 100%;"></div>
         <div class="map-status" id="mapEtapa4Status" role="status">Carregando mapa…</div>
-        <button class="map-fab-btn" onclick="abrirModalAjustarTalhoes()" title="Ajustar áreas dos talhões">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#153A24" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-        </button>
       </div>
 
       <div class="plot-controls" id="plotEditControls" hidden>
@@ -1034,37 +1031,10 @@
         <button type="button" onclick="encerrarDesenhoTalhao()">Cancelar</button>
         <button type="button" id="plotSave" class="plot-confirm" onclick="salvarDesenhoTalhao()">Salvar talhão</button>
       </div>
-      <p id="plotStatus" role="status" aria-live="polite">Os desenhos ficam nesta aba.</p>
+      <p id="plotStatus" role="status" aria-live="polite">Desenhe e salve um talhão para continuar.</p>
       <button class="btn-secondary" onclick="abrirModalBuscarCar()">Buscar perímetro pelo CAR</button>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <div>
-          <strong style="font-size: 13.5px; color: var(--text-main); display: block;">Delimitação dos talhões</strong>
-          <span style="font-size: 11px; color: var(--text-muted);">Áreas usadas na simulação</span>
-        </div>
-        <span style="font-size: 12px; font-weight: 700; color: #15803D; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="abrirModalAjustarTalhoes()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Ajustar
-        </span>
-      </div>
-
-      <!-- Representação Visual dos Talhões (2 top, 1 bottom) -->
-      <div style="background: #E5E9E1; border-radius: 18px; padding: 8px; margin-bottom: 16px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
-          <div style="background: #D9F99D; border: 1.5px solid #BEF264; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">
-            <strong style="font-size: 14px; color: #166534; display: block;">T1</strong>
-            <span style="font-size: 11px; color: #15803D;" id="areaT1Visual">6,2 ha</span>
-          </div>
-          <div style="background: #FEF08A; border: 1.5px solid #FDE047; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">
-            <strong style="font-size: 14px; color: #854D0E; display: block;">T2</strong>
-            <span style="font-size: 11px; color: #A16207;" id="areaT2Visual">5,0 ha</span>
-          </div>
-        </div>
-        <div style="background: #A7F3D0; border: 1.5px solid #6EE7B7; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;" onclick="abrirModalAjustarTalhoes()">
-          <strong style="font-size: 14px; color: #065F46; display: block;">T3</strong>
-          <span style="font-size: 11px; color: #047857;" id="areaT3Visual">5,8 ha</span>
-        </div>
-      </div>
+      <div class="plot-controls" id="savedPlots" aria-label="Talhões desenhados"></div>
 
       <button class="btn-primary" id="plotContinue" onclick="irParaEtapa(5)">Continuar para culturas →</button>
       <button type="button" class="btn-secondary" id="plotReturnHub" onclick="encerrarDesenhoTalhao(); concluirCadastroEAbrirHub()" hidden>Voltar ao Hub</button>
@@ -1078,11 +1048,7 @@
       <p class="screen-subheading">Selecione as culturas presentes na propriedade.</p>
 
       <!-- Tabs de Talhão -->
-      <div class="talhao-pills">
-        <button class="pill-tab active" onclick="selecionarTalhaoPill('T1', this)">Talhão 1</button>
-        <button class="pill-tab" onclick="selecionarTalhaoPill('T2', this)">Talhão 2</button>
-        <button class="pill-tab" onclick="selecionarTalhaoPill('T3', this)">Talhão 3</button>
-      </div>
+      <div class="talhao-pills" id="culturePlotSelector"></div>
 
       <!-- Grid de 6 Culturas -->
       <div class="crop-grid" id="cropGridEtapa5">
@@ -1119,9 +1085,9 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Área da cultura no talhão</label>
+        <label class="form-label">Área desenhada do talhão</label>
         <div class="input-unit-wrapper">
-          <input type="number" step="0.1" id="inputAreaTalhao" value="6.2" oninput="atualizarAreaTalhaoInput(this.value)">
+          <input type="number" id="inputAreaTalhao" readonly>
           <span>hectares</span>
         </div>
       </div>
@@ -1129,13 +1095,13 @@
       <div class="form-group">
         <label class="form-label">Histórico do talhão</label>
         <div class="form-input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="abrirModalHistorico()">
-          <span id="labelHistoricoTalhao">Mandioca há 10 meses; antes, pousio.</span>
+          <span id="labelHistoricoTalhao">Informar histórico</span>
           <span style="color: var(--accent-lime); font-weight: 700;"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#pencil"></use></svg></span>
         </div>
       </div>
 
       <div style="font-size: 11.5px; color: var(--primary-dark); font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-        <span><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></span> <span id="labelContagemCulturas">3 culturas selecionadas para o Talhão 1</span>
+        <span><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#check"></use></svg></span> <span id="labelContagemCulturas"></span>
       </div>
 
       <button class="btn-primary" onclick="irParaEtapa(6)">Analisar condições da área →</button>
@@ -1148,7 +1114,8 @@
       <h2 class="screen-heading">Condições da sua área</h2>
       <p class="screen-subheading">Traduzimos dados ambientais para uma leitura simples.</p>
 
-      <div class="hero-metric-card" role="status" data-diagnostico>Consulte pelo CAR</div>
+      <select class="form-input" data-talhao-diagnostico aria-label="Talhão para diagnóstico" onchange="selecionarTalhaoNoMapa(this.value)" hidden></select>
+      <div class="hero-metric-card" role="status" data-diagnostico>Consultando dados…</div>
 
       <!-- Grid 2x3 de Parâmetros -->
       <div class="diag-grid-6">
@@ -1241,18 +1208,14 @@
       <!-- Seleção do Talhão -->
       <div class="form-group">
         <label class="form-label">Talhão a simular:</label>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="simTalhaoSelector">
-          <div class="pill-tab active" id="pillSimT1" onclick="selecionarTalhaoSimulacao('T1')">Talhão 1</div>
-          <div class="pill-tab" id="pillSimT2" onclick="selecionarTalhaoSimulacao('T2')">Talhão 2</div>
-          <div class="pill-tab" id="pillSimT3" onclick="selecionarTalhaoSimulacao('T3')">Talhão 3</div>
-        </div>
+        <div class="talhao-pills" id="simTalhaoSelector"></div>
       </div>
 
       <!-- Cultura de Partida -->
       <div class="form-group">
         <label class="form-label">Cultura de partida (safra atual deste talhão):</label>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="simCulturaPartidaGrid">
-          <button type="button" class="pill-btn crop-choice active" aria-pressed="true" data-crop-choice="mandioca" id="btnSimCropMandioca" onclick="selecionarCulturaPartidaSim('mandioca')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#sprout"></use></svg> Mandioca</button>
+          <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="mandioca" id="btnSimCropMandioca" onclick="selecionarCulturaPartidaSim('mandioca')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#sprout"></use></svg> Mandioca</button>
           <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="milho" id="btnSimCropMilho" onclick="selecionarCulturaPartidaSim('milho')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#corn"></use></svg> Milho</button>
           <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="feijao_caupi" id="btnSimCropCaupi" onclick="selecionarCulturaPartidaSim('feijao_caupi')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#bean"></use></svg> Caupi</button>
         </div>
@@ -1331,11 +1294,11 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
         <div style="font-size: 11.5px; color: #166534;">
           <strong>Sua simulação</strong><br>
-          <span id="labelResumoSimulacao" style="color: #4B5563;">3 anos · Talhão 1 (6.2 ha) · Foco em saúde do solo</span>
+          <span id="labelResumoSimulacao" style="color: #4B5563;"></span>
         </div>
       </div>
 
-      <button class="btn-primary" onclick="irParaEtapa(8)">Gerar recomendação <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#refresh-cw"></use></svg></button>
+      <button class="btn-primary" id="runRotation" onclick="irParaEtapa(8)">Gerar recomendação <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#refresh-cw"></use></svg></button>
     </section>
 
     <!-- ======================================================== -->
@@ -1463,7 +1426,8 @@
         <div class="sheet-body">
           <!-- 1. DIAGNÓSTICO -->
           <div id="tabContentDiag">
-            <div class="hero-metric-card" role="status" data-diagnostico>Consulte pelo CAR</div>
+            <select class="form-input" data-talhao-diagnostico aria-label="Talhão para diagnóstico" onchange="selecionarTalhaoNoMapa(this.value)" hidden></select>
+            <div class="hero-metric-card" role="status" data-diagnostico>Consultando dados…</div>
 
             <div class="diag-grid-6">
               <div class="diag-box" onclick="abrirModalNotificacao('chuva')">
@@ -1501,7 +1465,7 @@
             <div class="form-group">
               <label class="form-label">Cultura Principal da sua Terra (Cultura X):</label>
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="gridCulturaX">
-                <button type="button" class="pill-btn crop-choice active" aria-pressed="true" data-crop-choice="milho" onclick="selecionarCulturaPrimaria('milho')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#corn"></use></svg> Milho</button>
+                <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="milho" onclick="selecionarCulturaPrimaria('milho')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#corn"></use></svg> Milho</button>
                 <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="mandioca" onclick="selecionarCulturaPrimaria('mandioca')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#sprout"></use></svg> Mandioca</button>
                 <button type="button" class="pill-btn crop-choice" aria-pressed="false" data-crop-choice="feijao_caupi" onclick="selecionarCulturaPrimaria('feijao_caupi')"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#bean"></use></svg> Caupi</button>
               </div>
@@ -1531,7 +1495,7 @@
               </div>
             </div>
 
-            <button class="btn-primary" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo de Estratégias <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#scale"></use></svg></button>
+            <button class="btn-primary" id="runHubRotation" onclick="executarComparativoTriplo()">Gerar Comparativo Triplo de Estratégias <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#scale"></use></svg></button>
           </div>
 
           <!-- 3. COMPARATIVO TRIPLO (NASA SPACE APPS 2026) -->
@@ -1607,17 +1571,11 @@
     let diagnosticoAtual = null;
     const camadasMapa = new WeakMap();
     let imagemMapa = null;
-    let dadosPropriedade = {
-      cod_car: "",
-      talhoes: {
-        "T1": { nome: "Talhão 1", area: 6.2, culturas: ["mandioca", "milho", "feijao_caupi"], historico: "Mandioca há 10 meses; antes, pousio." },
-        "T2": { nome: "Talhão 2", area: 5.0, culturas: ["milho"], historico: "Pousio 4 meses; antes, feijão." },
-        "T3": { nome: "Talhão 3", area: 5.8, culturas: ["feijao_caupi"], historico: "Caupi safra passada." }
-      }
-    };
-    let talhaoSelecionado = 'T1';
+    const dadosPropriedade = {cod_car: "", talhoes: {}};
     const coresTalhoes = {T1: '#d9f99d', T2: '#fde047', T3: '#5eead4'};
-    const areasManuais = Object.fromEntries(Object.entries(dadosPropriedade.talhoes).map(([id, plot]) => [id, plot.area]));
+    const culturasSimulaveis = ['mandioca', 'milho', 'feijao_caupi'];
+    let talhaoSelecionado = null;
+    let requisicaoDiagnostico = 0;
     const desenhosDaSessao = new Map();
     const camadasTalhoes = new WeakMap();
     let desenhosTalhoes = recuperarDesenhosTalhoes("");
@@ -1650,10 +1608,11 @@
     // Modal: Histórico do Talhão
     function abrirModalHistorico() {
       const t = dadosPropriedade.talhoes[talhaoSelecionado];
+      if (!t) return;
       const html = `
         <div class="form-group">
           <label class="form-label">Histórico Agronômico (${t.nome}):</label>
-          <textarea class="form-input" id="modHistoricoTxt" rows="3">${t.historico}</textarea>
+          <textarea class="form-input" id="modHistoricoTxt" rows="3"></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Adicionar Safra / Prática Passada:</label>
@@ -1675,43 +1634,10 @@
         onConfirmar: () => {
           const txt = document.getElementById('modHistoricoTxt').value;
           t.historico = txt;
-          t.historico_customizado = true;
           sincronizarUiTalhao(talhaoSelecionado);
         }
       });
-    }
-
-    // Modal: Ajuste de Talhões
-    function abrirModalAjustarTalhoes() {
-      const html = `
-        <div class="form-group">
-          <label class="form-label">Área do Talhão 1 (ha):</label>
-          <input type="number" step="0.1" class="form-input" id="modAreaT1" value="${dadosPropriedade.talhoes.T1.area}" ${desenhosTalhoes.T1 ? "readonly" : ""}>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Área do Talhão 2 (ha):</label>
-          <input type="number" step="0.1" class="form-input" id="modAreaT2" value="${dadosPropriedade.talhoes.T2.area}" ${desenhosTalhoes.T2 ? "readonly" : ""}>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Área do Talhão 3 (ha):</label>
-          <input type="number" step="0.1" class="form-input" id="modAreaT3" value="${dadosPropriedade.talhoes.T3.area}" ${desenhosTalhoes.T3 ? "readonly" : ""}>
-        </div>
-        <p style="font-size:11px; color:var(--text-muted);">Área consolidada total: <strong>${(dadosPropriedade.talhoes.T1.area + dadosPropriedade.talhoes.T2.area + dadosPropriedade.talhoes.T3.area).toFixed(1)} ha</strong></p>
-      `;
-
-      abrirModal({
-        titulo: "Delimitação dos Talhões",
-        subtitulo: "Ajuste os hectares de cada área interna",
-        htmlConteudo: html,
-        textoBotao: "Salvar Delimitação",
-        onConfirmar: () => {
-          for (const id of Object.keys(dadosPropriedade.talhoes)) {
-            const area = document.getElementById('modArea' + id).valueAsNumber;
-            if (!desenhosTalhoes[id] && Number.isFinite(area) && area >= 0) areasManuais[id] = area;
-          }
-          sincronizarAreasDesenhadas();
-        }
-      });
+      document.getElementById("modHistoricoTxt").value = t.historico;
     }
 
     // Modal: Busca no SICAR
@@ -1741,6 +1667,7 @@
               if (dadosPropriedade.cod_car !== data.cod_imovel) {
                 encerrarDesenhoTalhao();
                 desenhosTalhoes = recuperarDesenhosTalhoes(data.cod_imovel);
+                dadosPropriedade.talhoes = {};
               }
               perimetroCar = data.geojson;
               dadosPropriedade.cod_car = data.cod_imovel;
@@ -1871,6 +1798,11 @@
     // NAVEGAÇÃO DE ETAPAS (1 A 9)
     // ========================================================
     function irParaEtapa(numero) {
+      if (numero >= 5 && !Object.keys(desenhosTalhoes).length) {
+        avisoDesenho("Desenhe e salve um talhão para continuar.", true);
+        return;
+      }
+      if (numero >= 5) garantirTalhaoSelecionado();
       if (numero !== 4 && rascunhoTalhao) encerrarDesenhoTalhao();
       etapaAtual = numero;
 
@@ -1924,7 +1856,7 @@
         setTimeout(initMapEtapa4, 150);
       }
       if (numero === 5) {
-        sincronizarUiTalhao(talhaoSelecionado || 'T1');
+        sincronizarUiTalhao(talhaoSelecionado);
       }
       if (numero === 6) {
         carregarDiagnostico();
@@ -2139,28 +2071,64 @@
       return desenhos;
     }
 
-    function sincronizarAreasDesenhadas() {
-      for (const [id, plot] of Object.entries(dadosPropriedade.talhoes)) {
-        plot.area = desenhosTalhoes[id]?.area_ha ?? areasManuais[id];
-        document.getElementById('area' + id + 'Visual').textContent = formatarHectares(plot.area);
+    function garantirTalhaoSelecionado() {
+      if (!desenhosTalhoes[talhaoSelecionado]) {
+        talhaoSelecionado = Object.keys(desenhosTalhoes).sort()[0] || null;
       }
+    }
+
+    function renderizarSeletoresTalhoes() {
+      for (const id of ['savedPlots', 'culturePlotSelector', 'simTalhaoSelector']) {
+        const container = document.getElementById(id);
+        container.replaceChildren();
+        for (const [tid, plot] of Object.entries(dadosPropriedade.talhoes).sort()) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'pill-tab';
+          button.classList.toggle('active', tid === talhaoSelecionado);
+          button.setAttribute('aria-pressed', tid === talhaoSelecionado);
+          button.textContent = id === 'culturePlotSelector' ? plot.nome : plot.nome + ' · ' + formatarHectares(plot.area);
+          button.onclick = () => selecionarTalhaoNoMapa(tid);
+          container.append(button);
+        }
+      }
+      document.querySelectorAll('[data-talhao-diagnostico]').forEach(select => {
+        select.replaceChildren();
+        const plots = Object.entries(dadosPropriedade.talhoes).sort();
+        for (const [id, plot] of plots) {
+          select.add(new Option(plot.nome, id, false, id === talhaoSelecionado));
+        }
+        select.hidden = plots.length < 2;
+      });
+    }
+
+    function sincronizarAreasDesenhadas() {
+      dadosPropriedade.talhoes = Object.fromEntries(Object.entries(desenhosTalhoes).map(([id, plot]) => {
+        const previous = dadosPropriedade.talhoes[id];
+        return [id, {...(previous || {nome: 'Talhão ' + id.slice(1), culturas: [], historico: ''}), area: plot.area_ha}];
+      }));
+      garantirTalhaoSelecionado();
       sincronizarUiTalhao(talhaoSelecionado);
+      sincronizarTelaSimulacao();
       atualizarControlesDesenho();
       [mapaEtapa4, hubMap].filter(Boolean).forEach(renderizarTalhoesNoMapa);
     }
 
     function selecionarTalhaoNoMapa(id, map) {
-      if (rascunhoTalhao) return;
+      if (rascunhoTalhao || (!desenhosTalhoes[id] && etapaAtual !== 4)) return;
       talhaoSelecionado = id;
-      document.getElementById('plotSelector').value = id;
-      sincronizarUiTalhao(id);
-      sincronizarTelaSimulacao();
+      if (desenhosTalhoes[id]) {
+        sincronizarUiTalhao(id);
+        sincronizarTelaSimulacao();
+      } else {
+        renderizarSeletoresTalhoes();
+      }
       atualizarControlesDesenho();
       [mapaEtapa4, hubMap].filter(Boolean).forEach(renderizarTalhoesNoMapa);
       if (map === hubMap && desenhosTalhoes[id]) {
-        document.getElementById('hubPlotSelection').textContent =
-          dadosPropriedade.talhoes[id].nome + " selecionado · " + formatarHectares(desenhosTalhoes[id].area_ha);
         navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1]);
+      } else if (etapaAtual === 6 || etapaAtual === 10 && document.getElementById('tabContentDiag').style.display !== 'none') {
+        carregarDiagnostico();
       }
     }
 
@@ -2192,8 +2160,8 @@
 
     function atualizarControlesDesenho() {
       const draft = rascunhoTalhao;
-      document.getElementById('plotContinue').disabled = Boolean(draft);
-      document.getElementById('plotSelector').value = talhaoSelecionado;
+      document.getElementById('plotContinue').disabled = Boolean(draft) || !Object.keys(desenhosTalhoes).length;
+      document.getElementById('plotSelector').value = talhaoSelecionado || 'T1';
       document.getElementById('plotSelector').disabled = Boolean(draft);
       const start = document.getElementById('plotStart');
       start.disabled = !mapaEtapa4;
@@ -2213,6 +2181,7 @@
 
     function iniciarDesenhoTalhao() {
       if (!mapaEtapa4 || rascunhoTalhao) return;
+      talhaoSelecionado = document.getElementById('plotSelector').value;
       const desenho = desenhosTalhoes[talhaoSelecionado];
       rascunhoTalhao = {
         id: talhaoSelecionado, pontos: desenho?.contorno.slice(0, -1) || [],
@@ -2260,7 +2229,7 @@
       }
       atualizarControlesDesenho();
       if (mapaEtapa4) renderizarTalhoesNoMapa(mapaEtapa4);
-      avisoDesenho("Os desenhos ficam nesta aba.");
+      avisoDesenho(Object.keys(desenhosTalhoes).length ? "Os desenhos ficam nesta aba." : "Desenhe e salve um talhão para continuar.");
     }
 
     function areaPreviaTalhao(points) {
@@ -2302,6 +2271,7 @@
 
     function confirmarDesenhoTalhao(draft, contorno, area) {
       desenhosTalhoes[draft.id] = {contorno, area_ha: area};
+      talhaoSelecionado = draft.id;
       try {
         sessionStorage.setItem("crop-rotation:talhoes:" + dadosPropriedade.cod_car, JSON.stringify(desenhosTalhoes));
       } catch (error) {
@@ -2351,37 +2321,10 @@
       }
     }
 
-    const NOMES_CULTURAS = {
-      mandioca: "Mandioca",
-      milho: "Milho",
-      feijao_caupi: "Feijão-caupi",
-      banana: "Banana",
-      arroz: "Arroz",
-      hortalicas: "Hortaliças"
-    };
-
-    function formatarListaCulturas(culturas) {
-      if (!culturas || culturas.length === 0) return "Nenhuma cultura";
-      const nomes = culturas.map(c => NOMES_CULTURAS[c] || c);
-      if (nomes.length === 1) return nomes[0];
-      if (nomes.length === 2) return `${nomes[0]} e ${nomes[1]}`;
-      return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`;
-    }
-
     // Sincroniza a interface do talhão garantindo que cada um tenha culturas, histórico e área 100% independentes
     function sincronizarUiTalhao(tid) {
       const t = dadosPropriedade.talhoes[tid];
       if (!t) return;
-
-      // 1. Atualiza abas de talhões
-      document.querySelectorAll('.talhao-pills .pill-tab').forEach((btn, idx) => {
-        const ids = ['T1', 'T2', 'T3'];
-        if (ids[idx] === tid) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
 
       // 2. Atualiza a grid de badges para refletir APENAS as culturas deste talhão
       document.querySelectorAll('#cropGridEtapa5 .crop-badge-card').forEach(card => {
@@ -2412,30 +2355,12 @@
         }
       }
 
-      // 5. Atualiza o histórico do talhão dinamicamente
-      const histEl = document.getElementById('labelHistoricoTalhao');
-      if (histEl) {
-        if (t.historico_customizado && t.historico) {
-          histEl.innerText = t.historico;
-        } else {
-          const cultStr = formatarListaCulturas(t.culturas);
-          const histDinamico = (t.culturas && t.culturas.length > 0)
-            ? `${cultStr} em cultivo; antes, pousio.`
-            : `Talhão em repouso / pousio anterior.`;
-          t.historico = histDinamico;
-          histEl.innerText = histDinamico;
-        }
-      }
-    }
-
-    function selecionarTalhaoPill(tid, btn) {
-      talhaoSelecionado = tid;
-      sincronizarUiTalhao(tid);
+      document.getElementById('labelHistoricoTalhao').textContent = t.historico || "Informar histórico";
     }
 
     function alternarCulturaBadge(cultura) {
       const t = dadosPropriedade.talhoes[talhaoSelecionado];
-      if (!t.culturas) t.culturas = [];
+      if (!t) return;
 
       const idx = t.culturas.indexOf(cultura);
       if (idx > -1) {
@@ -2444,17 +2369,7 @@
         t.culturas.push(cultura);
       }
 
-      // Ao modificar uma cultura, atualiza imediatamente o histórico e o resumo
-      t.historico_customizado = false;
       sincronizarUiTalhao(talhaoSelecionado);
-    }
-
-    function atualizarAreaTalhaoInput(val) {
-      if (desenhosTalhoes[talhaoSelecionado]) return;
-      const area = Math.max(0, parseFloat(val) || 0);
-      areasManuais[talhaoSelecionado] = area;
-      dadosPropriedade.talhoes[talhaoSelecionado].area = area;
-      document.getElementById('area' + talhaoSelecionado + 'Visual').textContent = formatarHectares(area);
     }
 
     function continuarEtapa3Para4() {
@@ -2464,51 +2379,24 @@
     // Seleção de Objetivos e Período na Etapa 7
         // Configuração Reativa de Simulação de Rotação
     let simulacaoConfig = {
-      talhaoId: "T1",
-      culturaPartida: "mandioca",
+      talhaoId: null,
+      culturaPartida: null,
       objetivo: "saude_solo",
       periodo: 3,
       culturasComparar: ["feijao_caupi", "milho", "mandioca"]
     };
 
     function sincronizarTelaSimulacao() {
-      const tid = talhaoSelecionado || 'T1';
-      simulacaoConfig.talhaoId = tid;
-
-      // 1. Atualiza abas dos talhões na tela 7 com nomes e áreas reais da propriedade
-      ['T1', 'T2', 'T3'].forEach(id => {
-        const pill = document.getElementById(`pillSim${id}`);
-        const t = dadosPropriedade.talhoes[id];
-        if (pill) {
-          pill.innerText = `${t ? t.nome : 'Talhão ' + id.replace('T','')} (${t ? t.area : 5} ha)`;
-          if (id === tid) {
-            pill.classList.add('active');
-            pill.style.borderColor = 'var(--accent-lime)';
-            pill.style.background = '#ECFCCB';
-            pill.style.color = '#365314';
-          } else {
-            pill.classList.remove('active');
-            pill.style.borderColor = 'var(--border-soft)';
-            pill.style.background = 'var(--surface-white)';
-            pill.style.color = 'var(--text-muted)';
-          }
-        }
-      });
-
-      // 2. Cultura de Partida derivada diretamente do que o produtor definiu no talhão
-      const t = dadosPropriedade.talhoes[tid];
-      let culturaAtual = "mandioca";
-      if (t && t.culturas && t.culturas.length > 0) {
-        culturaAtual = t.culturas[0];
-      }
-      simulacaoConfig.culturaPartida = culturaAtual;
-      sincronizarBotoesCulturaPartida(culturaAtual);
-
-      // 3. Renderiza culturas do pool de rotação sem valores estáticos hardcoded
+      const plot = dadosPropriedade.talhoes[talhaoSelecionado];
+      simulacaoConfig.talhaoId = plot ? talhaoSelecionado : null;
+      simulacaoConfig.culturaPartida = plot?.culturaPartida ??
+        plot?.culturas.find(crop => culturasSimulaveis.includes(crop)) ?? null;
+      renderizarSeletoresTalhoes();
+      sincronizarBotoesCulturaPartida(simulacaoConfig.culturaPartida);
       renderizarCulturasComparacao();
-
-      // 4. Atualiza resumo dinâmico
       atualizarResumoSimulacao();
+      document.getElementById('hubPlotSelection').textContent =
+        plot ? plot.nome + ' selecionado · ' + formatarHectares(plot.area) : '';
     }
 
     function sincronizarBotoesCulturaPartida(crop) {
@@ -2519,13 +2407,10 @@
       });
     }
 
-    function selecionarTalhaoSimulacao(tid) {
-      talhaoSelecionado = tid;
-      simulacaoConfig.talhaoId = tid;
-      sincronizarTelaSimulacao();
-    }
-
     function selecionarCulturaPartidaSim(crop) {
+      const plot = dadosPropriedade.talhoes[simulacaoConfig.talhaoId];
+      if (!plot) return;
+      plot.culturaPartida = crop;
       simulacaoConfig.culturaPartida = crop;
       sincronizarBotoesCulturaPartida(crop);
       renderizarCulturasComparacao();
@@ -2566,14 +2451,20 @@
     }
 
     function atualizarResumoSimulacao() {
-      const t = dadosPropriedade.talhoes[simulacaoConfig.talhaoId] || { nome: "Talhão 1", area: 6.2 };
+      const t = dadosPropriedade.talhoes[simulacaoConfig.talhaoId];
       const objNomes = {
         "saude_solo": "saúde do solo e palhada",
         "renda": "diversificação de renda",
         "clima": "redução de riscos climáticos"
       };
       const label = document.getElementById('labelResumoSimulacao');
+      const podeSimular = Boolean(t && simulacaoConfig.culturaPartida);
+      for (const id of ['runRotation', 'runHubRotation']) document.getElementById(id).disabled = !podeSimular;
       if (label) {
+        if (!podeSimular) {
+          label.textContent = t ? "Selecione a cultura de partida." : "Desenhe um talhão para simular.";
+          return;
+        }
         label.innerText = `${simulacaoConfig.periodo} anos · ${t.nome} (${t.area} ha) · foco em ${objNomes[simulacaoConfig.objetivo] || "saúde do solo"}`;
       }
     }
@@ -2636,6 +2527,12 @@
 
     // Abertura do Hub Principal (Mapa Completo com Bottom Sheet)
     function concluirCadastroEAbrirHub() {
+      garantirTalhaoSelecionado();
+      if (!talhaoSelecionado) {
+        irParaEtapa(4);
+        return;
+      }
+      sincronizarTelaSimulacao();
       etapaAtual = 10;
       for (let i = 1; i <= 9; i++) {
         const sc = document.getElementById(`screen${i}`);
@@ -2646,9 +2543,8 @@
       document.getElementById('topHeaderTitle').innerText = "Hub do produtor";
 
       setTimeout(initHubMap, 150);
-      carregarDiagnostico();
+      navegarHubTab('diag', document.querySelector('.tab-btn'));
       carregarAgenda();
-      executarComparativoTriplo();
     }
 
     function initHubMap() {
@@ -2672,6 +2568,7 @@
         if (el) el.style.display = (t === tabId) ? 'block' : 'none';
       });
 
+      if (tabId === 'diag') carregarDiagnostico();
       if (tabId === 'sim') {
         sincronizarTelaSimulacao();
       }
@@ -2682,35 +2579,37 @@
 
     // Carregamento de Dados da API
     async function carregarDiagnostico() {
-      const car = dadosPropriedade.cod_car;
+      const request = ++requisicaoDiagnostico;
+      const id = talhaoSelecionado;
+      const plot = desenhosTalhoes[id];
+      const label = dadosPropriedade.talhoes[id]?.nome;
       const messages = document.querySelectorAll('[data-diagnostico]');
-      let message = "Localize a propriedade pelo CAR para consultar os dados.";
       diagnosticoAtual = null;
-      messages.forEach(el => el.textContent = car ? "Consultando dados…" : message);
+      messages.forEach(el => el.textContent = plot ? 'Consultando ' + label + '…' : "Desenhe e salve um talhão para consultar os dados.");
       const values = document.querySelectorAll('[data-medicao]');
       values.forEach(el => {
         el.textContent = "—";
         el.nextElementSibling.textContent = "";
       });
+      if (!plot) return;
 
-      if (car) {
-        try {
-          const resp = await enviarJson("/api/condicoes-completas", {car});
-          const data = await resp.json();
-          if (car !== dadosPropriedade.cod_car) return;
-          if (!resp.ok) throw new Error(data.error);
-          diagnosticoAtual = data;
-          message = data.condicao_geral;
-          values.forEach(el => {
-            const card = data.cards[el.dataset.medicao];
-            el.textContent = card.valor;
-            el.nextElementSibling.textContent = card.status;
-          });
-        } catch (e) {
-          message = e.message || "Diagnóstico indisponível.";
-        }
+      let message;
+      try {
+        const resp = await enviarJson("/api/condicoes-completas", {contorno: plot.contorno});
+        const data = await resp.json();
+        if (request !== requisicaoDiagnostico) return;
+        if (!resp.ok) throw new Error(data.error || "Diagnóstico indisponível.");
+        diagnosticoAtual = data;
+        message = data.condicao_geral;
+        values.forEach(el => {
+          const card = data.cards[el.dataset.medicao];
+          el.textContent = card.valor;
+          el.nextElementSibling.textContent = card.status;
+        });
+      } catch (e) {
+        message = e.message || "Diagnóstico indisponível.";
       }
-      if (car === dadosPropriedade.cod_car) messages.forEach(el => el.textContent = message);
+      if (request === requisicaoDiagnostico) messages.forEach(el => el.textContent = label + ' · ' + message);
     }
 
     async function carregarAgenda() {
@@ -2752,9 +2651,7 @@
     }
 
     function selecionarCulturaPrimaria(cultura) {
-      simulacaoConfig.culturaPartida = cultura;
-      sincronizarBotoesCulturaPartida(cultura);
-      atualizarResumoSimulacao();
+      selecionarCulturaPartidaSim(cultura);
     }
 
     // Executar Simulação da Etapa 8 (Rotação recomendada dinâmica)
@@ -2762,6 +2659,7 @@
       planoAtual = null;
       const talhaoId = simulacaoConfig.talhaoId;
       const t = dadosPropriedade.talhoes[talhaoId];
+      if (!t || !simulacaoConfig.culturaPartida) return;
       
       const sub = document.getElementById('screen8Subheading');
       if (sub) sub.innerText = `Simulando a rotação para o ${t.nome}…`;
