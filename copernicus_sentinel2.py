@@ -102,9 +102,18 @@ function evaluatePixel(sample) {
 }
 """
 
+TRUE_COLOR_JPEG = """//VERSION=3
+function setup() {
+  return {input: ["B04", "B03", "B02"], output: {bands: 3}};
+}
+function evaluatePixel(sample) {
+  return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02];
+}
+"""
+
 
 @lru_cache(maxsize=24)
-def fetch_satellite_image(bounds, utc_day):
+def fetch_satellite_image(bounds, utc_day, image_type="image/png"):
     """Solicita uma imagem na projeção utilizada pelo mapa Leaflet."""
     if not CLIENT_ID or not CLIENT_SECRET:
         raise OSError("Credenciais CDSE ausentes")
@@ -127,15 +136,15 @@ def fetch_satellite_image(bounds, utc_day):
             }}],
         },
         "output": {"width": width, "height": height,
-                   "responses": [{"identifier": "default", "format": {"type": "image/png"}}]},
-        "evalscript": TRUE_COLOR_EVALSCRIPT,
+                   "responses": [{"identifier": "default", "format": {"type": image_type}}]},
+        "evalscript": TRUE_COLOR_EVALSCRIPT if image_type == "image/png" else TRUE_COLOR_JPEG,
     }
     request = urllib.request.Request(
         PROCESS_URL, data=json.dumps(payload).encode("utf-8"),
         headers={"Authorization": f"Bearer {get_access_token()}", "Content-Type": "application/json"},
     )
     with urlopen(request, timeout=15) as response:
-        if response.headers.get_content_type() != "image/png":
+        if response.headers.get_content_type() != image_type:
             raise OSError("Imagem Sentinel-2 inválida")
         scale = cos(radians((south + north) / 2))
         resolution = max(10, ceil(max(width_m / width, height_m / height) * scale))

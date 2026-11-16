@@ -39,6 +39,7 @@ STATIC_ASSETS = {
     "/assets/crop-rotation-logo.png": "image/png",
     "/assets/crop-rotation-icon.png": "image/png",
     "/assets/ui-icons.svg": "image/svg+xml",
+    "/assets/boa-vista-20261116.jpg": "image/jpeg",
 }
 
 def coordinates(lat, lon):
@@ -194,10 +195,10 @@ class AgroHandler(BaseHTTPRequestHandler):
         path = urllib.parse.urlsplit(self.path).path
         self.log_message("%s %s %s", self.command, path, code)
 
-    def _set_headers(self, status=200, content_type="application/json"):
+    def _set_headers(self, status=200, content_type="application/json", cache_control="no-store"):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", cache_control)
         self.send_header("Referrer-Policy", "no-referrer")
         self.end_headers()
 
@@ -236,7 +237,8 @@ class AgroHandler(BaseHTTPRequestHandler):
             except FileNotFoundError:
                 self._json(404, {"error": "Imagem indisponível."})
                 return
-            self._set_headers(200, STATIC_ASSETS[path])
+            policy = "public, max-age=604800, immutable" if path == "/assets/boa-vista-20261116.jpg" else "no-store"
+            self._set_headers(200, STATIC_ASSETS[path], policy)
             self.wfile.write(content)
             return
 
@@ -304,7 +306,7 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(400, {"error": "CAR e UF devem ser textos."})
             return
         if path == "/api/mapa-satelite":
-            self._satellite_map(params.get("car"), params.get("recorte"))
+            self._satellite_map(params.get("car"), params.get("recorte"), params.get("formato", "png"))
             return
         # 2. Endpoint: /api/demarcation (Busca por CAR ou Coordenada)
         if path == "/api/demarcation":
@@ -364,10 +366,13 @@ class AgroHandler(BaseHTTPRequestHandler):
             self._json(200, area_diagnosis(lat, lon, geometry, dict.fromkeys(crops)))
             return
 
-    def _satellite_map(self, car, recorte):
+    def _satellite_map(self, car, recorte, formato):
         # Vista pública de Boa Vista enquanto o usuário não informa um CAR.
         bounds = (-60.9, 2.6, -60.44, 3.04)
         try:
+            if formato not in ("jpeg", "png"):
+                raise ValueError("Formato de imagem inválido.")
+            image_type = "image/" + formato
             if recorte is not None:
                 if not isinstance(recorte, list) or len(recorte) != 4 or any(
                     type(value) not in (int, float) for value in recorte
@@ -387,7 +392,7 @@ class AgroHandler(BaseHTTPRequestHandler):
             west, south, east, north = bounds
             if not (-180 <= west < east <= 180 and -85 <= south < north <= 85):
                 raise ValueError("Limites inválidos para gerar a imagem.")
-            image, resolution = fetch_satellite_image(bounds, datetime.now(timezone.utc).date())
+            image, resolution = fetch_satellite_image(bounds, datetime.now(timezone.utc).date(), image_type)
         except ValueError as exc:
             self._json(400, {"error": str(exc)})
         except LookupError:
@@ -397,7 +402,7 @@ class AgroHandler(BaseHTTPRequestHandler):
         else:
             self._json(200, {
                 "bounds": [[south, west], [north, east]],
-                "image": "data:image/png;base64," + base64.b64encode(image).decode("ascii"),
+                "image": f"data:{image_type};base64," + base64.b64encode(image).decode("ascii"),
                 "resolucao_m": resolution,
             })
 

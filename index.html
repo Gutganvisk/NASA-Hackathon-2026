@@ -1889,6 +1889,7 @@
     let diagnosticoAtual = null;
     const camadasMapa = new WeakMap();
     let imagemMapa = null;
+    let imagemRegional = null;
     const dadosPropriedade = {cod_car: "", talhoes: {}};
     const coresTalhoes = {T1: '#d9f99d', T2: '#fde047', T3: '#5eead4'};
     const culturasSimulaveis = ['mandioca', 'milho', 'feijao_caupi'];
@@ -2349,13 +2350,31 @@
       return map;
     }
 
+    async function solicitarImagemMapa(payload) {
+      const response = await enviarJson('/api/mapa-satelite', {...payload, formato: 'jpeg'});
+      if (!response.ok) throw new Error("Imagem de satélite indisponível.");
+      return response.json();
+    }
+
     function consultarImagemMapa(car) {
+      if (!car) {
+        imagemRegional ??= fetch('/assets/boa-vista-20261116.jpg').then(async response => {
+          if (!response.ok) throw new Error("Imagem regional indisponível.");
+          return {
+            image: URL.createObjectURL(await response.blob()),
+            bounds: [[2.6, -60.9], [3.04, -60.44]],
+            resolucao_m: 80,
+            referencia: true
+          };
+        }).catch(() => solicitarImagemMapa({})).catch(error => {
+          imagemRegional = null;
+          throw error;
+        });
+        return imagemRegional;
+      }
       if (imagemMapa && imagemMapa.car === car) return imagemMapa.promise;
       const request = {car};
-      request.promise = enviarJson('/api/mapa-satelite', car ? {car} : {}).then(async response => {
-        if (!response.ok) throw new Error("Imagem de satélite indisponível.");
-        return response.json();
-      }).catch(error => {
+      request.promise = solicitarImagemMapa({car}).catch(error => {
         if (imagemMapa === request) imagemMapa = null;
         throw error;
       });
@@ -2391,7 +2410,7 @@
     async function atualizarDetalheMapa(map) {
       const container = map.getContainer();
       const layers = camadasMapa.get(map);
-      if (!layers || !container.clientWidth) return;
+      if (!layers?.baseStatus || !container.clientWidth) return;
       const status = document.getElementById(container.id + 'Status');
       const visible = map.getBounds();
       if (map.getZoom() < 14 || (layers.resolution <= 11 && layers.image.getBounds().contains(visible))) {
@@ -2412,9 +2431,7 @@
       const requested = L.latLngBounds([south, west], [north, east]);
       layers.pendingDetail = requested;
       try {
-        const response = await enviarJson('/api/mapa-satelite', {recorte: [west, south, east, north]});
-        if (!response.ok) return;
-        const result = await response.json();
+        const result = await solicitarImagemMapa({recorte: [west, south, east, north]});
         if (camadasMapa.get(map) !== layers || layers.pendingDetail !== requested || map.getZoom() < 14
             || !requested.intersects(map.getBounds())) return;
         if (layers.detail) map.removeLayer(layers.detail);
@@ -2460,14 +2477,16 @@
         if (camadasMapa.get(map) !== layers) return;
         layers.image = L.imageOverlay(result.image, result.bounds, {
           pane: 'tilePane',
-          attribution: 'Copernicus Sentinel-2',
+          attribution: result.referencia
+            ? '<abbr title="Contains modified Copernicus Sentinel data 2026">Copernicus Sentinel-2 (2026)</abbr>'
+            : 'Copernicus Sentinel-2',
           alt: car ? 'Imagem de satélite da área do CAR' : 'Imagem de satélite de Boa Vista'
         }).addTo(map);
         layers.resolution = result.resolucao_m;
         if (!layers.outline && !Object.keys(desenhosTalhoes).length && container.clientWidth && map.getZoom() === 10) {
           map.fitBounds(result.bounds, {padding: [8, 8], animate: false});
         }
-        layers.baseStatus = car ? "Perímetro do CAR" : "Boa Vista · visão regional";
+        layers.baseStatus = car ? "Perímetro do CAR" : result.referencia ? "Boa Vista · imagem de referência" : "Boa Vista · visão regional";
         if (!layers.detail) status.textContent = layers.baseStatus;
         atualizarDetalheMapa(map);
       } catch (error) {
