@@ -9,7 +9,7 @@ import os
 import sys
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from math import isfinite
 from statistics import mean
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -59,7 +59,37 @@ def recent_weather(lat, lon):
         return {}
 
 
-def area_diagnosis(lat, lon, geometry):
+def water_alerts(records, end_date, crops):
+    if not end_date or not crops:
+        return []
+
+    def root_wetness(day):
+        value = records.get(day.strftime("%Y%m%d"), {}).get("GWETROOT")
+        return value * 100 if value is not None and 0 <= value <= 1 else None
+
+    end = date.fromisoformat(end_date)
+    # Não inferir persistência em dados antigos ou com lacunas na sequência.
+    recent = [end - timedelta(days=offset) for offset in range(4)]
+    latest = next((day for day in recent if root_wetness(day) is not None), None)
+    if latest is None:
+        return []
+    samples = [root_wetness(latest - timedelta(days=offset)) for offset in range(3)]
+    if any(value is None for value in samples):
+        return []
+    alerts = []
+    for crop in crops:
+        passport = MATRIZ_PASSAPORTE.get(crop)
+        if passport and all(value < passport.smap_gwetroot_min_pct for value in samples):
+            alerts.append({
+                "cultura": passport.cultura,
+                "saturacao_recente_pct": round(samples[0], 1),
+                "ultima_leitura": latest.isoformat(),
+                "dias_consecutivos": len(samples),
+            })
+    return alerts
+
+
+def area_diagnosis(lat, lon, geometry, crops=()):
     with ThreadPoolExecutor(max_workers=2) as pool:
         weather_task = pool.submit(recent_weather, lat, lon)
         ndvi_task = pool.submit(calculate_ndvi_analysis, geometry) if geometry else None
@@ -112,6 +142,7 @@ def area_diagnosis(lat, lon, geometry):
         "periodo_power": {"inicio": weather.get("start_date"), "fim": weather.get("end_date")},
         "leitura_simples": "A chuva soma os dias disponíveis. A saturação vem de um modelo regional e o NDVI indica vigor da vegetação verde.",
         "cards": cards,
+        "alertas_hidricos": water_alerts(records, weather.get("end_date"), crops),
         "sentinel": ndvi or None,
     }
 
@@ -304,6 +335,9 @@ class AgroHandler(BaseHTTPRequestHandler):
         if path == "/api/condicoes-completas":
             try:
                 car = params.get("car")
+                crops = params.get("culturas", [])
+                if not isinstance(crops, list) or len(crops) > 6 or any(not isinstance(crop, str) for crop in crops):
+                    raise ValueError("Informe as culturas do talhão em uma lista.")
                 geometry = None
                 if "contorno" in params:
                     ring = parse_ring(params["contorno"])
@@ -327,7 +361,7 @@ class AgroHandler(BaseHTTPRequestHandler):
                 self._json(503, {"error": "Consulta de perímetro CAR indisponível."})
                 return
 
-            self._json(200, area_diagnosis(lat, lon, geometry))
+            self._json(200, area_diagnosis(lat, lon, geometry, dict.fromkeys(crops)))
             return
 
     def _satellite_map(self, car, recorte):

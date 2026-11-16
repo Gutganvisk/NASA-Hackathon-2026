@@ -48,6 +48,7 @@
       display: flex;
       justify-content: center;
       min-height: 100vh;
+      min-height: 100dvh;
       overflow-x: hidden;
     }
 
@@ -56,6 +57,7 @@
       width: 100%;
       max-width: 440px;
       min-height: 100vh;
+      min-height: 100dvh;
       background-color: var(--bg-page);
       position: relative;
       display: flex;
@@ -766,7 +768,8 @@
     /* HUB INTERATIVO PÓS-CADASTRO */
     #screenHub {
       position: relative;
-      height: 100vh;
+      height: calc(100vh - 62px);
+      height: calc(100dvh - 62px);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -816,17 +819,19 @@
       border-radius: 28px 28px 0 0;
       box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
       z-index: 600;
-      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
-      max-height: 85vh;
+      max-height: min(64%, 560px);
       display: flex;
       flex-direction: column;
     }
 
     .sheet-handle-area {
-      padding: 12px;
+      padding: 10px;
+      border: 0;
+      background: transparent;
+      flex-shrink: 0;
       display: flex;
       justify-content: center;
-      cursor: grab;
+      cursor: pointer;
     }
 
     .sheet-handle {
@@ -838,6 +843,7 @@
 
     .sheet-header-tabs {
       display: flex;
+      flex-shrink: 0;
       gap: 8px;
       padding: 0 16px 12px;
       border-bottom: 1px solid var(--border-soft);
@@ -861,10 +867,29 @@
     }
 
     .sheet-body {
-      padding: 16px 20px 30px;
+      padding: 12px 16px max(20px, env(safe-area-inset-bottom));
       overflow-y: auto;
+      overscroll-behavior: contain;
+      min-height: 0;
       flex: 1;
     }
+
+    .hub-water-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--warm-border);
+      border-radius: 12px;
+      background: var(--warm-bg);
+      color: #78350f;
+      font-size: 12px;
+    }
+
+    .hub-water-alert[hidden], .sheet-body[hidden] { display: none; }
+    .hub-water-alert p { margin-top: 3px; }
+
     @media (max-width: 359px) {
       .screen-content { padding-inline: 12px; }
       .crop-grid, .metric-triad, .diag-grid-6 { gap: 6px; }
@@ -1410,9 +1435,9 @@
 
       <!-- Bottom Sheet Deslizante -->
       <div class="bottom-sheet" id="bottomSheet">
-        <div class="sheet-handle-area" onclick="toggleBottomSheet()">
-          <div class="sheet-handle"></div>
-        </div>
+        <button type="button" class="sheet-handle-area" id="hubSheetToggle" aria-label="Recolher painel" aria-expanded="true" aria-controls="hubSheetBody" onclick="toggleBottomSheet()">
+          <span class="sheet-handle"></span>
+        </button>
 
         <!-- Abas de Navegação das Ações -->
         <div class="sheet-header-tabs">
@@ -1423,11 +1448,20 @@
           <button class="tab-btn" onclick="navegarHubTab('dossie', this)"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#clipboard-list"></use></svg> Plano</button>
         </div>
 
-        <div class="sheet-body">
+        <div class="sheet-body" id="hubSheetBody">
           <!-- 1. DIAGNÓSTICO -->
           <div id="tabContentDiag">
             <select class="form-input" data-talhao-diagnostico aria-label="Talhão para diagnóstico" onchange="selecionarTalhaoNoMapa(this.value)" hidden></select>
             <div class="hero-metric-card" role="status" data-diagnostico>Consultando dados…</div>
+
+            <aside id="hubWaterAlert" class="hub-water-alert" role="status" hidden>
+              <svg class="ui-icon" aria-hidden="true" focusable="false"><use href="/assets/ui-icons.svg#triangle-alert"></use></svg>
+              <div>
+                <strong>Possível falta de água</strong>
+                <p id="hubWaterAlertEvidence"></p>
+                <p>Estimativa regional. Confira a umidade no talhão antes de decidir se deve irrigar.</p>
+              </div>
+            </aside>
 
             <div class="diag-grid-6">
               <div class="diag-box" onclick="abrirModalNotificacao('chuva')" hidden>
@@ -1586,6 +1620,8 @@
     const culturasSimulaveis = ['mandioca', 'milho', 'feijao_caupi'];
     let talhaoSelecionado = null;
     let requisicaoDiagnostico = 0;
+    const diagnosticosEmMemoria = new Map();
+    let consultaAgenda = null;
     const desenhosDaSessao = new Map();
     const camadasTalhoes = new WeakMap();
     let desenhosTalhoes = recuperarDesenhosTalhoes("");
@@ -1911,6 +1947,7 @@
     }
 
     function inicializarMapa(id, map) {
+      if (!document.getElementById(id).clientWidth) return map;
       if (!window.L) {
         document.getElementById(id + 'Status').textContent = "Mapa indisponível. Recarregue a página.";
         return null;
@@ -1932,9 +1969,8 @@
       renderizarTalhoesNoMapa(map);
       const bounds = camadasTalhoes.get(map).getBounds();
       if (novo && bounds.isValid() && (id === 'hubMap' || !perimetroCar)) {
-        const sheet = document.getElementById('bottomSheet');
-        const bottomPadding = id === 'hubMap' ? Math.min(sheet.offsetHeight + 16, map.getSize().y * 0.7) : 24;
-        map.fitBounds(bounds, {paddingTopLeft: [24, 48], paddingBottomRight: [24, bottomPadding], maxZoom: 18});
+        const bottomPadding = id === 'hubMap' ? Math.min(map.getSize().y * 0.64, 560) + 16 : 24;
+        map.fitBounds(bounds, {paddingTopLeft: [24, 48], paddingBottomRight: [24, bottomPadding], maxZoom: 18, animate: false});
       }
       return map;
     }
@@ -2137,13 +2173,14 @@
       atualizarControlesDesenho();
       [mapaEtapa4, hubMap].filter(Boolean).forEach(renderizarTalhoesNoMapa);
       if (map === hubMap && desenhosTalhoes[id]) {
-        navegarHubTab('sim', document.querySelectorAll('.tab-btn')[1]);
+        navegarHubTab('diag', document.querySelector('.tab-btn'));
       } else if (etapaAtual === 6 || etapaAtual === 10 && document.getElementById('tabContentDiag').style.display !== 'none') {
         carregarDiagnostico();
       }
     }
 
     function renderizarTalhoesNoMapa(map) {
+      if (!map.getContainer().clientWidth) return;
       if (camadasTalhoes.has(map)) map.removeLayer(camadasTalhoes.get(map));
       const group = L.featureGroup().addTo(map);
       camadasTalhoes.set(map, group);
@@ -2553,39 +2590,83 @@
       document.getElementById('screenHub').style.display = 'flex';
       document.getElementById('topHeaderTitle').innerText = "Hub do produtor";
 
-      setTimeout(initHubMap, 150);
+      window.scrollTo(0, 0);
       navegarHubTab('diag', document.querySelector('.tab-btn'));
-      carregarAgenda();
+      requestAnimationFrame(() => {
+        if (etapaAtual === 10) initHubMap();
+      });
     }
 
     function initHubMap() {
       hubMap = inicializarMapa('hubMap', hubMap);
     }
 
-    let sheetExpanded = false;
+    function definirPainelHub(expanded) {
+      const toggle = document.getElementById('hubSheetToggle');
+      document.getElementById('hubSheetBody').hidden = !expanded;
+      toggle.setAttribute('aria-expanded', expanded);
+      toggle.setAttribute('aria-label', expanded ? 'Recolher painel' : 'Expandir painel');
+    }
+
     function toggleBottomSheet() {
-      sheetExpanded = !sheetExpanded;
-      const sheet = document.getElementById('bottomSheet');
-      sheet.style.transform = sheetExpanded ? 'translateY(0%)' : 'translateY(55%)';
+      definirPainelHub(document.getElementById('hubSheetBody').hidden);
     }
 
     function navegarHubTab(tabId, btn) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button === btn));
 
       const tabs = ['diag', 'sim', 'comp', 'agenda', 'dossie'];
       tabs.forEach(t => {
         const el = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        if (el) el.style.display = (t === tabId) ? 'block' : 'none';
+        el.style.display = t === tabId ? 'block' : 'none';
       });
 
+      definirPainelHub(true);
+      document.getElementById('hubSheetBody').scrollTop = 0;
       if (tabId === 'diag') carregarDiagnostico();
-      if (tabId === 'sim') {
-        sincronizarTelaSimulacao();
+      if (tabId === 'sim') sincronizarTelaSimulacao();
+      if (tabId === 'agenda') {
+        consultaAgenda ??= carregarAgenda().catch(() => {
+          document.getElementById('agendaLista').textContent = "Agenda indisponível.";
+          consultaAgenda = null;
+        });
       }
+    }
 
-      document.getElementById('bottomSheet').style.transform = 'translateY(0%)';
-      sheetExpanded = true;
+    function consultarDiagnostico(plot, cultures) {
+      const payload = {contorno: plot.contorno, culturas: cultures};
+      const key = JSON.stringify(payload);
+      const stored = diagnosticosEmMemoria.get(key);
+      if (stored && stored.expires > Date.now()) return stored.promise;
+
+      const entry = {expires: Date.now() + 5 * 60 * 1000};
+      entry.promise = enviarJson('/api/condicoes-completas', payload).then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Diagnóstico indisponível.");
+        if (data.status === 'unavailable' && diagnosticosEmMemoria.get(key) === entry) {
+          diagnosticosEmMemoria.delete(key);
+        }
+        return data;
+      }).catch(error => {
+        if (diagnosticosEmMemoria.get(key) === entry) diagnosticosEmMemoria.delete(key);
+        throw error;
+      });
+      diagnosticosEmMemoria.delete(key);
+      diagnosticosEmMemoria.set(key, entry);
+      if (diagnosticosEmMemoria.size > 12) diagnosticosEmMemoria.delete(diagnosticosEmMemoria.keys().next().value);
+      return entry.promise;
+    }
+
+    function mostrarAlertaHidrico(alerts, plotName) {
+      const banner = document.getElementById('hubWaterAlert');
+      banner.hidden = !alerts?.length;
+      if (!alerts?.length) return;
+      const {dias_consecutivos, saturacao_recente_pct, ultima_leitura} = alerts[0];
+      const crops = alerts.map(alert => alert.cultura).join(', ');
+      const date = ultima_leitura.split('-').reverse().join('/');
+      const percent = saturacao_recente_pct.toLocaleString('pt-BR');
+      document.getElementById('hubWaterAlertEvidence').textContent =
+        `${plotName} · ${crops}. A saturação radicular ficou abaixo do limiar indicativo por ${dias_consecutivos} dias. Último dado: ${percent}% em ${date}.`;
     }
 
     // Carregamento de Dados da API
@@ -2593,9 +2674,11 @@
       const request = ++requisicaoDiagnostico;
       const id = talhaoSelecionado;
       const plot = desenhosTalhoes[id];
-      const label = dadosPropriedade.talhoes[id]?.nome;
+      const metadata = dadosPropriedade.talhoes[id];
+      const label = metadata?.nome;
       const messages = document.querySelectorAll('[data-diagnostico]');
       diagnosticoAtual = null;
+      mostrarAlertaHidrico([]);
       messages.forEach(el => el.textContent = plot ? 'Consultando ' + label + '…' : "Desenhe e salve um talhão para consultar os dados.");
       const values = document.querySelectorAll('[data-medicao]');
       values.forEach(el => { el.closest(".diag-box").hidden = true; });
@@ -2603,12 +2686,12 @@
 
       let message;
       try {
-        const resp = await enviarJson("/api/condicoes-completas", {contorno: plot.contorno});
-        const data = await resp.json();
+        const cultures = (metadata?.culturas || []).filter(crop => culturasSimulaveis.includes(crop)).sort();
+        const data = await consultarDiagnostico(plot, cultures);
         if (request !== requisicaoDiagnostico) return;
-        if (!resp.ok) throw new Error(data.error || "Diagnóstico indisponível.");
         diagnosticoAtual = data;
         message = data.condicao_geral;
+        mostrarAlertaHidrico(data.alertas_hidricos, label);
         values.forEach(el => {
           const card = data.cards[el.dataset.medicao];
           if (!Number.isFinite(card?.medicao)) return;
@@ -2623,40 +2706,37 @@
     }
 
     async function carregarAgenda() {
-      try {
-        const resp = await fetch('/api/agenda-manejo');
-        const data = await resp.json();
-        const container = document.getElementById('agendaLista');
-        if (container && data.eventos_chave) {
-          container.innerHTML = "";
-          data.eventos_chave.forEach(ev => {
-            container.innerHTML += `
-              <div class="agenda-row" style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalLembrete('${ev.cultura}', '${ev.etapa}', '${ev.data_estimada}', '${(ev.orientacao || '').replace(/'/g, "\\'")}')">
-                <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
-                <div>
-                  <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa}</h4>
-                  <p style="font-size:11px; color:var(--text-muted); line-height:1.35;">${ev.orientacao}</p>
-                </div>
+      const resp = await fetch('/api/agenda-manejo');
+      if (!resp.ok) throw new Error("Agenda indisponível.");
+      const data = await resp.json();
+      const container = document.getElementById('agendaLista');
+      if (container && data.eventos_chave) {
+        container.innerHTML = "";
+        data.eventos_chave.forEach(ev => {
+          container.innerHTML += `
+            <div class="agenda-row" style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); cursor:pointer;" onclick="abrirModalLembrete('${ev.cultura}', '${ev.etapa}', '${ev.data_estimada}', '${(ev.orientacao || '').replace(/'/g, "\\'")}')">
+              <div style="min-width:65px; font-size:11px; font-weight:800; color:var(--primary-dark);">${ev.data_estimada}</div>
+              <div>
+                <h4 style="font-size:12.5px; font-weight:700;">${ev.cultura} - ${ev.etapa}</h4>
+                <p style="font-size:11px; color:var(--text-muted); line-height:1.35;">${ev.orientacao}</p>
               </div>
-            `;
-          });
-          for (const aviso of data.avisos_agronomicos || []) {
-            const note = document.createElement('p');
-            note.textContent = aviso;
-            container.append(note);
-          }
-          for (const fonte of data.fontes || []) {
-            const link = document.createElement('a');
-            link.href = fonte.url;
-            link.target = "_blank";
-            link.rel = "noopener";
-            link.textContent = fonte.nome;
-            link.style.display = "block";
-            container.append(link);
-          }
+            </div>
+          `;
+        });
+        for (const aviso of data.avisos_agronomicos || []) {
+          const note = document.createElement('p');
+          note.textContent = aviso;
+          container.append(note);
         }
-      } catch (e) {
-        document.getElementById('agendaLista').textContent = "Agenda indisponível.";
+        for (const fonte of data.fontes || []) {
+          const link = document.createElement('a');
+          link.href = fonte.url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.textContent = fonte.nome;
+          link.style.display = "block";
+          container.append(link);
+        }
       }
     }
 
